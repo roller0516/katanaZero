@@ -25,6 +25,7 @@ using namespace std;
 #define ASTARSIZE_X	1620
 #define ASTARSIZE_Y	900
 
+#define Gravity			9.8f
 #define PI			3.141592f
 #define DegToRad(x)	((x) * PI / 180.0f)
 #define SAFE_DELETE(p) { if (p) { delete p; p = nullptr; } }

@@ -39,7 +39,9 @@ HRESULT Player::Init()
 	isMove = false;
 	isAlive = true;
 	isDying = false;
-
+	isGround = true;
+	jumpHeight = 0.0f;
+	velocity = 300.0f;
 	return S_OK;
 }
 
@@ -50,14 +52,19 @@ void Player::Release()
 void Player::Update()
 {
 	//COLORREF GetPixel(HDC hdc, int nXPos, int nYPos);
+
 	
 	if (isMove == false && framRun == false && isAttack ==false)
 	{
 		Animation(PlayerState::idle,true);
 	}
 
+	
+
 	Move();
 	Attack();
+	Jumping();
+
 	currFrame += TimerManager::GetSingleton()->GetElapsedTime()*15;
 	if (currFrame > maxFrame)
 	{
@@ -73,10 +80,9 @@ void Player::Update()
 
 void Player::Render(HDC hdc)
 {
-	RenderEllipseToCenter(hdc, currPos.x, currPos.y,400,400);
 	if (image)
 	{
-		image->FrameRender(hdc, pos.x, pos.y, currFrame, 0, true);
+		image->FrameRender(hdc, WINSIZE_X / 2, WINSIZE_Y / 2 + jumpHeight, currFrame, 0, true);
 		/*image->AlphaRender(hdc, pos.x, pos.y, true);*/
 		//image->Render(hdc, pos.x, pos.y, true);
 	}
@@ -84,7 +90,16 @@ void Player::Render(HDC hdc)
 
 void Player::Jumping()
 {
+	if (isGround) return;
 
+	if (velocity <= -300.0f)
+	{
+		velocity = 300.0f;
+		isGround = true;
+		jumpHeight = 0.0f;
+	}
+	jumpHeight -= velocity * TimerManager::GetSingleton()->GetElapsedTime();
+	velocity -= Gravity * 0.2f;
 }
 
 void Player::Move()
@@ -99,12 +114,9 @@ void Player::Move()
 		{
 			pos.x += moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
 			isMove = true;
+			
 		}
-		else if (KeyManager::GetSingleton()->IsStayKeyDown('W')) // 위
-		{
-			pos.y -= moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
-			isMove = true;
-		}
+		
 		else if (KeyManager::GetSingleton()->IsStayKeyDown('S')) // 아래
 		{
 			pos.y += moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
@@ -122,6 +134,12 @@ void Player::Move()
 			isMove = false;
 			tick = 0;
 		}
+
+		if (KeyManager::GetSingleton()->IsStayKeyDown('W')) // 위
+		{
+			isGround = false;
+		}
+
 		if(isAttack==false)
 			Animation(PlayerState::run, true);
 	}
@@ -129,6 +147,7 @@ void Player::Move()
 
 void Player::Attack()
 {
+	float range = 300;
 	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON)&& isAttack == false)
 	{
 		isAttack = true;
@@ -138,15 +157,18 @@ void Player::Attack()
 		currPos.x = pos.x;
 		currPos.y = pos.y;
 	}
-	float range = 200;
 	if (isAttack)
 	{
 		float x = mousPos.x - pos.x;
 		float y = mousPos.y - pos.y;
 
 		angle = atan2(y, x);
-		pos.x += cosf(angle) * 1000 * TimerManager::GetSingleton()->GetElapsedTime();
-		pos.y += sinf(angle) * 1000 * TimerManager::GetSingleton()->GetElapsedTime();
+
+		if (sqrtf(pow(pos.x - currPos.x, 2) + pow(pos.y - currPos.y, 2)) <= range)
+		{
+			pos.x += cosf(angle) * 2000 * TimerManager::GetSingleton()->GetElapsedTime();
+			pos.y += sinf(angle) * 2000 * TimerManager::GetSingleton()->GetElapsedTime();
+		}
 	}
 }
 
@@ -157,7 +179,6 @@ void Player::OnDead()
 		BLENDFUNCTION* blendFunc = image->GetBlendFunc();
 
 		if (blendFunc->SourceConstantAlpha > 120)
-		//if (blendFunc->SourceConstantAlpha < 255)
 		{
 			blendFunc->SourceConstantAlpha--;
 		}

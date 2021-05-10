@@ -14,7 +14,6 @@ inline float GetAngle(FPOINT pos, FPOINT targetPos)
 
 	return angle;
 }
-
 // 네모를 그리는 함수
 inline void RenderRect(HDC hdc, int x, int y, int width, int height)
 {

@@ -146,6 +146,45 @@ void Image::Render(HDC hdc, int destX, int destY, bool isCenterRenderring)
 
   
 }
+void Image::CameraRender(HDC hdc, float destX, float destY, int width, int height, bool isCenterRenderring)
+{
+    float x = destX;
+    float y = destY;
+    /*if (isCenterRenderring)
+    {
+        x = destX - (imageInfo->width / 2);
+        y = destY - (imageInfo->height / 2);
+    }*/
+
+    if (isTransparent)
+    {
+        // 특정 색상을 빼고 복사하는 함수
+        GdiTransparentBlt(
+            hdc,
+            0, 0,
+            width, height,
+            imageInfo->hMemDC,
+            x - WINSIZE_X / 2, y - WINSIZE_Y / 2,
+            width, height,
+            transColor
+        );
+    }
+    else
+    {
+        // bitmap 에 있는 이미지 정보를 다른 비트맵에 복사
+        StretchBlt(
+            hdc,                // 복사 목적지 DC
+            0, 0,               // 복사 시작 위치
+            width,   // 원본에서 복사될 가로크기
+            height,  // 원본에서 복사될 세로크기
+            imageInfo->hMemDC,  // 원본 DC
+            x - WINSIZE_X/2, y -  WINSIZE_Y/2,               // 원본에서 복사 시작 위치
+            width, height, SRCCOPY             // 복사 옵션
+        );
+    }
+
+
+}
 
 void Image::FrameRender(HDC hdc, int destX, int destY,
     int currFrameX, int currFrameY, bool isCenterRenderring, int size)

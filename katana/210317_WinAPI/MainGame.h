@@ -21,7 +21,6 @@ public:
 	void Render();
 
 	LRESULT MainProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
-
 	MainGame();
 	~MainGame();
 };

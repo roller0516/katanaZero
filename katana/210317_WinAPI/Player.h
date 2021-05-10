@@ -27,12 +27,16 @@ private:
 	int tick;
 
 	float angle;
-
+	float count[2];
 	float moveSpeed;	// 초당 이동거리
 	float currFrame;
 	float attackCurrFrame;
 	float maxFrame;
 
+	float velocity;
+	float jumpHeight;
+
+	bool isGround;
 	bool isMove;
 	bool isDying;
 	bool isAlive;
@@ -45,6 +49,8 @@ public:
 	void Update();
 	void Render(HDC hdc);
 
+	inline FPOINT Getpos() { return this->pos; }
+	inline FPOINT GetCurrPos() { return this->currPos; }
 	void Animation(PlayerState ani,bool loop);
 	void Jumping();
 	void Move();

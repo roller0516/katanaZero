@@ -85,8 +85,7 @@ public:
 		int currFrameX, int currFrameY, bool isCenterRenderring = false, int size = 1);
 	void AlphaRender(HDC hdc, int destX, int destY,
 		bool isCenterRenderring = false);
-
-
+	void CameraRender(HDC hdc, float destX, float destY,  int width, int height, bool isCenterRenderring);
 	void Release();
 
 	// get, set
@@ -103,7 +102,10 @@ public:
 	int GetHeight() { return this->imageInfo->height; }
 	int GetFrameWidth() { return this->imageInfo->frameWidth; }
 	int GetFrameHeight() { return this->imageInfo->frameHeight; }
+	
 
+	void SetWidth(int width) { this->imageInfo->width = width; }
+	void SetHeight(int Height) { this->imageInfo->height = Height; }
 	IMAGE_INFO* const  GetImageInfo() { return this->imageInfo; }
 };
 
