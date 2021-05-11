@@ -6,15 +6,13 @@ class Player;
 class Tank;
 class EnemyManager;
 class Image;
-class Camera;
 class BattleScene : public GameNode
 {
 private:
 	Player* player;
-	Camera* camera;
 	Image* BackGround;
 	FPOINT bgPos;
-
+	char szText[128];
 	Image* curSor;
 public:
 	virtual HRESULT Init();

@@ -85,6 +85,12 @@ HRESULT Image::Init(const char* fileName, int width, int height, int maxFrameX, 
     imageInfo->height = height;
     imageInfo->loadType = IMAGE_LOAD_KIND::FILE;
 
+    imageInfo->hTempDC = CreateCompatibleDC(hdc);
+    imageInfo->hTempBitmap = CreateCompatibleBitmap(hdc, width / maxFrameX, height);
+    imageInfo->hOldTempBit =
+        (HBITMAP)SelectObject(imageInfo->hTempDC, imageInfo->hTempBitmap);
+
+
     imageInfo->maxFrameX = maxFrameX;
     imageInfo->maxFrameY = maxFrameY;
     imageInfo->frameWidth = width / maxFrameX;
@@ -150,21 +156,18 @@ void Image::CameraRender(HDC hdc, float destX, float destY, int width, int heigh
 {
     float x = destX;
     float y = destY;
-    /*if (isCenterRenderring)
-    {
-        x = destX - (imageInfo->width / 2);
-        y = destY - (imageInfo->height / 2);
-    }*/
-
+   
+    //destY + WINSIZE_Y / 3
     if (isTransparent)
     {
+
         // 특정 색상을 빼고 복사하는 함수
         GdiTransparentBlt(
             hdc,
             0, 0,
             width, height,
             imageInfo->hMemDC,
-            x - WINSIZE_X / 2, y - WINSIZE_Y / 2,
+            x, y,
             width, height,
             transColor
         );
@@ -178,7 +181,7 @@ void Image::CameraRender(HDC hdc, float destX, float destY, int width, int heigh
             width,   // 원본에서 복사될 가로크기
             height,  // 원본에서 복사될 세로크기
             imageInfo->hMemDC,  // 원본 DC
-            x - WINSIZE_X/2, y -  WINSIZE_Y/2,               // 원본에서 복사 시작 위치
+            x, y,               // 원본에서 복사 시작 위치
             width, height, SRCCOPY             // 복사 옵션
         );
     }
@@ -231,6 +234,75 @@ void Image::FrameRender(HDC hdc, int destX, int destY,
                 imageInfo->frameHeight,
                 SRCCOPY);        
         }       
+        else
+        {
+            BitBlt(
+                hdc,
+                x, y,
+                imageInfo->frameWidth,
+                imageInfo->frameHeight,
+                imageInfo->hMemDC,
+                imageInfo->frameWidth * imageInfo->currFrameX,
+                imageInfo->frameHeight * imageInfo->currFrameY,
+                SRCCOPY
+            );
+        }
+    }
+}
+
+void Image::FrameRenderFlip(HDC hdc, int destX, int destY, int currFrameX, int currFrameY, bool isCenterRenderring, int size)
+{
+    imageInfo->currFrameX = currFrameX;
+    imageInfo->currFrameY = currFrameY;
+
+    int x = destX;
+    int y = destY;
+    if (isCenterRenderring)
+    {
+        x = destX - (imageInfo->frameWidth / 2);
+        y = destY - (imageInfo->frameHeight / 2);
+    }
+
+    if (isTransparent)
+    {
+        StretchBlt(
+            imageInfo->hTempDC,
+            imageInfo->frameWidth-1, 0,
+            -1*imageInfo->frameWidth, imageInfo->frameHeight,
+            imageInfo->hMemDC,
+            imageInfo->frameWidth * imageInfo->currFrameX,
+            imageInfo->frameHeight * imageInfo->currFrameY,
+            imageInfo->frameWidth,imageInfo->frameHeight,
+            SRCCOPY);
+        // 특정 색상을 빼고 복사하는 함수
+        GdiTransparentBlt(
+            hdc,                // 목적지 DC
+            x, y,               // 복사 위치
+            imageInfo->frameWidth * size,
+            imageInfo->frameHeight * size,  // 복사 크기
+            imageInfo->hTempDC,  // 원본 DC
+            0,  // 복사 X 위치
+            0, // 복사 Y 위치
+            imageInfo->frameWidth, imageInfo->frameHeight,  // 복사 크기
+            transColor  // 제외할 색상
+        );
+        
+    }
+    else
+    {
+        if (size > 1)
+        {
+            StretchBlt(hdc,
+                x, y,
+                imageInfo->frameWidth * size,
+                imageInfo->frameHeight * size,
+                imageInfo->hMemDC,
+                imageInfo->frameWidth * imageInfo->currFrameX,
+                imageInfo->frameHeight * imageInfo->currFrameY,
+                imageInfo->frameWidth,
+                imageInfo->frameHeight,
+                SRCCOPY);
+        }
         else
         {
             BitBlt(

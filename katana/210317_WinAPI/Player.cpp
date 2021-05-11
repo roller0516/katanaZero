@@ -1,9 +1,11 @@
 #include "Player.h"
 #include "Image.h"
 #include "CommonFunction.h"
+#include "Camera.h"
 
 HRESULT Player::Init()
 {
+
 	ImageManager::GetSingleton()->AddImage("player_idle",
 		"Image/Katana/player/player_idle_11x2.bmp", 770, 140,11,2,true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("player_attack",
@@ -30,7 +32,8 @@ HRESULT Player::Init()
 		"Image/Katana/player/player_idle_to_run_4x2.bmp", 336, 128, 4, 2, true, RGB(255, 0, 255));
 
 	image = ImageManager::GetSingleton()->FindImage("idle");
-	Animation(PlayerState::idle,true);
+	Animation(PlayerState::idle, true);
+	
 	pos.x = WINSIZE_X / 2;
 	pos.y = WINSIZE_Y / 2;
 	currFrame = 0.0f;
@@ -42,6 +45,8 @@ HRESULT Player::Init()
 	isGround = true;
 	jumpHeight = 0.0f;
 	velocity = 300.0f;
+	camera = new Camera;
+	camera->Init(this);
 	return S_OK;
 }
 
@@ -51,27 +56,34 @@ void Player::Release()
 
 void Player::Update()
 {
-	//COLORREF GetPixel(HDC hdc, int nXPos, int nYPos);
+	camera->Update();
+	if (isGround == false) 
+	{
+		velocity -= Gravity * 0.03f;
+	}
 
-	
-	if (isMove == false && framRun == false && isAttack ==false)
+	if (isMove == false && frameRun == false && isAttack ==false)
 	{
 		Animation(PlayerState::idle,true);
 	}
-
-	
 
 	Move();
 	Attack();
 	Jumping();
 
+	if (isGround == false && frameRun == false)
+	{
+		Animation(PlayerState::fall, false);
+		frameRun = true;
+	}
+
 	currFrame += TimerManager::GetSingleton()->GetElapsedTime()*15;
 	if (currFrame > maxFrame)
 	{
 		currFrame = 0;
-		if (framRun) 
+		if (frameRun)
 		{
-			framRun = false;
+			frameRun = false;
 		}	
 		if (isAttack)
 			isAttack = false;
@@ -80,26 +92,38 @@ void Player::Update()
 
 void Player::Render(HDC hdc)
 {
+	float x = pos.x - camera->GetCameraPos().x;
+	float y = pos.y - camera->GetCameraPos().y;
+	if (camera)
+		camera->Render(hdc);
 	if (image)
 	{
-		image->FrameRender(hdc, WINSIZE_X / 2, WINSIZE_Y / 2 + jumpHeight, currFrame, 0, true);
-		/*image->AlphaRender(hdc, pos.x, pos.y, true);*/
-		//image->Render(hdc, pos.x, pos.y, true);
+		if(dir == Direction::LEFT)
+			image->FrameRenderFlip(hdc, x, y + jumpHeight, currFrame, 0, true);
+		else
+			image->FrameRender(hdc, x, y + jumpHeight, currFrame, 0, true);
 	}
 }
 
 void Player::Jumping()
 {
-	if (isGround) return;
-
-	if (velocity <= -300.0f)
+	if (KeyManager::GetSingleton()->IsStayKeyDown('W')) // 위
 	{
-		velocity = 300.0f;
+		pos.y -= 100 * TimerManager::GetSingleton()->GetElapsedTime();
+		Animation(PlayerState::jump, false);
+		frameRun = true;
+		isGround = false;
+	}
+
+	if (isGround) return;
+	
+	if (velocity <= -250) //
+	{
 		isGround = true;
+		velocity = 300;
 		jumpHeight = 0.0f;
 	}
-	jumpHeight -= velocity * TimerManager::GetSingleton()->GetElapsedTime();
-	velocity -= Gravity * 0.2f;
+	jumpHeight -= velocity * 0.0003f;
 }
 
 void Player::Move()
@@ -112,63 +136,59 @@ void Player::Move()
 	{
 		if (KeyManager::GetSingleton()->IsStayKeyDown('D')) // 오
 		{
+			dir = Direction::RIHGT;
 			pos.x += moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
-			isMove = true;
-			
-		}
-		
-		else if (KeyManager::GetSingleton()->IsStayKeyDown('S')) // 아래
-		{
-			pos.y += moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
 			isMove = true;
 		}
 		else if (KeyManager::GetSingleton()->IsStayKeyDown('A')) // 왼
 		{
+			dir = Direction::LEFT;
 			pos.x -= moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
 			isMove = true;
 		}
 		else if(isMove && isAttack == false)
 		{
 			Animation(PlayerState::run_to_idle, false);
-			framRun = true;
+			frameRun = true;
 			isMove = false;
 			tick = 0;
 		}
 
-		if (KeyManager::GetSingleton()->IsStayKeyDown('W')) // 위
+		if (KeyManager::GetSingleton()->IsStayKeyDown('S')) // 아래 픽셀 충돌로 
 		{
+			pos.y += 100 * TimerManager::GetSingleton()->GetElapsedTime();
 			isGround = false;
+			isMove = true;
 		}
-
-		if(isAttack==false)
+		if (isAttack == false) 
+		{
 			Animation(PlayerState::run, true);
+		}	
 	}
 }
 
 void Player::Attack()
 {
-	float range = 300;
+	float range = 100;
 	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON)&& isAttack == false)
 	{
 		isAttack = true;
 		Animation(PlayerState::attack, false);
-		mousPos.x = g_ptMouse.x;
-		mousPos.y = g_ptMouse.y;
+		mousPos = g_ptMouse;
 		currPos.x = pos.x;
 		currPos.y = pos.y;
 	}
 	if (isAttack)
 	{
-		float x = mousPos.x - pos.x;
-		float y = mousPos.y - pos.y;
-
-		angle = atan2(y, x);
-
-		if (sqrtf(pow(pos.x - currPos.x, 2) + pow(pos.y - currPos.y, 2)) <= range)
+		angle = GetAngle(pos, mousPos);
+		
+		if (sqrtf(pow(pos.x - currPos.x, 2) + pow(pos.y - currPos.y, 2)) <= 200)
 		{
 			pos.x += cosf(angle) * 2000 * TimerManager::GetSingleton()->GetElapsedTime();
-			pos.y += sinf(angle) * 2000 * TimerManager::GetSingleton()->GetElapsedTime();
+			pos.y -= sinf(angle) * 2000 * TimerManager::GetSingleton()->GetElapsedTime();
 		}
+		frameRun = true;
+		isGround = false;
 	}
 }
 
@@ -207,10 +227,10 @@ void Player::Animation(PlayerState ani,bool loop) // 더좋은방법이 생기면 수정
 			{
 				maxFrame = 4;
 				image = ImageManager::GetSingleton()->FindImage("player_idle_to_run");
-				framRun = true;
+				frameRun = true;
 				tick++;
 			}
-			else if (framRun == false)
+			else if (frameRun == false)
 			{
 				maxFrame = 10;
 				image = ImageManager::GetSingleton()->FindImage("player_run");

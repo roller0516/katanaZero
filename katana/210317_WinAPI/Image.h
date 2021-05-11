@@ -27,6 +27,9 @@ public:
 		HBITMAP hBlendBit;
 		HBITMAP hOldBlendBit;
 
+		HDC hTempDC;
+		HBITMAP hTempBitmap;
+		HBITMAP hOldTempBit;
 		// 애니메이션 관련 (프레임데이터)
 		int maxFrameX;
 		int maxFrameY;
@@ -82,6 +85,8 @@ public:
 	void Render(HDC hdc, int destX = 0, int destY = 0,
 		bool isCenterRenderring = false);
 	void FrameRender(HDC hdc, int destX, int destY,
+		int currFrameX, int currFrameY, bool isCenterRenderring = false, int size = 1);
+	void FrameRenderFlip(HDC hdc, int destX, int destY,
 		int currFrameX, int currFrameY, bool isCenterRenderring = false, int size = 1);
 	void AlphaRender(HDC hdc, int destX, int destY,
 		bool isCenterRenderring = false);

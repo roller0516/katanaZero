@@ -14,6 +14,27 @@ inline float GetAngle(FPOINT pos, FPOINT targetPos)
 
 	return angle;
 }
+inline float GetAngle(FPOINT pos, POINT targetPos)
+{
+	float angle = 0.0f;
+
+	float x = targetPos.x - pos.x;
+	float y = targetPos.y - pos.y;
+	angle = atan2(-y, x);
+	return angle;
+}
+inline float GetAngle(float startX, float startY, float endX, float endY)
+{
+	float x = endX - startX;
+	float y = endY - startY;
+	float distance = sqrtf(x * x + y * y);
+	float angle = acosf(x / distance);
+	if (endY > startY)
+	{
+		angle = PI - angle;
+	}
+	return angle;
+}
 // 네모를 그리는 함수
 inline void RenderRect(HDC hdc, int x, int y, int width, int height)
 {
@@ -44,7 +65,12 @@ inline bool PointInRect(POINT ptMouse, RECT rc)
 
 	return true;
 }
-
+inline void FrameRect_c(HDC hdc, RECT rc, COLORREF color)
+{
+	HBRUSH brush = CreateSolidBrush(color);
+	FrameRect(hdc, &rc, brush);
+	DeleteObject(brush);
+}
 inline bool PointInRect(POINT ptMouse, POINT rcPos, int rcSize)
 {
 	if (ptMouse.x < rcPos.x - (rcSize / 2)

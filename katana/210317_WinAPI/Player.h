@@ -1,5 +1,11 @@
 #pragma once
 #include "GameNode.h"
+enum class Direction 
+{
+	LEFT,
+	RIHGT,
+	END
+};
 enum class PlayerState
 {
 	idle,
@@ -16,13 +22,17 @@ enum class PlayerState
 	fall,
 	end
 };
+class Camera;
 class Image;
 class Player : public GameNode
 {
 private:
+	Camera* camera;
 	Image* image;
+	RECT shape;
+
 	FPOINT pos;
-	FPOINT mousPos;
+	POINT mousPos;
 	FPOINT currPos;
 	int tick;
 
@@ -36,14 +46,19 @@ private:
 	float velocity;
 	float jumpHeight;
 
+	int frameSet;
+
+
+	bool gravityOn;
 	bool isGround;
 	bool isMove;
 	bool isDying;
 	bool isAlive;
-	bool framRun;
+	bool frameRun;
 	bool isAttack;
 
 public:
+	Direction dir;
 	HRESULT Init();
 	void Release();
 	void Update();
@@ -51,6 +66,8 @@ public:
 
 	inline FPOINT Getpos() { return this->pos; }
 	inline FPOINT GetCurrPos() { return this->currPos; }
+	inline RECT GetRect() { return this->shape; }
+	inline float GetPlayerAngle() { return this->angle; }
 	void Animation(PlayerState ani,bool loop);
 	void Jumping();
 	void Move();

@@ -4,21 +4,27 @@
 
 class Player;
 class Camera :
-    public GameNode
+	public GameNode
 {
+
 private:
-	FPOINT pos;
-	int sizeX;
-	int sizeY;
-	int MapSizeX;
-	int MapSizeY;
+	FPOINT startPos;
+	FPOINT pos; // 카메라 포즈
+	FPOINT worldrc;
+
 	Player* target;
-	float moveSpeed;
+	Image* image;
+	FPOINT pivot;
+	float curtime;
 public:
 	HRESULT Init(Player* target);
 	void Release();
 	void Update();
-	void Render(HDC hdc, Image* image);
+	void Render(HDC hdc);
+	float lerp(float p1, float p2, float d1);
+	
 
+	FPOINT GetWorldPos() { return this->worldrc; }
+	FPOINT GetCameraPos() { return this->pos; }
 };
 
