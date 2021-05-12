@@ -1,7 +1,5 @@
 #pragma once
 #include "GameNode.h"
-
-
 class Player;
 class Camera :
 	public GameNode
@@ -13,18 +11,24 @@ private:
 	FPOINT worldrc;
 
 	Player* target;
-	Image* image;
+	Image* bg;
+	Image* bg_Collision;
 	FPOINT pivot;
 	float curtime;
+
 public:
 	HRESULT Init(Player* target);
 	void Release();
 	void Update();
 	void Render(HDC hdc);
-	float lerp(float p1, float p2, float d1);
-	
 
-	FPOINT GetWorldPos() { return this->worldrc; }
-	FPOINT GetCameraPos() { return this->pos; }
+	inline FPOINT GetCamerPivot() { return this->pivot; }
+	inline FPOINT GetWorldPos() { return this->worldrc; }
+	inline FPOINT GetCameraPos() { return this->pos; }
+	inline Image* GetCollisionBG() { return this->bg_Collision; }
+	inline void SetPos(FPOINT pos) { this->pos = pos; }
+
+
 };
+
 

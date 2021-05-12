@@ -6,10 +6,11 @@ HRESULT Camera::Init(Player* target)
 {
 	this->target = target;
 
-	image = ImageManager::GetSingleton()->AddImage("stage1_bg_render", "Image/Katana/stage1_bg_render.bmp", 2176, 3500);
+	bg = ImageManager::GetSingleton()->AddImage("stage1_bg_render", "Image/Katana/stage1_bg_render.bmp", 2176, 3500);
+	bg_Collision = ImageManager::GetSingleton()->AddImage("stage1_bg_collision", "Image/Katana/stage1_bg_collision.bmp", 2716, 3500);
 	worldrc.x = 2176;
 	worldrc.y = 3500;
-	pivot.x = 0.6f;
+	pivot.x = 0.5f;
 	pivot.y = 0.5f;
 	pos.x = 0; 
 	pos.y = 0;
@@ -22,13 +23,34 @@ void Camera::Release()
 	
 }
 
+
+
 void Camera::Update()
 {
 	//Lerp : startPos * (1 - alpha) + endPos * alpha
 	//P = (1-t)P1 + tP2
+	
 	if (target) 
 	{
-		FPOINT tPos = target->Getpos();
+
+		FPOINT playerPos = target->GetWorldpos();
+		FPOINT tPos;
+		
+		float angle = GetAngle(target->GetWorldpos(), GetWorldMousePos(pos));
+		float x = Distacne(target->GetWorldpos(), GetWorldMousePos(pos)).x;
+		float y = Distacne(target->GetWorldpos(), GetWorldMousePos(pos)).y;
+
+		float distance = sqrtf(powf(x, 2) + powf(y, 2));
+
+		FPOINT dest;
+
+		dest.x = cosf(angle)* distance * 0.09f;
+		dest.y = sinf(angle)* distance * 0.05f;
+		
+		tPos.x = playerPos.x + dest.x;
+		tPos.y = playerPos.y - dest.y;
+		
+
 		RECT tSize = target->GetRect();
 
 		float leftArea = WINSIZE_X * pivot.x;
@@ -55,14 +77,11 @@ void Camera::Update()
 
 void Camera::Render(HDC hdc)
 {
-	image->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y, false);
-	/*FrameRect_c(hdc, rc, RGB(255, 0, 0));*/
+	bg->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y, false);
+	bg_Collision->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y, false);
 }
 
-float Camera::lerp(float p1, float p2, float d1)
-{
-	return p1 + (p2 - p1) * d1;
-}
+
 
 
 

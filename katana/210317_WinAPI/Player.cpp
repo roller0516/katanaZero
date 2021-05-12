@@ -34,8 +34,8 @@ HRESULT Player::Init()
 	image = ImageManager::GetSingleton()->FindImage("idle");
 	Animation(PlayerState::idle, true);
 	
-	pos.x = WINSIZE_X / 2;
-	pos.y = WINSIZE_Y / 2;
+	Worldpos.x = WINSIZE_X / 2;
+	Worldpos.y = WINSIZE_Y / 2;
 	currFrame = 0.0f;
 	maxFrame = 4.0f;
 	moveSpeed = 200.0f;
@@ -59,9 +59,9 @@ void Player::Update()
 	camera->Update();
 	if (isGround == false) 
 	{
-		velocity -= Gravity * 0.03f;
+		Worldpos.y -= velocity * 0.003f;
 	}
-
+	velocity -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * 100.0f;
 	if (isMove == false && frameRun == false && isAttack ==false)
 	{
 		Animation(PlayerState::idle,true);
@@ -70,13 +70,13 @@ void Player::Update()
 	Move();
 	Attack();
 	Jumping();
-
+	
 	if (isGround == false && frameRun == false)
 	{
 		Animation(PlayerState::fall, false);
 		frameRun = true;
 	}
-
+	
 	currFrame += TimerManager::GetSingleton()->GetElapsedTime()*15;
 	if (currFrame > maxFrame)
 	{
@@ -92,38 +92,41 @@ void Player::Update()
 
 void Player::Render(HDC hdc)
 {
-	float x = pos.x - camera->GetCameraPos().x;
-	float y = pos.y - camera->GetCameraPos().y;
+	Clientpos.x = Worldpos.x - camera->GetCameraPos().x;
+	Clientpos.y = Worldpos.y - camera->GetCameraPos().y;
+
 	if (camera)
 		camera->Render(hdc);
 	if (image)
 	{
 		if(dir == Direction::LEFT)
-			image->FrameRenderFlip(hdc, x, y + jumpHeight, currFrame, 0, true);
+			image->FrameRenderFlip(hdc, Clientpos.x, Clientpos.y + jumpHeight, currFrame, 0, true);
 		else
-			image->FrameRender(hdc, x, y + jumpHeight, currFrame, 0, true);
+			image->FrameRender(hdc, Clientpos.x, Clientpos.y + jumpHeight, currFrame, 0, true);
 	}
+
 }
 
 void Player::Jumping()
 {
 	if (KeyManager::GetSingleton()->IsStayKeyDown('W')) // À§
 	{
-		pos.y -= 100 * TimerManager::GetSingleton()->GetElapsedTime();
+		Worldpos.y -= 100 * TimerManager::GetSingleton()->GetElapsedTime();
 		Animation(PlayerState::jump, false);
 		frameRun = true;
 		isGround = false;
 	}
-
+	
 	if (isGround) return;
 	
-	if (velocity <= -250) //
+	if (velocity <= -300) //
 	{
 		isGround = true;
 		velocity = 300;
 		jumpHeight = 0.0f;
 	}
-	jumpHeight -= velocity * 0.0003f;
+	jumpHeight -= velocity * 0.005f;
+	velocity -= Gravity * TimerManager::GetSingleton()->GetElapsedTime()*30;
 }
 
 void Player::Move()
@@ -137,13 +140,13 @@ void Player::Move()
 		if (KeyManager::GetSingleton()->IsStayKeyDown('D')) // ¿À
 		{
 			dir = Direction::RIHGT;
-			pos.x += moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+			Worldpos.x += moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
 			isMove = true;
 		}
 		else if (KeyManager::GetSingleton()->IsStayKeyDown('A')) // ¿Þ
 		{
 			dir = Direction::LEFT;
-			pos.x -= moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+			Worldpos.x -= moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
 			isMove = true;
 		}
 		else if(isMove && isAttack == false)
@@ -156,9 +159,9 @@ void Player::Move()
 
 		if (KeyManager::GetSingleton()->IsStayKeyDown('S')) // ¾Æ·¡ ÇÈ¼¿ Ãæµ¹·Î 
 		{
-			pos.y += 100 * TimerManager::GetSingleton()->GetElapsedTime();
-			isGround = false;
-			isMove = true;
+			Worldpos.y += 100 * TimerManager::GetSingleton()->GetElapsedTime();
+			//isGround = false;
+			//isMove = true;
 		}
 		if (isAttack == false) 
 		{
@@ -175,17 +178,16 @@ void Player::Attack()
 		isAttack = true;
 		Animation(PlayerState::attack, false);
 		mousPos = g_ptMouse;
-		currPos.x = pos.x;
-		currPos.y = pos.y;
+		currPos.x = Worldpos.x;
+		currPos.y = Worldpos.y;
+		angle = GetAngle(Worldpos, GetWorldMousePos(Worldpos));
 	}
 	if (isAttack)
 	{
-		angle = GetAngle(pos, mousPos);
-		
-		if (sqrtf(pow(pos.x - currPos.x, 2) + pow(pos.y - currPos.y, 2)) <= 200)
+		if (sqrtf(pow(Worldpos.x - currPos.x, 2) + pow(Worldpos.y - currPos.y, 2)) <= 200)
 		{
-			pos.x += cosf(angle) * 2000 * TimerManager::GetSingleton()->GetElapsedTime();
-			pos.y -= sinf(angle) * 2000 * TimerManager::GetSingleton()->GetElapsedTime();
+			Worldpos.x += cosf(angle) * 2000 * TimerManager::GetSingleton()->GetElapsedTime();
+			Worldpos.y -= sinf(angle) * 2000 * TimerManager::GetSingleton()->GetElapsedTime();
 		}
 		frameRun = true;
 		isGround = false;

@@ -31,7 +31,8 @@ private:
 	Image* image;
 	RECT shape;
 
-	FPOINT pos;
+	FPOINT Worldpos;
+	FPOINT Clientpos; //
 	POINT mousPos;
 	FPOINT currPos;
 	int tick;
@@ -64,14 +65,20 @@ public:
 	void Update();
 	void Render(HDC hdc);
 
-	inline FPOINT Getpos() { return this->pos; }
-	inline FPOINT GetCurrPos() { return this->currPos; }
-	inline RECT GetRect() { return this->shape; }
-	inline float GetPlayerAngle() { return this->angle; }
-	void Animation(PlayerState ani,bool loop);
+	void Animation(PlayerState ani, bool loop);
 	void Jumping();
 	void Move();
 	void Attack();
 	void OnDead();
+
+	inline void SetGround(bool isGround) { this->isGround = isGround; }
+	inline FPOINT GetWorldpos() { return this->Worldpos; }
+	inline FPOINT Getpos() { return this->Clientpos; }
+	inline FPOINT GetCurrPos() { return this->currPos; }
+	inline RECT GetRect() { return this->shape; }
+	inline float GetPlayerAngle() { return this->angle; }
+	inline Image* GetImageInfo() { return this->image; }
+	inline void SetPosY(int y) { this->Worldpos.y = y; }
+	inline Camera* GetCamera() { return this->camera; }
 };
 

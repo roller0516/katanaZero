@@ -1,5 +1,4 @@
 // CommonFunction.h
-
 #pragma once
 #include "config.h"
 
@@ -7,6 +6,7 @@
 inline float GetAngle(FPOINT pos, FPOINT targetPos)
 {
 	float angle = 0.0f;
+
 	float x = targetPos.x - pos.x;
 	float y = targetPos.y - pos.y;
 
@@ -20,20 +20,28 @@ inline float GetAngle(FPOINT pos, POINT targetPos)
 
 	float x = targetPos.x - pos.x;
 	float y = targetPos.y - pos.y;
+
 	angle = atan2(-y, x);
+
 	return angle;
 }
-inline float GetAngle(float startX, float startY, float endX, float endY)
+inline FPOINT Distance(FPOINT pos, FPOINT pos2) 
 {
-	float x = endX - startX;
-	float y = endY - startY;
-	float distance = sqrtf(x * x + y * y);
-	float angle = acosf(x / distance);
-	if (endY > startY)
-	{
-		angle = PI - angle;
-	}
-	return angle;
+	FPOINT temp;
+
+	temp.x = abs(pos.x - pos2.x);
+	temp.y = abs(pos.y - pos2.y);
+
+	return temp;
+}
+inline FPOINT Distance(FPOINT pos, POINT pos2)
+{
+	FPOINT temp;
+
+	temp.x = abs(pos.x - pos2.x);
+	temp.y = abs(pos.y - pos2.y);
+
+	return temp;
 }
 // 네모를 그리는 함수
 inline void RenderRect(HDC hdc, int x, int y, int width, int height)
@@ -84,6 +92,26 @@ inline bool PointInRect(POINT ptMouse, POINT rcPos, int rcSize)
 	return true;
 }
 
+inline FPOINT Distacne(FPOINT pos, FPOINT pos2) 
+{
+	FPOINT temp;
+
+	temp.x = abs(pos2.x - pos.x);
+	temp.y = abs(pos2.y - pos.y);
+
+	return temp;
+}
+
+inline FPOINT Distacne(FPOINT pos, POINT pos2)
+{
+	FPOINT temp;
+
+	temp.x = abs(pos2.x - pos.x);
+	temp.y = abs(pos2.y - pos.y);
+
+	return temp;
+}
+
 inline bool RectInRect(RECT rc1, RECT rc2)
 {
 	if (rc1.right < rc2.left || rc1.left > rc2.right
@@ -127,4 +155,42 @@ inline void SetClientRect(HWND hWnd, int width, int height)
 	if (style & WS_HSCROLL) crt.bottom += GetSystemMetrics(SM_CYHSCROLL);
 	SetWindowPos(hWnd, NULL, 0, 0, crt.right - crt.left, crt.bottom - crt.top,
 		SWP_NOMOVE | SWP_NOZORDER);
+}
+inline 	FPOINT GetWorldMousePos(FPOINT pos)
+{
+	FPOINT ClientSize;
+	FPOINT worldMousePos;
+
+	ClientSize.x = WINSIZE_X/2;
+	ClientSize.y = WINSIZE_Y/2;
+	if (pos.x > WINSIZE_X / 2)
+		worldMousePos.x = pos.x - ClientSize.x + g_ptMouse.x;
+	else
+		worldMousePos.x = g_ptMouse.x;
+	if(pos.y>WINSIZE_Y/2)
+		worldMousePos.y = pos.y - ClientSize.y + g_ptMouse.y;
+	else
+		worldMousePos.y = g_ptMouse.y;
+
+	return worldMousePos;
+
+}
+inline 	FPOINT GetWorldMousePos(FPOINT pos, FPOINT pivot)
+{
+	FPOINT ClientSize;
+	FPOINT worldMousePos;
+
+	ClientSize.x = WINSIZE_X / 2;
+	ClientSize.y = WINSIZE_Y / 2;
+	if (pos.x > WINSIZE_X / 2)
+		worldMousePos.x = pos.x * pivot.x - ClientSize.x + g_ptMouse.x;
+	else
+		worldMousePos.x = g_ptMouse.x;
+	if (pos.y > WINSIZE_Y / 2)
+		worldMousePos.y = pos.y * pivot.y - ClientSize.y + g_ptMouse.y;
+	else
+		worldMousePos.y = g_ptMouse.y;
+
+	return worldMousePos;
+
 }
