@@ -15,8 +15,7 @@ HRESULT BattleScene::Init()
 
 	player = new Player();
 	player->Init();
-	collisionManager = new CollisionManager();
-	collisionManager->Init();
+
 
 	bgPos.x = 0;
 	bgPos.y = 0;
@@ -34,7 +33,6 @@ void BattleScene::Update()
 	{
 		player->Update();
 	}
-	collisionManager->pixelCollision(player, RGB(255, 0, 255), player->GetCamera()->GetCollisionBG());
 }
 
 

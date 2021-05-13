@@ -7,7 +7,7 @@ HRESULT Camera::Init(Player* target)
 	this->target = target;
 
 	bg = ImageManager::GetSingleton()->AddImage("stage1_bg_render", "Image/Katana/stage1_bg_render.bmp", 2176, 3500);
-	bg_Collision = ImageManager::GetSingleton()->AddImage("stage1_bg_collision", "Image/Katana/stage1_bg_collision.bmp", 2716, 3500);
+	bg_Collision = ImageManager::GetSingleton()->AddImage("stage1_bg_collision", "Image/Katana/stage1_bg_collision.bmp", 2176, 3500);
 	worldrc.x = 2176;
 	worldrc.y = 3500;
 	pivot.x = 0.5f;
@@ -72,13 +72,19 @@ void Camera::Update()
 		else
 			pos.y = tPos.y - WINSIZE_Y * pivot.y;
 	}
+	if (KeyManager::GetSingleton()->IsOnceKeyDown('Z'))
+		debug = true;
+	if (KeyManager::GetSingleton()->IsOnceKeyDown('X'))
+		debug = false;
 }
 
 
 void Camera::Render(HDC hdc)
 {
-	bg->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y, false);
-	bg_Collision->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y, false);
+	
+	bg_Collision->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y,false);
+	if(debug)
+		bg->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y, false);
 }
 
 

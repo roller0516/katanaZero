@@ -46,11 +46,13 @@ private:
 
 	float velocity;
 	float jumpHeight;
+	float jumpTime;
 
 	int frameSet;
 
-
+	bool isJumping;
 	bool gravityOn;
+	bool isFall;
 	bool isGround;
 	bool isMove;
 	bool isDying;
@@ -70,7 +72,9 @@ public:
 	void Move();
 	void Attack();
 	void OnDead();
-
+	void PixelCollision();
+	
+	inline bool GetFalling(){ return isFall; }
 	inline void SetGround(bool isGround) { this->isGround = isGround; }
 	inline FPOINT GetWorldpos() { return this->Worldpos; }
 	inline FPOINT Getpos() { return this->Clientpos; }

@@ -15,7 +15,7 @@ private:
 	Image* bg_Collision;
 	FPOINT pivot;
 	float curtime;
-
+	bool debug;
 public:
 	HRESULT Init(Player* target);
 	void Release();

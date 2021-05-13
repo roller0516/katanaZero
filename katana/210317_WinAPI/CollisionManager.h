@@ -6,6 +6,7 @@ class CollisionManager :
     public GameNode
 {
 public :
-    void pixelCollision(Player* player , COLORREF RGB, Image* bg);
+    void pixelCollision(Player* player, Image* bg);
+    void Render(HDC hdc,Player* player);
 };
 

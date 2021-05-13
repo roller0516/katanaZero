@@ -43,8 +43,9 @@ HRESULT Player::Init()
 	isAlive = true;
 	isDying = false;
 	isGround = true;
+	isFall = false;
 	jumpHeight = 0.0f;
-	velocity = 300.0f;
+	velocity = 10;
 	camera = new Camera;
 	camera->Init(this);
 	return S_OK;
@@ -57,25 +58,34 @@ void Player::Release()
 void Player::Update()
 {
 	camera->Update();
-	if (isGround == false) 
-	{
-		Worldpos.y -= velocity * 0.003f;
-	}
-	velocity -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * 100.0f;
+
 	if (isMove == false && frameRun == false && isAttack ==false)
 	{
 		Animation(PlayerState::idle,true);
 	}
-
+	if (KeyManager::GetSingleton()->IsStayKeyDown('W')) // 위
+	{
+		Animation(PlayerState::jump, false);
+		frameRun = true;
+		isJumping = true;
+		velocity = 2.0f;
+	}
+	Worldpos.y += Gravity * TimerManager::GetSingleton()->GetElapsedTime() * 50;
 	Move();
 	Attack();
-	Jumping();
-	
-	if (isGround == false && frameRun == false)
+
+	if (isJumping) 
 	{
-		Animation(PlayerState::fall, false);
-		frameRun = true;
+		Worldpos.y -= jumpHeight;
+		Jumping();
 	}
+		
+	PixelCollision();
+	//if (isGround == false && frameRun == false)
+	//{
+	//	Animation(PlayerState::fall, false);
+	//	frameRun = true;
+	//}
 	
 	currFrame += TimerManager::GetSingleton()->GetElapsedTime()*15;
 	if (currFrame > maxFrame)
@@ -100,33 +110,24 @@ void Player::Render(HDC hdc)
 	if (image)
 	{
 		if(dir == Direction::LEFT)
-			image->FrameRenderFlip(hdc, Clientpos.x, Clientpos.y + jumpHeight, currFrame, 0, true);
+			image->FrameRenderFlip(hdc, Clientpos.x, Clientpos.y , currFrame, 0, true);
 		else
-			image->FrameRender(hdc, Clientpos.x, Clientpos.y + jumpHeight, currFrame, 0, true);
+			image->FrameRender(hdc, Clientpos.x, Clientpos.y, currFrame, 0, true);
 	}
 
 }
 
 void Player::Jumping()
 {
-	if (KeyManager::GetSingleton()->IsStayKeyDown('W')) // 위
-	{
-		Worldpos.y -= 100 * TimerManager::GetSingleton()->GetElapsedTime();
-		Animation(PlayerState::jump, false);
-		frameRun = true;
-		isGround = false;
-	}
-	
 	if (isGround) return;
-	
-	if (velocity <= -300) //
+	jumpTime += TimerManager::GetSingleton()->GetElapsedTime();
+	jumpHeight = velocity*sinf(PI / 2) * jumpTime - (Gravity * jumpTime * jumpTime) / 2;
+	if (jumpHeight <0)
 	{
-		isGround = true;
-		velocity = 300;
-		jumpHeight = 0.0f;
+		jumpTime = 0;
+		jumpHeight = 0;
+		isJumping = false;
 	}
-	jumpHeight -= velocity * 0.005f;
-	velocity -= Gravity * TimerManager::GetSingleton()->GetElapsedTime()*30;
 }
 
 void Player::Move()
@@ -157,11 +158,9 @@ void Player::Move()
 			tick = 0;
 		}
 
-		if (KeyManager::GetSingleton()->IsStayKeyDown('S')) // 아래 픽셀 충돌로 
+		if (KeyManager::GetSingleton()->IsOnceKeyDown('S')) // 아래 픽셀 충돌로 
 		{
-			Worldpos.y += 100 * TimerManager::GetSingleton()->GetElapsedTime();
-			//isGround = false;
-			//isMove = true;
+			isFall = true;
 		}
 		if (isAttack == false) 
 		{
@@ -209,6 +208,52 @@ void Player::OnDead()
 			isDying = false;
 			isAlive = false;
 		}
+	}
+}
+
+void Player::PixelCollision()
+{
+	COLORREF color;
+	int R, G, B;
+	float playerHeight = image->GetImageInfo()->frameHeight / 2;
+	float currPosY = Worldpos.y + playerHeight;
+	for (int i = currPosY - 10; i < currPosY; i++)
+	{
+		color = GetPixel(camera->GetCollisionBG()->GetMemDC(),
+			Worldpos.x, i);
+
+		R = GetRValue(color);
+		G = GetGValue(color);
+		B = GetBValue(color);
+
+		if (!(R == 255 && G == 0 && B == 255))
+		{
+			if (isFall || isAttack ) 
+			{
+				if (R == 50 && G == 56 && B == 71)
+				{
+					break;
+				}
+				else if (R == 0 && G == 0 && B == 0) //검정
+				{
+					break;
+				}
+			}
+			
+			if (isJumping == false) 
+			{
+				Worldpos.y = i - playerHeight;
+			}
+			isGround = true;
+			if (isGround)
+				isFall = false;
+			break;
+		}
+		else if ((R == 255 && G == 0 && B == 255)) 
+		{
+			isGround = false;
+		}
+			
 	}
 }
 
