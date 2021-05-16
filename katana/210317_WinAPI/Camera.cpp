@@ -81,7 +81,6 @@ void Camera::Update()
 
 void Camera::Render(HDC hdc)
 {
-	
 	bg_Collision->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y,false);
 	if(debug)
 		bg->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y, false);

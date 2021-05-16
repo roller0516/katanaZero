@@ -4,6 +4,8 @@ enum class Direction
 {
 	LEFT,
 	RIHGT,
+	TOP,
+	BOTTOM,
 	END
 };
 enum class PlayerState
@@ -14,6 +16,7 @@ enum class PlayerState
 	run_to_idle,
 	attack,
 	jump,
+	jumpEnd,
 	flip,
 	grab,
 	roll,
@@ -33,46 +36,65 @@ private:
 
 	FPOINT Worldpos;
 	FPOINT Clientpos; //
-	POINT mousPos;
 	FPOINT currPos;
-	int tick;
+	POINT mousPos;
 
+	int size;
+	int tick;
 	float angle;
-	float count[2];
 	float moveSpeed;	// 초당 이동거리
 	float currFrame;
-	float attackCurrFrame;
 	float maxFrame;
-
+	float attackSpeed;
+	float fallForce;
 	float velocity;
-	float jumpHeight;
-	float jumpTime;
+	float wallJumpTime;
+	
+	int StartchangeWallIndex;
+	int EndchangeWallIndex;
 
-	int frameSet;
+	
 
+	bool isFilp;
+	bool isGrab;
+	bool leftWall;
+	bool RightWall;
 	bool isJumping;
-	bool gravityOn;
 	bool isFall;
 	bool isGround;
 	bool isMove;
-	bool isDying;
-	bool isAlive;
 	bool frameRun;
 	bool isAttack;
-
+	bool isPhysics;
+	bool isRoll;
+	int keycount;
 public:
 	Direction dir;
+	PlayerState playerstate;
 	HRESULT Init();
 	void Release();
 	void Update();
 	void Render(HDC hdc);
 
-	void Animation(PlayerState ani, bool loop);
-	void Jumping();
-	void Move();
+	void Animation(PlayerState ani);
+
+	void Run();
+	void Roll();
+	void Flip();
+	void Grab();
+	void RuntoIdle();
 	void Attack();
-	void OnDead();
-	void PixelCollision();
+	void Falling();
+	void Jumping();
+	void JumpingEnd();
+	void PlayerFSM();
+	void PlayerKeyMove();
+	void GrabEnd();
+
+	void PixelCollisionBottom();
+	void PixelCollisionLeft();
+	void PixelCollisionRight();
+	void PixelCollisionTop();
 	
 	inline bool GetFalling(){ return isFall; }
 	inline void SetGround(bool isGround) { this->isGround = isGround; }
