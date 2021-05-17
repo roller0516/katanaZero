@@ -5,7 +5,6 @@
 
 HRESULT Player::Init()
 {
-
 	ImageManager::GetSingleton()->AddImage("player_idle",
 		"Image/Katana/player/player_idle_11x2.bmp", 770, 140,11,2,true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("player_attack",
@@ -104,7 +103,6 @@ void Player::Update()
 
 void Player::Render(HDC hdc)
 {
-	
 	if (camera)
 		camera->Render(hdc);
 	if (image)
@@ -115,6 +113,11 @@ void Player::Render(HDC hdc)
 			image->FrameRender(hdc, Clientpos.x, Clientpos.y, currFrame, 0, true);
 	}
 	RenderRectToCenter(hdc, Clientpos.x, Clientpos.y, size / 4, size/4);
+}
+
+Player* Player::Clone()
+{
+	return new Player();
 }
 
 void Player::Run()
@@ -206,9 +209,9 @@ void Player::Roll()
 		frameRun = true;
 		Animation(PlayerState::roll);
 		if (dir == Direction::RIHGT )
-			Worldpos.x += cosf(DegToRad(0)) * 750 * TimerManager::GetSingleton()->GetElapsedTime();
+			Worldpos.x += cosf(DegToRad(0)) * 800 * TimerManager::GetSingleton()->GetElapsedTime();
 		else if (dir == Direction::LEFT) 
-			Worldpos.x += cosf(DegToRad(180)) * 750 * TimerManager::GetSingleton()->GetElapsedTime();
+			Worldpos.x += cosf(DegToRad(180)) * 800 * TimerManager::GetSingleton()->GetElapsedTime();
 	}
 }
 void Player::Flip()
@@ -327,7 +330,7 @@ void Player::PlayerKeyMove()
 		if (!isGround) return;
 		playerstate = PlayerState::jump;
 		currFrame = 0;
-		fallForce = 400;
+		fallForce = 350;
 		frameRun = true;
 		return;
 	}

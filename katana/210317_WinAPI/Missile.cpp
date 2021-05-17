@@ -100,7 +100,7 @@ void Missile::MovingFollowTarget()
 {
 	if (target)
 	{
-		destAngle = GetAngle(pos, target->GetPos());
+	//	destAngle = GetAngle(pos, target->GetPos());
 		float ratio = (destAngle - angle) / 50.0f;
 
 		if (-0.01f < ratio && ratio < 0.01f)
@@ -120,6 +120,6 @@ void Missile::MovingFollowTarget()
 void Missile::SetIsFired(bool isFired)
 {
 	this->isFired = isFired;
-	pos.x = owner->GetPos().x;
-	pos.y = owner->GetPos().y;
+	//pos.x = owner->GetPos().x;
+	//pos.y = owner->GetPos().y;
 }

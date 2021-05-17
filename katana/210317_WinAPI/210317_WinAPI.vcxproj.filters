@@ -19,9 +19,6 @@
     <Filter Include="2D Framework">
       <UniqueIdentifier>{fae288c9-1a89-4141-bbae-e4f3680953fb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MainGame\Enemy">
-      <UniqueIdentifier>{6e5df244-c6a3-43cb-b9d0-02b9ddf1a72c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="MainGame\Missile">
       <UniqueIdentifier>{5a86d586-c7fc-46be-93af-bd645e44e8f4}</UniqueIdentifier>
     </Filter>
@@ -40,6 +37,27 @@
     <Filter Include="2D Framework\UI\Button">
       <UniqueIdentifier>{91eb96ad-df64-4b6d-bc8b-8a504d0d37bb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainGame\Camera">
+      <UniqueIdentifier>{43020df0-71b5-4d1c-9887-3b8e15a5c6a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainGame\Obj">
+      <UniqueIdentifier>{828be0a8-641d-44ca-94fe-ec09d845437d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainGame\Obj\MoveObj">
+      <UniqueIdentifier>{942a330d-ea24-42ed-934d-dc92ecac2ed8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainGame\Animator">
+      <UniqueIdentifier>{3dc613c3-3c7f-4177-81df-d6a906f18fa0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainGame\Obj\MoveObj\Enemy">
+      <UniqueIdentifier>{6e5df244-c6a3-43cb-b9d0-02b9ddf1a72c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainGame\Obj\MoveObj\Player">
+      <UniqueIdentifier>{4ed0d4f8-c1d4-4966-a237-97281f193183}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainGame\Obj\MoveObj\Enemy\EnemyProtoType">
+      <UniqueIdentifier>{c3718504-971a-4a18-935f-e5aed9f0c1c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -55,10 +73,7 @@
       <Filter>2D Framework</Filter>
     </ClCompile>
     <ClCompile Include="EnemyManager.cpp">
-      <Filter>MainGame\Enemy</Filter>
-    </ClCompile>
-    <ClCompile Include="Enemy.cpp">
-      <Filter>MainGame\Enemy</Filter>
+      <Filter>MainGame\Obj\MoveObj\Enemy</Filter>
     </ClCompile>
     <ClCompile Include="Missile.cpp">
       <Filter>MainGame\Missile</Filter>
@@ -93,14 +108,29 @@
     <ClCompile Include="AstarScene.cpp">
       <Filter>MainGame\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>MainGame</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="CollisionManager.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>MainGame\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>MainGame\Obj\MoveObj\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Animator.cpp">
+      <Filter>MainGame\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy_pomp.cpp">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy_Grunt.cpp">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy_Bold.cpp">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy_Cop.cpp">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -123,10 +153,7 @@
       <Filter>2D Framework</Filter>
     </ClInclude>
     <ClInclude Include="EnemyManager.h">
-      <Filter>MainGame\Enemy</Filter>
-    </ClInclude>
-    <ClInclude Include="Enemy.h">
-      <Filter>MainGame\Enemy</Filter>
+      <Filter>MainGame\Obj\MoveObj\Enemy</Filter>
     </ClInclude>
     <ClInclude Include="Missile.h">
       <Filter>MainGame\Missile</Filter>
@@ -161,14 +188,32 @@
     <ClInclude Include="AstarScene.h">
       <Filter>MainGame\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>MainGame</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="CollisionManager.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>MainGame\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>MainGame\Obj\MoveObj\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Animator.h">
+      <Filter>MainGame\Animator</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>MainGame\Obj\MoveObj\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy_pomp.h">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy_Grunt.h">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy_Bold.h">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy_Cop.h">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

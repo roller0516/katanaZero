@@ -1,11 +1,11 @@
-#include "Enemy.h"
+#include "Enemy_pomp.h"
 #include "CommonFunction.h"
 #include "Image.h"
-#include "MissileManager.h"
 #include "Player.h"
 
-HRESULT Enemy::Init(int posX, int posY)
+HRESULT Enemy_pomp::Init(int posX, int posY)
 {
+    this->type = EnemyType::Pomp;
     image = ImageManager::GetSingleton()->FindImage("Enemy");
     if (image == nullptr)
     {
@@ -28,40 +28,19 @@ HRESULT Enemy::Init(int posX, int posY)
     target = nullptr;
     dir = 1;
 
-    // 미사일 매니저
-    missileMgr = new MissileManager();
-    missileMgr->Init(this);
-
     fireCount = 0;
 
     return S_OK;
 }
 
-void Enemy::Release()
+void Enemy_pomp::Release()
 {
-    SAFE_RELEASE(missileMgr);
 }
 
-void Enemy::Update()
+void Enemy_pomp::Update()
 {
     if (isAlive)
     {
-        //HorizonMove();
-        //Move();
-
-        // 미사일 발사
-        if (missileMgr)
-        {
-            // 함수 호출 주기를 바꿔보자.
-            fireCount++;
-            if (fireCount % 20 == 0)
-            {
-                fireCount = 0;
-                missileMgr->Fire();
-            }
-            missileMgr->Update();
-        }
-
         // 애니메이션 프레임
         updateCount++;
         if (updateCount == 5)
@@ -78,7 +57,7 @@ void Enemy::Update()
     }
 }
 
-void Enemy::Render(HDC hdc)
+void Enemy_pomp::Render(HDC hdc)
 {
     if (isAlive)
     {
@@ -88,32 +67,20 @@ void Enemy::Render(HDC hdc)
         {
             image->FrameRender(hdc, pos.x, pos.y, currFrameX, 0, true);
         }
-
-        if (missileMgr)
-        {
-            missileMgr->Render(hdc);
-        }
     }
 }
 
-void Enemy::Move()
+Enemy* Enemy_pomp::Clone()
 {
-    //if (target)
-    //{
-    //    FPOINT targetPos = target->GetPos();
-
-    //    // 현재 위치에서 타겟 위치로 이동할 수 있는 각도 구하기
-    //    float x = targetPos.x - pos.x;
-    //    float y = targetPos.y - pos.y;
-
-    //    angle = atan2(y, x);
-
-    //    pos.x += cosf(angle) * moveSpeed;
-    //    pos.y += sinf(angle) * moveSpeed;
-    //}
+    return new Enemy_pomp();
 }
 
-void Enemy::HorizonMove()
+void Enemy_pomp::Move()
+{
+   
+}
+
+void Enemy_pomp::HorizonMove()
 {
     if (pos.x > WINSIZE_X || pos.x < 0)
     {

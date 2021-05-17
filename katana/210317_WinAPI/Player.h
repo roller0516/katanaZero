@@ -53,8 +53,6 @@ private:
 	int StartchangeWallIndex;
 	int EndchangeWallIndex;
 
-	
-
 	bool isFilp;
 	bool isGrab;
 	bool leftWall;
@@ -67,14 +65,17 @@ private:
 	bool isAttack;
 	bool isPhysics;
 	bool isRoll;
+
 	int keycount;
 public:
 	Direction dir;
 	PlayerState playerstate;
-	HRESULT Init();
-	void Release();
-	void Update();
-	void Render(HDC hdc);
+
+	virtual HRESULT Init();
+	virtual void Release();
+	virtual void Update();
+	virtual void Render(HDC hdc);
+	virtual Player* Clone();
 
 	void Animation(PlayerState ani);
 
