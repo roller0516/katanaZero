@@ -25,12 +25,10 @@ enum class PlayerState
 	fall,
 	end
 };
-class Camera;
 class Image;
 class Player : public GameNode
 {
 private:
-	Camera* camera;
 	Image* image;
 	RECT shape;
 
@@ -106,6 +104,5 @@ public:
 	inline float GetPlayerAngle() { return this->angle; }
 	inline Image* GetImageInfo() { return this->image; }
 	inline void SetPosY(int y) { this->Worldpos.y = y; }
-	inline Camera* GetCamera() { return this->camera; }
 };
 

@@ -7,26 +7,20 @@ class Player;
 class Enemy_pomp : public Enemy
 {
 private:
-	
-	Image* image;
-	int currFrameX;
-	int updateCount;
-
 	FPOINT pos;
-	int size;
+	Image* image;
+	Player* target;
 	string name;
 	RECT shape;
+	int currFrameX;
+	int maxFrame;
+	int updateCount;
+	int size;
 	float moveSpeed;
-	bool isAlive;
 	float angle;
-
-	//GameNode* target;
-	Player* target;
-	int dir;
-	int fireCount;
+	bool isAlive;
 
 public:
-	Enemy::EnemyType type;
 	virtual HRESULT Init(int posX = 0, int posY = 0);		
 	virtual void Release();		
 	virtual void Update();		

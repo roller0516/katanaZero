@@ -44,8 +44,7 @@ HRESULT Player::Init()
 	isGround = true;
 	isFall = false;
 	isPhysics = true;
-	camera = new Camera;
-	camera->Init(this);
+	Camera::GetSingleton()->Init(this);
 	size = 100;
 	StartchangeWallIndex = -1;
 	return S_OK;
@@ -53,12 +52,12 @@ HRESULT Player::Init()
 
 void Player::Release()
 {
+	
 }
 
 void Player::Update()
 {
-	camera->Update();
-
+	Camera::GetSingleton()->Update();
 	if (isPhysics) 
 	{
 		fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime()* velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
@@ -66,23 +65,22 @@ void Player::Update()
 	}
 
 	
-	Clientpos.x = Worldpos.x - camera->GetCameraPos().x;
-	Clientpos.y = Worldpos.y - camera->GetCameraPos().y;
+	Clientpos.x = Worldpos.x - Camera::GetSingleton()->GetCameraPos().x;
+	Clientpos.y = Worldpos.y - Camera::GetSingleton()->GetCameraPos().y;
 
 	shape.left = Worldpos.x - size/4;
 	shape.top = Worldpos.y - size/4;
 	shape.right = Worldpos.x + size/5;
 	shape.bottom = Worldpos.y + size/4;
 
-
-	PixelCollisionBottom();
-	PixelCollisionTop();
-	PixelCollisionLeft();
-	PixelCollisionRight();
 	PlayerKeyMove();
 	PlayerFSM();
 	JumpingEnd();
 	GrabEnd();
+	PixelCollisionBottom();
+	PixelCollisionTop();
+	PixelCollisionLeft();
+	PixelCollisionRight();
 
 	currFrame += TimerManager::GetSingleton()->GetElapsedTime() * 15;
 	if (currFrame > maxFrame)
@@ -103,8 +101,8 @@ void Player::Update()
 
 void Player::Render(HDC hdc)
 {
-	if (camera)
-		camera->Render(hdc);
+	Camera::GetSingleton()->Render(hdc);
+	Camera::GetSingleton()->View();
 	if (image)
 	{
 		if(dir == Direction::LEFT)
@@ -307,13 +305,12 @@ void Player::PlayerFSM()
 
 void Player::PlayerKeyMove()
 {
-
 	if (KeyManager::GetSingleton()->IsOnceKeyDown('W'))
 	{
 		isJumping = true;
 		if (RightWall || leftWall)
 		{
-			if (isGrab) 
+			if (isGrab)
 			{
 				currFrame = 0;
 				fallForce = 200;
@@ -322,10 +319,14 @@ void Player::PlayerKeyMove()
 				playerstate = PlayerState::flip;
 				return;
 			}
-			StartchangeWallIndex = -1;
-			playerstate = PlayerState::grab;
-			isGrab = true;
-			return;
+			if (KeyManager::GetSingleton()->IsStayKeyDown('W'))
+			{
+				StartchangeWallIndex = -1;
+				playerstate = PlayerState::grab;
+				isGrab = true;
+				return;
+				
+			}
 		}
 		if (!isGround) return;
 		playerstate = PlayerState::jump;
@@ -334,6 +335,8 @@ void Player::PlayerKeyMove()
 		frameRun = true;
 		return;
 	}
+	
+	
 	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON))
 	{
 		if (isAttack) return;
@@ -430,13 +433,12 @@ void Player::PixelCollisionLeft()
 	float currPosLeft = shape.left;
 	for (int i = currPosLeft+5; i < currPosLeft+8; i++)
 	{
-		color = GetPixel(camera->GetCollisionBG()->GetMemDC(),
+		color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
 			i, Worldpos.y);
 
 		R = GetRValue(color);
 		G = GetGValue(color);
 		B = GetBValue(color);
-
 		if (!(R == 255 && G == 0 && B == 255))
 		{
 			if (R == 0 && G == 0 && B == 0)
@@ -463,13 +465,14 @@ void Player::PixelCollisionRight()
 	float currPosRight = shape.right;
 	for (int i = currPosRight-15; i < currPosRight-10; i++)
 	{
-		color = GetPixel(camera->GetCollisionBG()->GetMemDC(),
+		color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
 			i, Worldpos.y);
 
 		R = GetRValue(color);
 		G = GetGValue(color);
 		B = GetBValue(color);
-
+		if (R == 0 && G == 0 && B == 255)
+			break;
 		if (!(R == 255 && G == 0 && B == 255))
 		{
 			if ((R == 0 && G == 0 && B == 0) || (R == 50 && G == 56 && B == 71))
@@ -496,13 +499,12 @@ void Player::PixelCollisionTop()
 	float currPosTop = Worldpos.y - playerHeight;
 	for (int i = currPosTop - 5; i < currPosTop + 5; i++)
 	{
-		color = GetPixel(camera->GetCollisionBG()->GetMemDC(),
+		color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
 			Worldpos.x, i);
 
 		R = GetRValue(color);
 		G = GetGValue(color);
 		B = GetBValue(color);
-
 		if (!(R == 255 && G == 0 && B == 255))
 		{
 			if (R == 0 && G == 0 && B == 0)
@@ -516,25 +518,25 @@ void Player::PixelCollisionTop()
 
 void Player::PixelCollisionBottom()
 {
+	if (isJumping)return;
 	COLORREF color;
 	int R, G, B;
 	float playerHeight = 36;
 	float currPosBottom = Worldpos.y + playerHeight;
-	for (int i = currPosBottom-2; i < currPosBottom+2; i++)
+	for (int i = currPosBottom-5; i < currPosBottom+5; i++)
 	{
-		color = GetPixel(camera->GetCollisionBG()->GetMemDC(),
+		color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
 			Worldpos.x, i);
 
 		R = GetRValue(color);
 		G = GetGValue(color);
 		B = GetBValue(color);
-		
-		if (isJumping)
-			break;
+			
 		if (!(R == 255 && G == 0 && B == 255))
 		{
 			velocity = 60;
-			if (isAttack) break;
+			if ((R == 0 && G == 0 && B == 0) && isAttack) break;
+			if (isAttack && angle >= 0) break;
 			if ((R == 0 && G == 0 && B == 0) && isFall) break;
 			fallForce = 0;
 			Worldpos.y = i - playerHeight;

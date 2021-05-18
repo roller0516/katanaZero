@@ -42,6 +42,10 @@ void BattleScene::Render(HDC hdc)
 	{
 		player->Render(hdc);
 	}
+	FPOINT pos;
+	pos.x = WINSIZE_X - Camera::GetSingleton()->GetCameraPos().x;
+	pos.y = WINSIZE_Y - Camera::GetSingleton()->GetCameraPos().y;
+	RenderRectToCenter(hdc, pos.x, pos.y, 50, 50);
 	if (curSor)
 		curSor->Render(hdc, g_ptMouse.x, g_ptMouse.y, true);
 	sprintf_s(szText, "playerX : %f , playerY : %f", player->GetWorldpos().x, player->GetWorldpos().y);

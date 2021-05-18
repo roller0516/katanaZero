@@ -2,7 +2,6 @@
 
 HRESULT Enemy_Bold::Init(int posX, int posY)
 {
-	this->type = EnemyType::Bold;
 	return S_OK;
 }
 

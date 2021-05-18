@@ -5,15 +5,7 @@
 
 HRESULT Enemy_pomp::Init(int posX, int posY)
 {
-    this->type = EnemyType::Pomp;
-    image = ImageManager::GetSingleton()->FindImage("Enemy");
-    if (image == nullptr)
-    {
-        MessageBox(g_hWnd, 
-            "Enemy에 해당하는 이미지가 추가되지 않았음!", "경고", MB_OK);
-        return E_FAIL;
-    }
-
+    ImageManager::GetSingleton()->AddImage("Pomp_Idle", "enemy_pomp_idle_8x2", 528, 168, 8, 2, true, RGB(255, 0, 255));
     currFrameX = 0;
     updateCount = 0;
 
@@ -26,10 +18,7 @@ HRESULT Enemy_pomp::Init(int posX, int posY)
     isAlive = true;
     angle = 0.0f;
     target = nullptr;
-    dir = 1;
-
-    fireCount = 0;
-
+    maxFrame = 8;
     return S_OK;
 }
 
@@ -41,19 +30,9 @@ void Enemy_pomp::Update()
 {
     if (isAlive)
     {
-        // 애니메이션 프레임
-        updateCount++;
-        if (updateCount == 5)
-        {
-            currFrameX++;
-            if (currFrameX >= 10)
-            {
-                currFrameX = 0;
-            }
-
-            updateCount = 0;
-        }
-
+        currFrameX += TimerManager::GetSingleton()->GetElapsedTime() * 10;
+        if (currFrameX >= maxFrame)
+            currFrameX = 0;
     }
 }
 
@@ -61,8 +40,6 @@ void Enemy_pomp::Render(HDC hdc)
 {
     if (isAlive)
     {
-        RenderEllipseToCenter(hdc, pos.x, pos.y, size, size);
-
         if (image)
         {
             image->FrameRender(hdc, pos.x, pos.y, currFrameX, 0, true);
@@ -82,9 +59,5 @@ void Enemy_pomp::Move()
 
 void Enemy_pomp::HorizonMove()
 {
-    if (pos.x > WINSIZE_X || pos.x < 0)
-    {
-        dir *= -1;
-    }
-    pos.x += moveSpeed * dir;
+   
 }

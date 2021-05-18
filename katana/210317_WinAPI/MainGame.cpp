@@ -12,18 +12,6 @@ HRESULT MainGame::Init()
 	ImageManager::GetSingleton()->Init();
 	SceneManager::GetSingleton()->Init();
 
-	// 이미지를 미리 로드한다
-	//ImageManager::GetSingleton()->AddImage("Enemy",
-	//	"Image/ufo.bmp", 530, 32, 10, 1,
-	//	true, RGB(255, 0, 255));
-
-	//ImageManager::GetSingleton()->AddImage("EnemyMissile",
-	//	"Image/구슬.bmp", 20, 20, true, RGB(255, 0, 255));
-
-
-	// 메인게임의 초기화 함수
-	//hTimer = (HANDLE)SetTimer(g_hWnd, 0, 1, NULL);
-	// 백버퍼 이미지
 	int maxWidth, maxHeight;
 	maxWidth = max(WINSIZE_X, TILEMAPTOOLSIZE_X);
 	maxHeight = max(WINSIZE_Y, TILEMAPTOOLSIZE_Y);
@@ -33,7 +21,6 @@ HRESULT MainGame::Init()
 
 	SceneManager::GetSingleton()->AddScene("전투_1", new BattleScene());
 	SceneManager::GetSingleton()->AddScene("타일맵툴", new TilemapTool());
-	/*SceneManager::GetSingleton()->AddScene("A*", new AstarScene());	*/
 
 	SceneManager::GetSingleton()->ChangeScene("전투_1");
 
@@ -44,8 +31,6 @@ HRESULT MainGame::Init()
 
 void MainGame::Release()
 {
-
-
 	KeyManager::GetSingleton()->Release();
 	ImageManager::GetSingleton()->Release();
 	SceneManager::GetSingleton()->Release();
@@ -58,6 +43,8 @@ void MainGame::Release()
 void MainGame::Update()
 {
 	SceneManager::GetSingleton()->Update();
+	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_F10))
+		SceneManager::GetSingleton()->ChangeScene("타일맵툴");
 }
 
 void MainGame::Render()

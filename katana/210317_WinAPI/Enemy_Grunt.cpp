@@ -2,7 +2,6 @@
 
 HRESULT Enemy_Grunt::Init(int posX, int posY)
 {
-	this->type = EnemyType::Grunt;
 	return S_OK;
 }
 

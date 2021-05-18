@@ -175,22 +175,4 @@ inline 	FPOINT GetWorldMousePos(FPOINT pos)
 	return worldMousePos;
 
 }
-inline 	FPOINT GetWorldMousePos(FPOINT pos, FPOINT pivot)
-{
-	FPOINT ClientSize;
-	FPOINT worldMousePos;
 
-	ClientSize.x = WINSIZE_X / 2;
-	ClientSize.y = WINSIZE_Y / 2;
-	if (pos.x > WINSIZE_X / 2)
-		worldMousePos.x = pos.x * pivot.x - ClientSize.x + g_ptMouse.x;
-	else
-		worldMousePos.x = g_ptMouse.x;
-	if (pos.y > WINSIZE_Y / 2)
-		worldMousePos.y = pos.y * pivot.y - ClientSize.y + g_ptMouse.y;
-	else
-		worldMousePos.y = g_ptMouse.y;
-
-	return worldMousePos;
-
-}

@@ -14,10 +14,12 @@
 
 using namespace std;
 
+
 #include "KeyManager.h"
 #include "ImageManager.h"
 #include "TimerManager.h"
 #include "SceneManager.h"
+
 
 #define WINSIZE_X	1280
 #define WINSIZE_Y	720

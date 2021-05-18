@@ -2,7 +2,6 @@
 
 HRESULT Enemy_Cop::Init(int posX, int posY)
 {
-	this->type = EnemyType::Cop;
 	return S_OK;
 }
 
