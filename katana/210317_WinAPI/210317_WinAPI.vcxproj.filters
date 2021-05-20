@@ -203,9 +203,6 @@
     <ClInclude Include="Enemy.h">
       <Filter>MainGame\Obj\MoveObj\Enemy</Filter>
     </ClInclude>
-    <ClInclude Include="Enemy_pomp.h">
-      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
-    </ClInclude>
     <ClInclude Include="Enemy_Grunt.h">
       <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
     </ClInclude>
@@ -213,6 +210,9 @@
       <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
     </ClInclude>
     <ClInclude Include="Enemy_Cop.h">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy_pomp.h">
       <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
     </ClInclude>
   </ItemGroup>

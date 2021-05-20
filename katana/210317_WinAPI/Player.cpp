@@ -449,7 +449,7 @@ void Player::PixelCollisionLeft()
 				break;
 			}
 			leftWall = false;;
-			Worldpos.x = i + playerwidth - 27;
+			Worldpos.x = i + playerwidth - 26;
 			break;
 		}
 		else if((R == 255 && G == 0 && B == 255))
@@ -463,7 +463,7 @@ void Player::PixelCollisionRight()
 	int R, G, B;
 	float playerWidth = size/2;
 	float currPosRight = shape.right;
-	for (int i = currPosRight-15; i < currPosRight-10; i++)
+	for (int i = currPosRight-14; i < currPosRight-10; i++)
 	{
 		color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
 			i, Worldpos.y);
@@ -483,7 +483,7 @@ void Player::PixelCollisionRight()
 				break;
 			}	
 			RightWall = false;
-			Worldpos.x = i - playerWidth + 41;
+			Worldpos.x = i - playerWidth + 40;
 			break;
 		}
 		else if ((R == 255 && G == 0 && B == 255))

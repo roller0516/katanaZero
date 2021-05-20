@@ -25,7 +25,7 @@ public:
 	void Render(HDC hdc);
 	void View();
 	inline FPOINT GetCamerPivot() { return this->pivot; }
-	inline FPOINT GetWorldPos() { return this->worldrc; }
+	inline FPOINT GetWorld() { return this->worldrc; }
 	inline FPOINT GetCameraPos() { return this->pos; }
 	inline Image* GetCollisionBG() { return this->bg_Collision; }
 	inline void SetPos(FPOINT pos) { this->pos = pos; }

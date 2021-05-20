@@ -2,26 +2,28 @@
 #include "GameNode.h"
 #include <vector>
 
+class Player;
 class Enemy;
 class EnemyManager : public GameNode
 {
-public:
-	enum Type
-	{
-		Pomp,
-		Grnt,
-		End
-	};
 private:
-	map<Type,Enemy*> mEnemyList;
-	Type type;
+	vector<Enemy*> vEnemyList;
+	map<string,Enemy*> mEnemyList;
+	int enemyCount;
 public:
-	HRESULT Init();
+	HRESULT Init(Player* player,int x, int y, int index);
 	void Update();
 	void Release();
 	void Render(HDC hdc);
-	Enemy* CreateClone(Enemy* clone);
-	void RegisterClone(Enemy* clone, int x = 0, int y = 0);
+	void AddEnemy(string name,int size);
+	Enemy* CreateClone(string name);
+	Enemy* FindClone(string name);
+	void RegisterClone(string name ,Enemy* clone);
+
+	int GetMonsterCount() { return this->enemyCount; }
+	void SetMonsterCount(int enemyCount) {this->enemyCount = enemyCount;}
+	vector<Enemy*> GetMonsterList() { return this->vEnemyList; }
+	void SetEnemyList(vector<Enemy*>& list) { this->vEnemyList = list; }
 	inline int GetClone(int index){return index;};
 };
 

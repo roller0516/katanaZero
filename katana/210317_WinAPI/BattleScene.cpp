@@ -7,6 +7,12 @@
 #include "Player.h"
 #include "Camera.h"
 #include "CollisionManager.h"
+#include "EnemyManager.h"
+#include "Enemy_Bold.h"
+#include "Enemy_pomp.h"
+#include "Enemy_Grunt.h"
+#include "Enemy_Cop.h"
+#include "Enemy.h"
 
 HRESULT BattleScene::Init()
 {
@@ -15,6 +21,16 @@ HRESULT BattleScene::Init()
 
 	player = new Player();
 	player->Init();
+
+	enemyManager = new EnemyManager;
+	enemyManager->RegisterClone("PompEnemy", new Enemy_pomp);
+	enemyManager->RegisterClone("BoldEnemy", new Enemy_Bold);
+	enemyManager->RegisterClone("GruntEnemy", new Enemy_Grunt);
+	enemyManager->RegisterClone("CopEnemy", new Enemy_Cop);
+
+	enemyManager->AddEnemy("BoldEnemy",2);
+	enemyManager->Init(player,500, 500, 0);
+	enemyManager->Init(player, 700, 500, 1);
 
 
 	bgPos.x = 0;
@@ -33,6 +49,8 @@ void BattleScene::Update()
 	{
 		player->Update();
 	}
+	if (enemyManager)
+		enemyManager->Update();
 }
 
 
@@ -42,6 +60,8 @@ void BattleScene::Render(HDC hdc)
 	{
 		player->Render(hdc);
 	}
+	if (enemyManager)
+		enemyManager->Render(hdc);
 	FPOINT pos;
 	pos.x = WINSIZE_X - Camera::GetSingleton()->GetCameraPos().x;
 	pos.y = WINSIZE_Y - Camera::GetSingleton()->GetCameraPos().y;

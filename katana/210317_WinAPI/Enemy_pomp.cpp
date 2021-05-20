@@ -2,15 +2,15 @@
 #include "CommonFunction.h"
 #include "Image.h"
 #include "Player.h"
+#include "Camera.h"
 
 HRESULT Enemy_pomp::Init(int posX, int posY)
 {
-    ImageManager::GetSingleton()->AddImage("Pomp_Idle", "enemy_pomp_idle_8x2", 528, 168, 8, 2, true, RGB(255, 0, 255));
+    image = ImageManager::GetSingleton()->AddImage("Pomp_Idle", "Image/Katana/enemy/enemy_pomp_idle_8x2.bmp", 528, 168, 8, 2, true, RGB(255, 0, 255));
     currFrameX = 0;
     updateCount = 0;
-
-    pos.x =  posX;
-    pos.y = posY;
+    worldPos.x =  posX;
+    worldPos.y = posY;
     size = 80;
     name = "NormalEnemy";
     shape = { 0, 0, 0, 0 };
@@ -28,6 +28,8 @@ void Enemy_pomp::Release()
 
 void Enemy_pomp::Update()
 {
+    localPos.x = worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
+    localPos.y = worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
     if (isAlive)
     {
         currFrameX += TimerManager::GetSingleton()->GetElapsedTime() * 10;
@@ -36,20 +38,28 @@ void Enemy_pomp::Update()
     }
 }
 
-void Enemy_pomp::Render(HDC hdc)
+void Enemy_pomp::Render(HDC hdc,bool world)
 {
     if (isAlive)
     {
-        if (image)
+        if (world) 
         {
-            image->FrameRender(hdc, pos.x, pos.y, currFrameX, 0, true);
+            if (image)
+                image->FrameRender(hdc, worldPos.x, worldPos.y, currFrameX, 0, true);
         }
+        else
+            image->FrameRender(hdc, localPos.x, localPos.y, currFrameX, 0, true);
     }
 }
+
 
 Enemy* Enemy_pomp::Clone()
 {
     return new Enemy_pomp();
+}
+
+void Enemy_pomp::Pattern()
+{
 }
 
 void Enemy_pomp::Move()

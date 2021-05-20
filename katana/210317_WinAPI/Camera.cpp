@@ -145,19 +145,18 @@ FPOINT Camera::GetWorldMousePos(FPOINT pos)
 	FPOINT ClientSize;
 	FPOINT worldMousePos;
 
-	ClientSize.x = WINSIZE_X / 2;
-	ClientSize.y = WINSIZE_Y / 2;
-	if (pos.x > WINSIZE_X / 2)
+	ClientSize.x = WINSIZE_X/2;
+	ClientSize.y = WINSIZE_Y/2;
+	if (pos.x >WINSIZE_X)
 		worldMousePos.x = pos.x - ClientSize.x + g_ptMouse.x;
 	else
 		worldMousePos.x = g_ptMouse.x;
-	if (pos.y > WINSIZE_Y / 2)
+	if (pos.y >WINSIZE_Y)
 		worldMousePos.y = pos.y - ClientSize.y + g_ptMouse.y;
 	else
 		worldMousePos.y = g_ptMouse.y;
 
 	return worldMousePos;
-
 }
 
 

@@ -92,24 +92,28 @@ inline bool PointInRect(POINT ptMouse, POINT rcPos, int rcSize)
 	return true;
 }
 
-inline FPOINT Distacne(FPOINT pos, FPOINT pos2) 
+inline float Distacne(FPOINT pos, FPOINT pos2)
 {
 	FPOINT temp;
-
+	float distance;
 	temp.x = abs(pos2.x - pos.x);
 	temp.y = abs(pos2.y - pos.y);
 
-	return temp;
+	distance = sqrtf(pow(temp.x, 2) + pow(temp.y, 2));
+
+	return distance;
 }
 
-inline FPOINT Distacne(FPOINT pos, POINT pos2)
+inline float Distascne(FPOINT pos, POINT pos2)
 {
 	FPOINT temp;
-
+	float distance;
 	temp.x = abs(pos2.x - pos.x);
 	temp.y = abs(pos2.y - pos.y);
 
-	return temp;
+	distance = sqrtf(pow(temp.x, 2) + pow(temp.y, 2));
+
+	return distance;
 }
 
 inline bool RectInRect(RECT rc1, RECT rc2)
