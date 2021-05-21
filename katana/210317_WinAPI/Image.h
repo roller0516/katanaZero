@@ -30,6 +30,10 @@ public:
 		HDC hTempDC;
 		HBITMAP hTempBitmap;
 		HBITMAP hOldTempBit;
+
+		HDC hRotateDC;
+		HBITMAP hRotateBitmap;
+		HBITMAP hOldRotateBit;
 		// 애니메이션 관련 (프레임데이터)
 		int maxFrameX;
 		int maxFrameY;
@@ -37,7 +41,8 @@ public:
 		int frameHeight;
 		int currFrameX;
 		int currFrameY;
-
+		int rotateWidth;
+		int rotateHeight;
 		tagImageInfo()
 		{
 			resID = 0;
@@ -81,6 +86,11 @@ public:
 		int maxFrameX, int maxFrameY,
 		bool isTransparent = FALSE, COLORREF transColor = FALSE);
 
+	HRESULT Init(const char* fileName, int width, int height,
+		int maxFrameX, int maxFrameY,float angle,
+		bool isTransparent = FALSE, COLORREF transColor = FALSE);
+
+
 	// 화면에 출력
 	void Render(HDC hdc, int destX = 0, int destY = 0,
 		bool isCenterRenderring = false);
@@ -91,6 +101,10 @@ public:
 	void AlphaRender(HDC hdc, int destX, int destY,
 		bool isCenterRenderring = false);
 	void CameraRender(HDC hdc, float destX, float destY,  int width, int height, bool isCenterRenderring);
+
+	void RotateFrameRender(HDC hdc, int destX, int destY,
+		int currFrameX, int currFrameY, bool isCenterRenderring, int size , float angle);
+
 	void Release();
 
 	// get, set

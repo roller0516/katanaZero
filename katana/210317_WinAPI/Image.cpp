@@ -90,6 +90,11 @@ HRESULT Image::Init(const char* fileName, int width, int height, int maxFrameX, 
     imageInfo->hOldTempBit =
         (HBITMAP)SelectObject(imageInfo->hTempDC, imageInfo->hTempBitmap);
 
+    imageInfo->hRotateDC = CreateCompatibleDC(hdc);
+    imageInfo->hRotateBitmap = CreateCompatibleBitmap(hdc, (width /maxFrameX)*2, height*2);
+    imageInfo->hOldRotateBit =
+        (HBITMAP)SelectObject(imageInfo->hRotateDC, imageInfo->hRotateBitmap);
+
 
     imageInfo->maxFrameX = maxFrameX;
     imageInfo->maxFrameY = maxFrameY;
@@ -185,6 +190,102 @@ void Image::CameraRender(HDC hdc, float destX, float destY, int width, int heigh
             width, height, SRCCOPY             // 복사 옵션
         );
     }
+
+
+}
+
+void Image::RotateFrameRender(HDC hdc, int destX, int destY,
+    int currFrameX, int currFrameY, bool isCenterRenderring, int size, float angle)
+{
+    imageInfo->currFrameX = currFrameX;
+    imageInfo->currFrameY = currFrameY;
+
+    float cos = cosf(angle * PI / 180);
+    float sin = sinf(angle * PI / 180);
+   
+    XFORM xForm;
+
+    SetGraphicsMode(imageInfo->hRotateDC, GM_ADVANCED);
+
+    int x = destX;
+    int y = destY;
+
+    if (isCenterRenderring)
+    {
+        x = destX - (imageInfo->frameWidth / 2);
+        y = destY - (imageInfo->frameHeight / 2);
+    }
+
+    xForm.eM11 = cos;
+    xForm.eM12 = sin;
+    xForm.eM21 = -sin;
+    xForm.eM22 = cos;
+    xForm.eDx = imageInfo->frameWidth / 2;
+    xForm.eDy = imageInfo->frameHeight / 2;
+
+   
+
+    if (isTransparent)
+    {
+        StretchBlt(
+            imageInfo->hRotateDC,
+            0, 
+            0,
+            imageInfo->frameWidth,
+            imageInfo->frameHeight,
+            imageInfo->hMemDC,
+            0,
+            0,
+            imageInfo->frameWidth,
+            imageInfo->frameHeight,
+            SRCCOPY);
+        SetWorldTransform(imageInfo->hRotateDC, &xForm);
+        // 특정 색상을 빼고 복사하는 함수
+        GdiTransparentBlt(
+            hdc,                // 목적지 DC
+            x,
+            y,               // 복사 위치
+            imageInfo->frameWidth,
+            imageInfo->frameHeight,  // 복사 크기
+
+            imageInfo->hRotateDC,  // 원본 DC
+            0, // 복사 X 위치
+            0, // 복사 Y 위치
+            imageInfo->frameWidth, 
+            imageInfo->frameHeight,  // 복사 크기
+            transColor  // 제외할 색상
+        );
+    }
+    else
+    {
+        if (size > 1)
+        {
+            StretchBlt(hdc,
+                x, y,
+                imageInfo->frameWidth * size,
+                imageInfo->frameHeight * size,
+                imageInfo->hMemDC,
+                imageInfo->frameWidth * imageInfo->currFrameX,
+                imageInfo->frameHeight * imageInfo->currFrameY,
+                imageInfo->frameWidth,
+                imageInfo->frameHeight,
+                SRCCOPY);
+        }
+        else
+        {
+            BitBlt(
+                hdc,
+                x, y,
+                imageInfo->frameWidth,
+                imageInfo->frameHeight,
+                imageInfo->hMemDC,
+                imageInfo->frameWidth * imageInfo->currFrameX,
+                imageInfo->frameHeight * imageInfo->currFrameY,
+                SRCCOPY
+            );
+        }
+    }
+
 
 
 }

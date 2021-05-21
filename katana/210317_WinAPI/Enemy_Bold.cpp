@@ -14,7 +14,8 @@ HRESULT Enemy_Bold::Init(int posX, int posY)
     GunImage = ImageManager::GetSingleton()->AddImage("Bold_gun", "Image/Katana/enemy/enemy_bold_gun.bmp", 54, 12, 1, 1, true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("Bold_attack", "Image/Katana/enemy/enemy_bold_aim_R.bmp", 42, 70, 1, 1, true, RGB(255, 0, 255));
     data = new Enemy::EnemyData;
-    data->range = 200;
+    data->findRange = 300;
+    data->attackRange = 200;
     worldPos.x = posX;
     worldPos.y = posY;
     data->maxFrame = 8;
@@ -102,7 +103,7 @@ void Enemy_Bold::Render(HDC hdc, bool world)
                     armLImage->FrameRenderFlip(hdc, localPos.x - 20, localPos.y - 10, 0, 0, true);
                     image->FrameRenderFlip(hdc, localPos.x, localPos.y, data->currFrameX, 0, true);
                     GunImage->FrameRenderFlip(hdc, localPos.x - 20, localPos.y - 12, 0, 0, true);
-                    armRImage->FrameRenderFlip(hdc, localPos.x, localPos.y, 0, 0, true);
+                    armRImage->FrameRenderFlip(hdc, localPos.x, localPos.y-10, 0, 0, true);
                 }
                 else
                     image->FrameRenderFlip(hdc, localPos.x, localPos.y, data->currFrameX, 0, true);
@@ -111,10 +112,10 @@ void Enemy_Bold::Render(HDC hdc, bool world)
             {
                 if (data->isAttack)
                 {
-                    armLImage->FrameRender(hdc, localPos.x + 20, localPos.y - 10, 0, 0, true);
+                    armLImage->RotateFrameRender(hdc, localPos.x + 20, localPos.y - 10, 0, 0, true,1,60);
                     image->FrameRender(hdc, localPos.x, localPos.y, data->currFrameX, 0, true);
-                    GunImage->FrameRender(hdc, localPos.x + 20, localPos.y - 12, 0, 0, true);
-                    armRImage->FrameRender(hdc, localPos.x, localPos.y - 10, 0, 0, true);
+                    GunImage->RotateFrameRender(hdc, localPos.x + 20, localPos.y - 12, 0, 0, true,1,60);
+                    armRImage->RotateFrameRender(hdc, localPos.x, localPos.y - 10, 0, 0, true,1,60);
                 }
                 else
                     image->FrameRender(hdc, localPos.x, localPos.y, data->currFrameX, 0, true);
@@ -130,17 +131,26 @@ Enemy* Enemy_Bold::Clone()
 
 void Enemy_Bold::Pattern()
 {
-    if (data->range > Distacne(this->worldPos, target->GetWorldpos()))
-    {
-        data->isFind = true;
-        Run();
-        return;
-    }
+    if (target == nullptr) return;
 
     if (data->leftWall)
         dir = Enemy::EnemyDir::Right;
     if (data->rightWall)
         dir = Enemy::EnemyDir::Left;
+
+    if (data->attackRange > Distacne(this->worldPos, target->GetWorldpos()))
+    {
+        data->isAttack = true;
+        Attack();
+        return;
+    }
+    if (data->findRange > Distacne(this->worldPos, target->GetWorldpos()))
+    {
+        data->isFind = true;
+        data->isAttack = false;
+        Run();
+        return;
+    }
 
     Idle();
 
@@ -160,15 +170,8 @@ void Enemy_Bold::Pattern()
 
 void Enemy_Bold::Attack()
 {
-    if (target)
-    {
-        if (data->range > Distacne(this->worldPos, target->GetWorldpos())) 
-        {
-            data->isAttack = true;
-            state = Enemy::EnemyState::attack;
-            Animation(state);
-        }    
-    }
+   state = Enemy::EnemyState::attack;
+   Animation(state);
 }
 
 void Enemy_Bold::Run()
@@ -181,7 +184,7 @@ void Enemy_Bold::Run()
     else
         data->moveSpeed = 150;
 
-    if (data->isFind) // 찾음 
+    if (target && data->isFind) // 찾음 
     {
         float angle;
         angle = GetAngle(target->GetWorldpos(), this->worldPos);

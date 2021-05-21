@@ -28,7 +28,8 @@ public:
 		float moveSpeed = 0;
 		float delay = 0;
 		float fallForce = 0;
-		float range = 0;
+		float findRange = 0;
+		float attackRange = 0;
 		int maxFrame = 0;
 		int updateCount = 0;
 		int size = 0;
