@@ -25,7 +25,8 @@ public:
 	virtual void Render(HDC hdc, bool world);
 	virtual Enemy* Clone();
 	virtual void Pattern();
-	
+	virtual ~Enemy_Bold() {};
+
 	void Attack();
 	void Run();
 	void Walk();

@@ -349,9 +349,9 @@ void TilemapTool::SettingEnemy()
     y = Camera::GetSingleton()->GetWorldMousePos(this->worldPos).y;
     enemyManager->AddEnemy(MonsterName,1);
     enemyManager->Init(nullptr,x, y, monsterCount);
-    test2[enemyManager->GetMonsterList().size()-1].Name = MonsterName;
-    test2[enemyManager->GetMonsterList().size()-1].x = x;
-    test2[enemyManager->GetMonsterList().size()-1].y = y;
+    test2[enemyManager->GetMonsterList().size() - 1].Name = MonsterName;
+    test2[enemyManager->GetMonsterList().size() - 1].x = x;
+    test2[enemyManager->GetMonsterList().size() - 1].y = y;
     test2[enemyManager->GetMonsterList().size() - 1].index = monsterCount;
     monsterCount++;
 }
@@ -426,7 +426,6 @@ void TilemapTool::Save(int stageNum)
     HANDLE hFile = CreateFile(fileName.c_str(), GENERIC_WRITE, 0,
         0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     /*void**/
-    int size = sizeof(Enemy_pomp);
     WriteFile(hFile, test2, sizeof(ENMY_INFO) * 100,
             &writtenBytes, NULL);
     CloseHandle(hFile);
@@ -455,7 +454,5 @@ void TilemapTool::Load(int stageNum)
             MessageBox(g_hWnd, "저장파일 로드 실패", "실패", MB_OK);
         }
     }
-    
-
     CloseHandle(hFile);
 }

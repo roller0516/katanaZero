@@ -51,5 +51,7 @@ public:
 	virtual void SetSample(bool isSample) = 0;
 	virtual void Pattern() = 0;
 	virtual void SetTarget(Player* player) = 0;
+
+	virtual ~Enemy() {};
 };
 

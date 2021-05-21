@@ -16,15 +16,17 @@ typedef struct tagTile
 	RECT rcTile;
 	int frameX;
 	int frameY;
+
 } TILE_INFO;
 
-typedef struct tagEnemy
+static struct ENMY_INFO
 {
-	string Name;
-	int x;
-	int y;
-	int index;
-} ENMY_INFO;
+	string Name = "";
+	int x = 0;
+	int y = 0;
+	int index = 0;
+
+};
 
 class Enemy;
 class EnemyManager;

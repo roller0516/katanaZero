@@ -31,6 +31,8 @@ public:
 	virtual Enemy* Clone();
 	virtual void Pattern();
 	virtual void SetTarget(Player* player) { this->target = player; }
+	virtual ~Enemy_Grunt() {};
+
 	void Move();
 	void HorizonMove();
 

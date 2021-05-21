@@ -21,13 +21,7 @@ HRESULT Missile::Init(Enemy* owner)
 	destAngle = 0.0f;
 
 	// 이미지
-	img = ImageManager::GetSingleton()->FindImage("EnemyMissile");
-	if (img == nullptr)
-	{
-		MessageBox(g_hWnd,
-			"EnemyMissile에 해당하는 이미지가 추가되지 않았음!", "경고", MB_OK);
-		return E_FAIL;
-	}
+	img = ImageManager::GetSingleton()->AddImage("Bullet", "Image/Katana/enemy/enemy_bullet.bmp", 48, 2);
 
     return S_OK;
 }
@@ -46,13 +40,7 @@ void Missile::Update()
 		{
 		case TYPE::Normal:
 			MovingNormal();
-			break;
-		case TYPE::Skill_01:
-			MovingSkill_01();
-			break;
-		case TYPE::FollowTarget:
-			MovingFollowTarget();
-			break;
+			break;;
 		}
 
 		if (pos.x < 0 || pos.y < 0 || pos.x > WINSIZE_X || pos.y > WINSIZE_Y)
@@ -63,9 +51,9 @@ void Missile::Update()
 	}
 
 	shape.left = pos.x - size / 2;
-	shape.top = pos.y - size / 2;
+	shape.top = 0;
 	shape.right = pos.x + size / 2;
-	shape.bottom = pos.y + size / 2;
+	shape.bottom =2;
 }
 
 void Missile::Render(HDC hdc)
@@ -73,7 +61,7 @@ void Missile::Render(HDC hdc)
 	if (isFired)
 	{
 		img->Render(hdc, pos.x, pos.y, true);
-		//Ellipse(hdc, shape.left, shape.top, shape.right, shape.bottom);
+		RenderRectToCenter(hdc, pos.x, pos.y,size,2);
 	}
 }
 
@@ -82,18 +70,6 @@ void Missile::MovingNormal()
 	float elapsedTime = TimerManager::GetSingleton()->GetElapsedTime();
 	pos.x += cosf(angle) * moveSpeed * elapsedTime / moveTime;
 	pos.y -= sinf(angle) * moveSpeed * elapsedTime / moveTime;
-}
-
-void Missile::MovingSkill_01()
-{
-	if (fireStep == 0 && pos.y < 300.0f)
-	{
-		angle = fireIndex * 3.14f * 2.0f / 36.0f;
-		fireStep++;
-	}
-
-	pos.x += cosf(angle) * moveSpeed;
-	pos.y -= sinf(angle) * moveSpeed;
 }
 
 void Missile::MovingFollowTarget()
@@ -120,6 +96,4 @@ void Missile::MovingFollowTarget()
 void Missile::SetIsFired(bool isFired)
 {
 	this->isFired = isFired;
-	//pos.x = owner->GetPos().x;
-	//pos.y = owner->GetPos().y;
 }

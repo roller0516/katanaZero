@@ -3,6 +3,8 @@
 #include "CommonFunction.h"
 #include "MainGame.h"
 
+
+
 // 전역변수
 // 인스턴스 : 객체 메모리상에 존재하는 객체
 HINSTANCE g_hInstance;		// 프로그램 인스턴스 핸들
@@ -113,3 +115,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	return g_mainGame.MainProc(hWnd, iMessage, wParam, lParam);
 }
+

@@ -30,7 +30,8 @@ public:
 	virtual void Render(HDC hdc, bool world);
 	virtual Enemy* Clone();
 	virtual void Pattern();
-	
+	virtual ~Enemy_Cop() {};
+
 	void Move();
 	void HorizonMove();
 

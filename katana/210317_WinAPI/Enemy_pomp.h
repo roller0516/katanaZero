@@ -31,7 +31,7 @@ public:
 	virtual void Render(HDC hdc, bool world);
 	virtual Enemy* Clone();
 	virtual void Pattern();
-	
+	virtual ~Enemy_pomp() {};
 	void Move();
 	void HorizonMove();
 
