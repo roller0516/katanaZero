@@ -16,6 +16,7 @@ public:
 	void Release();
 	void Render(HDC hdc);
 	void AddEnemy(string name,int size);
+	void DeletEnemy(int index);
 	Enemy* CreateClone(string name);
 	Enemy* FindClone(string name);
 	void RegisterClone(string name ,Enemy* clone);

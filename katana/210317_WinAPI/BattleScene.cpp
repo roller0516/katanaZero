@@ -28,13 +28,14 @@ HRESULT BattleScene::Init()
 	enemyManager->RegisterClone("GruntEnemy", new Enemy_Grunt);
 	enemyManager->RegisterClone("CopEnemy", new Enemy_Cop);
 
-	enemyManager->AddEnemy("BoldEnemy",2);
+	enemyManager->AddEnemy("BoldEnemy",1);
 	enemyManager->Init(player,500, 500, 0);
-	enemyManager->Init(player, 700, 500, 1);
-
 
 	bgPos.x = 0;
 	bgPos.y = 0;
+
+	ShowCursor(false);
+
 	return S_OK;
 }
 
@@ -46,6 +47,9 @@ void BattleScene::Release()
 
 void BattleScene::Update()
 {
+	
+
+
 	if (player)
 	{
 		player->Update();
@@ -72,7 +76,7 @@ void BattleScene::Render(HDC hdc)
 	TextOut(hdc, WINSIZE_X - 800, 20, szText, strlen(szText));
 	sprintf_s(szText, "angle : %f", player->GetPlayerAngle());
 	TextOut(hdc, WINSIZE_X - 400, 20, szText, strlen(szText));
-	sprintf_s(szText, "X : %f, Y : %f", GetWorldMousePos(player->GetWorldpos()).x, GetWorldMousePos(player->GetWorldpos()).y);
+	sprintf_s(szText, "X : %d, Y : %d", g_ptMouse.x, g_ptMouse.y);
 	TextOut(hdc, 200, 20, szText, strlen(szText));
 }
 

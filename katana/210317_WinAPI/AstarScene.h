@@ -57,6 +57,8 @@ public:
 	void SetF(int f) { this->totalCost = f; }
 	int GetF() { return this->totalCost; }
 
+	POINT GetCenter() { return this->center; }
+
 	void SetIsInOpenlist(bool b) { this->isInOpenlist = b; }
 	bool GetIsInOpenlist() { return this->isInOpenlist; }
 	void SetIsClosed(bool b) { this->isClosed = b; }
@@ -66,7 +68,6 @@ public:
 	int GetHeapIndex() { return this->heapIndex; }
 
 	virtual ~AstarTile() {};
-
 };
 
 class AstarScene : public GameNode
@@ -76,19 +77,30 @@ class AstarScene : public GameNode
 
 	AstarTile* startTile;	// 빨간색
 	AstarTile* destTile;	// 파란색
-
+	AstarTile* removeTile;
 	AstarTile* currTile;	// (녹색) 후보타일을 선정할 때의 기준타일
-
 	vector<AstarTile*> openList;
 	vector<AstarTile*> closeList;
 	vector<AstarTile*> heap;
+	vector<AstarTile*> parentList;
 
+	FPOINT pos;
+	RECT rctest;
+	RECT rcMain;
+
+	FPOINT ptStartSelectedFrame;
+	int ptSelected[3];
+	int size;
+	bool move;
+	bool start;
+	float angle;
 public:
 	virtual HRESULT Init();
 	virtual void Release();
 	virtual void Update();
 	virtual void Render(HDC hdc);
 
+	void Move();
 	void FindPath();
 	void AddOpenList(AstarTile* currTile);
 	AstarTile* GetMinTotalCostTile();

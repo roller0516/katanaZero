@@ -73,7 +73,7 @@ HRESULT Image::Init(const char* fileName, int width, int height,
 HRESULT Image::Init(const char* fileName, int width, int height, int maxFrameX, int maxFrameY, bool isTransparent, COLORREF transColor)
 {
     HDC hdc = GetDC(g_hWnd);
-
+    
     imageInfo = new IMAGE_INFO();
     imageInfo->resID = 0;
     imageInfo->hMemDC = CreateCompatibleDC(hdc);
@@ -90,12 +90,6 @@ HRESULT Image::Init(const char* fileName, int width, int height, int maxFrameX, 
     imageInfo->hOldTempBit =
         (HBITMAP)SelectObject(imageInfo->hTempDC, imageInfo->hTempBitmap);
 
-    imageInfo->hRotateDC = CreateCompatibleDC(hdc);
-    imageInfo->hRotateBitmap = CreateCompatibleBitmap(hdc, (width /maxFrameX)*2, height*2);
-    imageInfo->hOldRotateBit =
-        (HBITMAP)SelectObject(imageInfo->hRotateDC, imageInfo->hRotateBitmap);
-
-
     imageInfo->maxFrameX = maxFrameX;
     imageInfo->maxFrameY = maxFrameY;
     imageInfo->frameWidth = width / maxFrameX;
@@ -103,6 +97,16 @@ HRESULT Image::Init(const char* fileName, int width, int height, int maxFrameX, 
     imageInfo->currFrameX = 0;
     imageInfo->currFrameY = 0;
 
+    int size;
+    imageInfo->frameWidth > imageInfo->frameHeight ? size = imageInfo->frameWidth : size = imageInfo->frameHeight;
+
+    imageInfo->hRotateDC = CreateCompatibleDC(hdc);
+    imageInfo->hRotateBitmap = CreateCompatibleBitmap(hdc, size, imageInfo->frameWidth);
+    imageInfo->hOldRotateBit =
+        (HBITMAP)SelectObject(imageInfo->hRotateDC, imageInfo->hRotateBitmap);
+
+    imageInfo->rotateWidth = size;
+    imageInfo->rotateHeight = size;
     ReleaseDC(g_hWnd, hdc);
 
     if (imageInfo->hBitmap == NULL)
@@ -116,6 +120,7 @@ HRESULT Image::Init(const char* fileName, int width, int height, int maxFrameX, 
 
     return S_OK;
 }
+
 
 void Image::Render(HDC hdc, int destX, int destY, bool isCenterRenderring)
 {
@@ -194,101 +199,126 @@ void Image::CameraRender(HDC hdc, float destX, float destY, int width, int heigh
 
 }
 
-void Image::RotateFrameRender(HDC hdc, int destX, int destY,
-    int currFrameX, int currFrameY, bool isCenterRenderring, int size, float angle)
+void Image::rotateRender(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle)
 {
-    imageInfo->currFrameX = currFrameX;
-    imageInfo->currFrameY = currFrameY;
+    POINT rPoint[3];
+    int dist = sqrt((imageInfo->frameWidth / 2) * (imageInfo->frameWidth / 2) + (imageInfo->frameHeight / 2) * (imageInfo->frameHeight / 2));
+    float baseAngle[3];
+    baseAngle[0] = PI - atanf(((float)imageInfo->frameHeight / 2) / ((float)imageInfo->frameWidth / 2));
+    baseAngle[1] = atanf(((float)imageInfo->frameHeight / 2) / ((float)imageInfo->frameWidth / 2));
+    baseAngle[2] = PI + atanf(((float)imageInfo->frameHeight / 2) / ((float)imageInfo->frameWidth / 2));
 
-    float cos = cosf(angle * PI / 180);
-    float sin = sinf(angle * PI / 180);
-   
-    XFORM xForm;
-
-    SetGraphicsMode(imageInfo->hRotateDC, GM_ADVANCED);
-
-    int x = destX;
-    int y = destY;
-
-    if (isCenterRenderring)
+    for (int i = 0; i < 3; ++i)
     {
-        x = destX - (imageInfo->frameWidth / 2);
-        y = destY - (imageInfo->frameHeight / 2);
+        rPoint[i].x = (imageInfo->rotateWidth / 2 + cosf(baseAngle[i] + angle) * dist);
+        rPoint[i].y = (imageInfo->rotateHeight / 2 + -sinf(baseAngle[i] + angle) * dist);
     }
-
-    xForm.eM11 = cos;
-    xForm.eM12 = sin;
-    xForm.eM21 = -sin;
-    xForm.eM22 = cos;
-    xForm.eDx = imageInfo->frameWidth / 2;
-    xForm.eDy = imageInfo->frameHeight / 2;
-
-   
 
     if (isTransparent)
     {
-        StretchBlt(
-            imageInfo->hRotateDC,
-            0, 
-            0,
-            imageInfo->frameWidth,
-            imageInfo->frameHeight,
-            imageInfo->hMemDC,
-            0,
-            0,
-            imageInfo->frameWidth,
-            imageInfo->frameHeight,
-            SRCCOPY);
-        SetWorldTransform(imageInfo->hRotateDC, &xForm);
-        // 특정 색상을 빼고 복사하는 함수
-        GdiTransparentBlt(
-            hdc,                // 목적지 DC
-            x,
-            y,               // 복사 위치
-            imageInfo->frameWidth,
-            imageInfo->frameHeight,  // 복사 크기
+        BitBlt(imageInfo->hRotateDC, 0, 0,
+            imageInfo->rotateWidth, imageInfo->rotateHeight,
+            hdc, 0, 0, BLACKNESS);
 
-            imageInfo->hRotateDC,  // 원본 DC
-            0, // 복사 X 위치
-            0, // 복사 Y 위치
-            imageInfo->frameWidth, 
-            imageInfo->frameHeight,  // 복사 크기
-            transColor  // 제외할 색상
-        );
+        HBRUSH hBrush = CreateSolidBrush(transColor);
+        HBRUSH oBrush = (HBRUSH)SelectObject(imageInfo->hRotateDC, hBrush);
+        ExtFloodFill(imageInfo->hRotateDC, 1, 1, RGB(0, 0, 0), FLOODFILLSURFACE);
+        DeleteObject(hBrush);
+
+        PlgBlt(imageInfo->hRotateDC, rPoint, imageInfo->hMemDC,
+            //_imageInfo->currentFrameX * _imageInfo->frameWidth,
+            //_imageInfo->currentFrameY * _imageInfo->frameHeight,
+            currentFrameX * imageInfo->frameWidth,
+            currentFrameY * imageInfo->frameHeight,
+            imageInfo->frameWidth, imageInfo->frameHeight, NULL, 0, 0);
+
+        GdiTransparentBlt(hdc,
+            destX - imageInfo->rotateWidth / 2,
+            destY - imageInfo->rotateHeight / 2,
+            imageInfo->rotateWidth,
+            imageInfo->rotateHeight,
+            imageInfo->hRotateDC,
+            0,
+            0,
+            imageInfo->rotateWidth,
+            imageInfo->rotateHeight,
+            transColor);
     }
     else
     {
-        if (size > 1)
-        {
-            StretchBlt(hdc,
-                x, y,
-                imageInfo->frameWidth * size,
-                imageInfo->frameHeight * size,
-                imageInfo->hMemDC,
-                imageInfo->frameWidth * imageInfo->currFrameX,
-                imageInfo->frameHeight * imageInfo->currFrameY,
-                imageInfo->frameWidth,
-                imageInfo->frameHeight,
-                SRCCOPY);
-        }
-        else
-        {
-            BitBlt(
-                hdc,
-                x, y,
-                imageInfo->frameWidth,
-                imageInfo->frameHeight,
-                imageInfo->hMemDC,
-                imageInfo->frameWidth * imageInfo->currFrameX,
-                imageInfo->frameHeight * imageInfo->currFrameY,
-                SRCCOPY
-            );
-        }
+        PlgBlt(hdc, rPoint, imageInfo->hMemDC,
+            currentFrameX * imageInfo->frameWidth,
+            currentFrameY * imageInfo->frameHeight,
+            imageInfo->frameWidth, imageInfo->frameHeight, NULL, 0, 0);
     }
 
-
-
 }
+
+void Image::rotateRenderFlip(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle)
+{
+    POINT rPoint[3];
+    int dist = sqrt((imageInfo->frameWidth / 2) * (imageInfo->frameWidth / 2) + (imageInfo->frameHeight / 2) * (imageInfo->frameHeight / 2));
+    float baseAngle[3];
+    baseAngle[0] = PI - atanf(((float)imageInfo->frameHeight / 2) / ((float)imageInfo->frameWidth / 2));
+    baseAngle[1] = atanf(((float)imageInfo->frameHeight / 2) / ((float)imageInfo->frameWidth / 2));
+    baseAngle[2] = PI + atanf(((float)imageInfo->frameHeight / 2) / ((float)imageInfo->frameWidth / 2));
+
+    for (int i = 0; i < 3; ++i)
+    {
+        rPoint[i].x = (imageInfo->rotateWidth / 2 + cosf(baseAngle[i] + angle) * dist);
+        rPoint[i].y = (imageInfo->rotateHeight / 2 + -sinf(baseAngle[i] + angle) * dist);
+    }
+
+    if (isTransparent)
+    {
+        BitBlt(imageInfo->hRotateDC, 0, 0,
+            imageInfo->rotateWidth, imageInfo->rotateHeight,
+            hdc, 0, 0, BLACKNESS);
+
+        HBRUSH hBrush = CreateSolidBrush(transColor);
+        HBRUSH oBrush = (HBRUSH)SelectObject(imageInfo->hRotateDC, hBrush);
+        ExtFloodFill(imageInfo->hRotateDC, 1, 1, RGB(0, 0, 0), FLOODFILLSURFACE);
+        DeleteObject(hBrush);
+
+        StretchBlt(
+            imageInfo->hTempDC,
+            0, imageInfo->frameHeight-1,
+            imageInfo->frameWidth, -1*imageInfo->frameHeight,
+            imageInfo->hMemDC,
+            imageInfo->frameWidth * imageInfo->currFrameX,
+            imageInfo->frameHeight * imageInfo->currFrameY,
+            imageInfo->frameWidth, imageInfo->frameHeight,
+            SRCCOPY);
+
+        PlgBlt(imageInfo->hRotateDC, rPoint, imageInfo->hTempDC,
+            //_imageInfo->currentFrameX * _imageInfo->frameWidth,
+            //_imageInfo->currentFrameY * _imageInfo->frameHeight,
+            currentFrameX * imageInfo->frameWidth,
+            currentFrameY * imageInfo->frameHeight,
+            imageInfo->frameWidth, 
+            imageInfo->frameHeight, NULL, 0, 0);
+
+        GdiTransparentBlt(hdc,
+            destX - imageInfo->rotateWidth / 2,
+            destY - imageInfo->rotateHeight / 2,
+            imageInfo->rotateWidth,
+            imageInfo->rotateHeight,
+            imageInfo->hRotateDC,
+            0,
+            0,
+            imageInfo->rotateWidth,
+            imageInfo->rotateHeight,
+            transColor);
+    }
+    else
+    {
+        PlgBlt(hdc, rPoint, imageInfo->hMemDC,
+            currentFrameX * imageInfo->frameWidth,
+            currentFrameY * imageInfo->frameHeight,
+            imageInfo->frameWidth, imageInfo->frameHeight, NULL, 0, 0);
+    }
+}
+
 
 void Image::FrameRender(HDC hdc, int destX, int destY,
     int currFrameX, int currFrameY, bool isCenterRenderring, int size)
@@ -368,12 +398,15 @@ void Image::FrameRenderFlip(HDC hdc, int destX, int destY, int currFrameX, int c
     {
         StretchBlt(
             imageInfo->hTempDC,
-            imageInfo->frameWidth-1, 0,
-            -1*imageInfo->frameWidth, imageInfo->frameHeight,
+            imageInfo->frameWidth-1, 
+            imageInfo->frameHeight* imageInfo->currFrameY,
+            -1*imageInfo->frameWidth, 
+            imageInfo->frameHeight,
             imageInfo->hMemDC,
             imageInfo->frameWidth * imageInfo->currFrameX,
             imageInfo->frameHeight * imageInfo->currFrameY,
-            imageInfo->frameWidth,imageInfo->frameHeight,
+            imageInfo->frameWidth,
+            imageInfo->frameHeight,
             SRCCOPY);
         // 특정 색상을 빼고 복사하는 함수
         GdiTransparentBlt(
@@ -383,8 +416,9 @@ void Image::FrameRenderFlip(HDC hdc, int destX, int destY, int currFrameX, int c
             imageInfo->frameHeight * size,  // 복사 크기
             imageInfo->hTempDC,  // 원본 DC
             0,  // 복사 X 위치
-            0, // 복사 Y 위치
-            imageInfo->frameWidth, imageInfo->frameHeight,  // 복사 크기
+            imageInfo->frameHeight * imageInfo->currFrameY, // 복사 Y 위치
+            imageInfo->frameWidth, 
+            imageInfo->frameHeight,  // 복사 크기
             transColor  // 제외할 색상
         );
         
@@ -451,6 +485,14 @@ void Image::Release()
         SelectObject(imageInfo->hMemDC, imageInfo->hOldBit);
         DeleteObject(imageInfo->hBitmap);
         DeleteDC(imageInfo->hMemDC);
+
+        SelectObject(imageInfo->hTempDC, imageInfo->hOldTempBit);
+        DeleteObject(imageInfo->hTempBitmap);
+        DeleteDC(imageInfo->hTempDC);
+
+        SelectObject(imageInfo->hRotateDC, imageInfo->hOldRotateBit);
+        DeleteObject(imageInfo->hRotateBitmap);
+        DeleteDC(imageInfo->hRotateDC);
 
         if (imageInfo->hBlendDC != NULL)
         {

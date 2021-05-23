@@ -33,7 +33,7 @@ public:
 	FPOINT Distance(FPOINT pos, FPOINT pos2);
 	float GetAngle(FPOINT pos, POINT targetPos);
 	float GetAngle(FPOINT pos, FPOINT targetPos);
-	FPOINT GetWorldMousePos(FPOINT pos);
+	FPOINT GetWorldMousePos();
 };
 
 

@@ -53,7 +53,7 @@ public:
 	virtual void Release();
 	virtual void Update();
 	virtual void Render(HDC hdc);
-
+	void Render(HDC hdc,bool flip);
 	void SetFunc(func_t func, int funcArg)
 	{
 		this->func = func; this->func_arg = funcArg;

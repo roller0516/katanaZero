@@ -77,3 +77,19 @@ void Button::Render(HDC hdc)
 		break;
 	}
 }
+
+void Button::Render(HDC hdc, bool flip)
+{
+	switch (state)
+	{
+	case ButtonState::NONE:
+	case ButtonState::UP:
+		if (flip)
+			img->FrameRenderFlip(hdc, pos.x, pos.y, 0, 0, true);
+		break;
+	case ButtonState::DOWN:
+		if(flip)
+			img->FrameRenderFlip(hdc, pos.x, pos.y, 0, 1, true);
+		break;
+	}
+}

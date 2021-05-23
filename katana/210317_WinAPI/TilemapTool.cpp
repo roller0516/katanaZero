@@ -39,23 +39,24 @@ HRESULT TilemapTool::Init()
         SAMPLE_TILE_X, SAMPLE_TILE_Y);
 
     hSelectedBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
+
     rcSample = { 0,0,(int)Camera::GetSingleton()->GetWorld().x , (int)Camera::GetSingleton()->GetWorld().y };
-    // 메인 공간 렉트 설정
-   /* for (int i = 0; i < TILE_Y; i++)
+
+    for (int i = 0; i < TILE_Y; i++)
     {
         for (int j = 0; j < TILE_X; j++)
         {
-            tileInfo[i * TILE_X + j].frameX = 3;
-            tileInfo[i * TILE_X + j].frameY = 0;
-
             tileInfo[i * TILE_X + j].rcTile.left = TILESIZE * j;
             tileInfo[i * TILE_X + j].rcTile.top = TILESIZE * i;
             tileInfo[i * TILE_X + j].rcTile.right = 
                 tileInfo[i * TILE_X + j].rcTile.left + TILESIZE;
-            tileInfo[i * TILE_X + j].rcTile.bottom = 
+            tileInfo[i * TILE_X + j].rcTile.bottom =
                 tileInfo[i * TILE_X + j].rcTile.top + TILESIZE;
+            tileInfo[i * TILE_X + j].type = TileType::None;
+            tileInfo[i * TILE_X + j].color = RGB(0, 0, 0);
+            tileInfo[i * TILE_X + j].hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
         }
-    }*/
+    }
 
     // 샘플 공간 렉트 설정
     //for (int i = 0; i < SAMPLE_TILE_Y; i++)
@@ -105,13 +106,15 @@ HRESULT TilemapTool::Init()
     btnLoad->SetFunc(Load, 1);
 
     Next = new Button();
-    Next->Init("Next", TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + 400,
+    Next->Init("Next", TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + 550,
         TILEMAPTOOLSIZE_Y - 300);
     Next->SetFunc(NextPage, 0);
     Prev = new Button();
-    Prev->Init("Prev", TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + 550,
+    Prev->Init("Prev", TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + 400,
         TILEMAPTOOLSIZE_Y - 300);
     Prev->SetFunc(PrevPage, 1);
+
+    ShowCursor(true);
     return S_OK;
 }
 
@@ -122,6 +125,16 @@ void TilemapTool::Release()
     SAFE_RELEASE(Next);
     SAFE_RELEASE(Prev);
     SAFE_RELEASE(enemyManager);
+
+    for (int i = 0; i < TILE_Y; i++)
+    {
+        for (int j = 0; j < TILE_X; j++) 
+        {
+            DeleteObject(tileInfo[i * TILE_X + j].hBrush);
+        }
+    }
+
+    
 }
 
 void TilemapTool::Update()
@@ -137,8 +150,8 @@ void TilemapTool::Update()
     if (Next) Next->Update();
     if (Prev) Prev->Update();
 
-    Prev->SetFunc(NextPage, changeIndex);
-    Next->SetFunc(PrevPage, changeIndex);
+    Prev->SetFunc(PrevPage, changeIndex);
+    Next->SetFunc(NextPage, changeIndex);
 
     if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_F9))
         SceneManager::GetSingleton()->ChangeScene("전투_1");
@@ -173,50 +186,58 @@ void TilemapTool::Update()
         }
     }
 
+    if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_F5))
+        MonsterSpwan = true;
+    if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_F6))
+        MonsterSpwan = false;
+
     // 메인 영역 계산
     rcMain.left = 0;
     rcMain.top = 0;
     rcMain.right = WINSIZE_X;
     rcMain.bottom = WINSIZE_Y;
 
-    //// 샘플 영역 계산
-    //rcSample.left = TILEMAPTOOLSIZE_X - sampleTile->GetWidth();
-    //rcSample.top = 0;
-    //rcSample.right = TILEMAPTOOLSIZE_X;
-    //rcSample.bottom = sampleTile->GetHeight();
-
     if (PtInRect(&rcMain, g_ptMouse))
     {
         // 마우스 왼쪽 버튼 클릭시 좌표 사용
-        if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON))
-        {
+        if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON) && MonsterSpwan)
             SettingEnemy();
+        if ((KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON) || KeyManager::GetSingleton()->IsStayKeyDown(VK_LBUTTON)) && MonsterSpwan == false)
+        {
+            // g_ptMouse로 인덱스를 계산
+            int x, y;
+            x = GetWorldMousePos_p(worldPos).x / TILESIZE;
+            y = GetWorldMousePos_p(worldPos).y / TILESIZE;
 
-            //for (int i = 0; i < TILE_X * TILE_Y; i++)
-            //{
-            //    if (PtInRect(&(tileInfo[i].rcTile), g_ptMouse))
-            //    {
-            //        //selectedFrameX = i % TILE_X;
-            //        //selectedFrameY = i / TILE_X;
+            if (0 <= x && x < TILE_COUNT &&
+                0 <= y && y < TILE_COUNT)
+            {
+                if (GetType(&tileInfo[y * TILE_X + x]) != TileType::Start &&
+                    GetType(&tileInfo[y * TILE_X + x]) != TileType::End)
+                {
+                    SetColor(&tileInfo[y * TILE_X + x], true);
+                    SetType(&tileInfo[y * TILE_X + x],TileType::Wall);
+                }
+            }
+        }
+        if(MonsterSpwan)
+            EraseEnemy();
+        if ((KeyManager::GetSingleton()->IsOnceKeyDown(VK_RBUTTON) || KeyManager::GetSingleton()->IsStayKeyDown(VK_RBUTTON)) && MonsterSpwan == false)
+        {
+            // g_ptMouse로 인덱스를 계산
+            int x, y;
+            x = GetWorldMousePos_p(worldPos).x / TILESIZE;
+            y = GetWorldMousePos_p(worldPos).y / TILESIZE;
 
-            //        tileInfo[i].frameX = ptStartSelectedFrame.x;
-            //        tileInfo[i].frameY = ptStartSelectedFrame.y;
-
-            //        for (int j = 0; j <= ptEndSelectedFrame.y - ptStartSelectedFrame.y; j++)
-            //        {
-            //            for (int k = 0; k <= ptEndSelectedFrame.x - ptStartSelectedFrame.x; k++)
-            //            {
-            //                if ((i % TILE_X) + k >= TILE_X) continue;
-            //                if ((i / TILE_X) + j >= TILE_Y) continue;
-
-            //                tileInfo[i + j * TILE_X + k].frameX = ptStartSelectedFrame.x + k;
-            //                tileInfo[i + j * TILE_X + k].frameY = ptStartSelectedFrame.y + j;
-            //            }
-            //        }
-
-            //        break;
-            //    }
-            //}
+            if (0 <= x && x < TILE_COUNT &&
+                0 <= y && y < TILE_COUNT)
+            {
+                if (GetType(&tileInfo[y * TILE_X + x]) == TileType::Wall)
+                {
+                    SetColor(&tileInfo[y * TILE_X + x], false);
+                    SetType(&tileInfo[y * TILE_X + x], TileType::None);
+                }
+            }
         }
     }
     else if (PtInRect(&rcSample, g_ptMouse))
@@ -224,26 +245,9 @@ void TilemapTool::Update()
         // 마우스 왼쪽 버튼 클릭시 좌표 사용
         if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON))
         {
-
-            // 2) 마우스 좌표로 인덱스 계산
             int posX = g_ptMouse.x - rcSample.left;
             int posY = g_ptMouse.y - rcSample.top;
-            //ptStartSelectedFrame.x = posX / TILESIZE;
-            //ptStartSelectedFrame.y = posY / TILESIZE;
-
             ptSelected[0] = g_ptMouse;
-
-            //// 1) 모든 타일을 반복하면서 렉트충돌 확인
-            //for (int i = 0; i < SAMPLE_TILE_X * SAMPLE_TILE_Y; i++)
-            //{
-            //    if (PtInRect(&(sampleTileInfo[i].rcTile), g_ptMouse))
-            //    {
-            //        ptStartSelectedFrame.x = i % SAMPLE_TILE_X;
-            //        ptStartSelectedFrame.y = i / SAMPLE_TILE_X;
-
-            //        break;
-            //    }
-            //}
         }
         else if (KeyManager::GetSingleton()->IsOnceKeyUp(VK_LBUTTON))
         {
@@ -263,16 +267,12 @@ void TilemapTool::Update()
             ptSelected[1] = g_ptMouse;
         }
     }
-
 }
 
 void TilemapTool::Render(HDC hdc)
 {
     PatBlt(hdc, 0, 0,
         TILEMAPTOOLSIZE_X, TILEMAPTOOLSIZE_Y, WHITENESS);
-
-    // 샘플타일 전체
-    sampleTile->Render(hdc, TILEMAPTOOLSIZE_X - sampleTile->GetWidth(), 0);
 
     // 선택 영역 표시
     hOldSelectedBrush = (HBRUSH)SelectObject(hdc, hSelectedBrush);
@@ -283,42 +283,26 @@ void TilemapTool::Render(HDC hdc)
     if (btnSave)    btnSave->Render(hdc);
     if (btnLoad)    btnLoad->Render(hdc);
     if (Next) Next->Render(hdc);
-    if (Prev)  Prev->Render(hdc);
+    if (Prev)  Prev->Render(hdc,true);
     // 메인영역 전체
+
+    Camera::GetSingleton()->Render(hdc);
+
     for (int i = 0; i < TILE_X * TILE_Y; i++)
     {
-        sampleTile->FrameRender(hdc,
-            tileInfo[i].rcTile.left,
-            tileInfo[i].rcTile.top,
-            tileInfo[i].frameX,
-            tileInfo[i].frameY);
+        if (tileInfo[i].rcTile.left - Camera::GetSingleton()->GetCameraPos().x > WINSIZE_X)
+            continue;
+        if (tileInfo[i].rcTile.top - Camera::GetSingleton()->GetCameraPos().y > WINSIZE_Y)
+            continue;
+        tileInfo[i].hOldBrush = (HBRUSH)SelectObject(hdc, tileInfo[i].hBrush);
+        Rectangle(hdc,
+            tileInfo[i].rcTile.left - Camera::GetSingleton()->GetCameraPos().x,
+            tileInfo[i].rcTile.top - Camera::GetSingleton()->GetCameraPos().y,
+            tileInfo[i].rcTile.right - Camera::GetSingleton()->GetCameraPos().x,
+            tileInfo[i].rcTile.bottom - Camera::GetSingleton()->GetCameraPos().y);
+        SelectObject(hdc, tileInfo[i].hOldBrush);
     }
-    Camera::GetSingleton()->Render(hdc);
     
-    // 선택된 타일
-  /*  if (ptStartSelectedFrame.x == ptEndSelectedFrame.x &&
-        ptStartSelectedFrame.y == ptEndSelectedFrame.y)
-    {
-        sampleTile->FrameRender(hdc, 
-            TILEMAPTOOLSIZE_X - sampleTile->GetWidth(),
-            sampleTile->GetHeight() + 50, 
-            ptStartSelectedFrame.x, ptStartSelectedFrame.y, false, 3);
-    }
-    else
-    {
-        for (int i = 0; i <= ptEndSelectedFrame.y - ptStartSelectedFrame.y; i++)
-        {
-            for (int j = 0; j <= ptEndSelectedFrame.x - ptStartSelectedFrame.x; j++)
-            {
-                sampleTile->FrameRender(hdc,
-                    TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + (j * TILESIZE),
-                    sampleTile->GetHeight() + 50 + (i * TILESIZE),
-                    ptStartSelectedFrame.x + j, ptStartSelectedFrame.y + i, false, 1);
-
-            }
-        }
-    }*/
-
     sprintf_s(szText, "playerX : %d , playerY : %d", g_ptMouse.x, g_ptMouse.y);
     TextOut(hdc, WINSIZE_X - 800, 20, szText, strlen(szText));
     sprintf_s(szText, "X : %f, Y : %f", GetWorldMousePos(worldPos).x, GetWorldMousePos(worldPos).y);
@@ -326,6 +310,30 @@ void TilemapTool::Render(HDC hdc)
 
     enemyManager->Render(hdc);
     exhibition->Render(hdc,true);
+}
+
+void TilemapTool::EraseEnemy()
+{
+    if (enemyManager->GetMonsterList().size() <= 0)
+        return;
+    RECT rc;
+    for (int i = 0; i < enemyManager->GetMonsterList().size(); i++) 
+    {
+        rc = enemyManager->GetMonsterList()[i]->GetRect();
+        if (PtInRect(&rc, g_ptMouse))
+        {
+            if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_RBUTTON)) 
+            {
+                enemyManager->DeletEnemy(i);
+                test2[i].Name = "";
+                test2[i].x = 0;
+                test2[i].y = 0;
+                test2[i].index = 0;
+                break;
+            }
+        }
+    }
+   
 }
 
 void TilemapTool::CameraMove()
@@ -344,16 +352,27 @@ void TilemapTool::CameraMove()
 void TilemapTool::SettingEnemy()
 {
     monsterCount = enemyManager->GetMonsterList().size();
-    float x, y;
-    x = Camera::GetSingleton()->GetWorldMousePos(this->worldPos).x;
-    y = Camera::GetSingleton()->GetWorldMousePos(this->worldPos).y;
     enemyManager->AddEnemy(MonsterName,1);
-    enemyManager->Init(nullptr,x, y, monsterCount);
+    enemyManager->Init(nullptr, Camera::GetSingleton()->GetWorldMousePos().x, Camera::GetSingleton()->GetWorldMousePos().y, monsterCount);
     test2[enemyManager->GetMonsterList().size() - 1].Name = MonsterName;
-    test2[enemyManager->GetMonsterList().size() - 1].x = x;
-    test2[enemyManager->GetMonsterList().size() - 1].y = y;
+    test2[enemyManager->GetMonsterList().size() - 1].x = Camera::GetSingleton()->GetWorldMousePos().x;
+    test2[enemyManager->GetMonsterList().size() - 1].y = Camera::GetSingleton()->GetWorldMousePos().y;
     test2[enemyManager->GetMonsterList().size() - 1].index = monsterCount;
     monsterCount++;
+}
+
+void TilemapTool::SetColor(TILE_INFO* type,bool wall)
+{
+    if (wall) 
+    {
+        DeleteObject(type->hBrush);
+        type->hBrush = (HBRUSH)GetStockObject(GRAY_BRUSH);
+    }
+    else
+    {
+        DeleteObject(type->hBrush);
+        type->hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
+    }
 }
 
 void TilemapTool::ChangeEnemy(int Index)
@@ -422,12 +441,19 @@ void TilemapTool::Save(int stageNum)
 {
     string fileName = "Save/saveMapData";  // 1.map";
     fileName += to_string(stageNum) + ".map";
-    DWORD writtenBytes;
+    string fileName1 = "Save/saveMapDataTile";  // 1.map";
+    fileName1 += to_string(stageNum) + ".map";
+    DWORD writtenBytes[2];
     HANDLE hFile = CreateFile(fileName.c_str(), GENERIC_WRITE, 0,
+        0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE hFile2 = CreateFile(fileName1.c_str(), GENERIC_WRITE, 0,
         0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     /*void**/
     WriteFile(hFile, test2, sizeof(ENMY_INFO) * 100,
-            &writtenBytes, NULL);
+            &writtenBytes[0], NULL);
+    WriteFile(hFile2, tileInfo, sizeof(TILE_INFO) * TILE_X * TILE_Y,
+        &writtenBytes[1], NULL);
+    CloseHandle(hFile2);
     CloseHandle(hFile);
 }
 
@@ -435,14 +461,19 @@ void TilemapTool::Load(int stageNum)
 {
     string fileName = "Save/saveMapData";  // 1.map";
     fileName += to_string(stageNum) + ".map";
-
-    DWORD readBytes;
+    string fileName1 = "Save/saveMapDataTile";  // 1.map";
+    fileName1 += to_string(stageNum) + ".map";
+    DWORD readBytes[2];
     HANDLE hFile = CreateFile(fileName.c_str(), GENERIC_READ, 0,
         0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE hFile2 = CreateFile(fileName1.c_str(), GENERIC_READ, 0,
+        0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (ReadFile(hFile2, tileInfo, sizeof(TILE_INFO) * TILE_X*TILE_Y,
+        &readBytes[0], NULL))
     for (int i = 0; i < 100; i++) 
     {
         if (ReadFile(hFile, &test2[i], sizeof(ENMY_INFO) * 100,
-            &readBytes, NULL))
+            &readBytes[1], NULL))
         {
             if (test2[i].Name == "")
                 break;
@@ -454,5 +485,6 @@ void TilemapTool::Load(int stageNum)
             MessageBox(g_hWnd, "저장파일 로드 실패", "실패", MB_OK);
         }
     }
+    CloseHandle(hFile2);
     CloseHandle(hFile);
 }

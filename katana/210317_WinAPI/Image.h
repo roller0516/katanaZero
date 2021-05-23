@@ -71,7 +71,8 @@ private:
 	//LPIMAGE_INFO imageInfo;
 	bool isTransparent;
 	COLORREF transColor;
-
+	int w;
+	int h;
 	BLENDFUNCTION blendFunc;
 
 public:
@@ -86,11 +87,6 @@ public:
 		int maxFrameX, int maxFrameY,
 		bool isTransparent = FALSE, COLORREF transColor = FALSE);
 
-	HRESULT Init(const char* fileName, int width, int height,
-		int maxFrameX, int maxFrameY,float angle,
-		bool isTransparent = FALSE, COLORREF transColor = FALSE);
-
-
 	// 화면에 출력
 	void Render(HDC hdc, int destX = 0, int destY = 0,
 		bool isCenterRenderring = false);
@@ -102,9 +98,8 @@ public:
 		bool isCenterRenderring = false);
 	void CameraRender(HDC hdc, float destX, float destY,  int width, int height, bool isCenterRenderring);
 
-	void RotateFrameRender(HDC hdc, int destX, int destY,
-		int currFrameX, int currFrameY, bool isCenterRenderring, int size , float angle);
-
+	void rotateRender(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle);
+	void rotateRenderFlip(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle);
 	void Release();
 
 	// get, set

@@ -67,9 +67,9 @@ void Camera::View()
 
 	FPOINT tPos;
 
-	float angle = GetAngle(playerPos, GetWorldMousePos(pos));
-	float x = Distance(playerPos, GetWorldMousePos(pos)).x;
-	float y = Distance(playerPos, GetWorldMousePos(pos)).y;
+	float angle = GetAngle(playerPos, GetWorldMousePos());
+	float x = Distance(playerPos, GetWorldMousePos()).x;
+	float y = Distance(playerPos, GetWorldMousePos()).y;
 
 	float distance = sqrtf(powf(x, 2) + powf(y, 2));
 
@@ -140,21 +140,12 @@ float Camera::GetAngle(FPOINT pos, FPOINT targetPos)
 
 	return angle;
 }
-FPOINT Camera::GetWorldMousePos(FPOINT pos)
+FPOINT Camera::GetWorldMousePos()
 {
-	FPOINT ClientSize;
 	FPOINT worldMousePos;
 
-	ClientSize.x = WINSIZE_X/2;
-	ClientSize.y = WINSIZE_Y/2;
-	if (pos.x >WINSIZE_X)
-		worldMousePos.x = pos.x - ClientSize.x + g_ptMouse.x;
-	else
-		worldMousePos.x = g_ptMouse.x;
-	if (pos.y >WINSIZE_Y)
-		worldMousePos.y = pos.y - ClientSize.y + g_ptMouse.y;
-	else
-		worldMousePos.y = g_ptMouse.y;
+	worldMousePos.x = g_ptMouse.x + GetCameraPos().x;
+	worldMousePos.y = g_ptMouse.y + GetCameraPos().y;
 
 	return worldMousePos;
 }

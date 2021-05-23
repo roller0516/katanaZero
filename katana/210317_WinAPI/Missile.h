@@ -5,29 +5,20 @@ class Image;
 class Enemy;
 class Missile : public GameNode
 {
-public:
-	enum TYPE { Normal, Skill_01, FollowTarget, End };
-
 private:
 	// ÀÌ¹ÌÁö
 	Image* img;
-
-	FPOINT pos;
+	FPOINT worldPos;
+	FPOINT localPos;
+	RECT shape;
+	int size;
 	float moveSpeed;
 	float moveTime;
-	int size;
-	RECT shape;
-	int damage;
 	float angle;
 	bool isFired;
-	TYPE missileType;
 	int fireIndex;
 	int fireStep;
-
-	//GameNode* target;
-	Enemy* target;
 	float destAngle;
-
 	Enemy* owner;
 
 public:
@@ -37,19 +28,15 @@ public:
 	void Render(HDC hdc);
 
 	void MovingNormal();
-	void MovingSkill_01();
-	void MovingFollowTarget();
-
-	inline void SetPos(FPOINT pos) { this->pos = pos; }
-	inline FPOINT GetPos() { return this->pos; }
 	void SetIsFired(bool isFired);
-	inline bool GetIsFired() { return this->isFired; }
 
-	inline void SetTarget(Enemy* target) { this->target = target; }
-	inline void SetType(TYPE type) { this->missileType = type; }
+	inline void SetPos(int x, int y) { this->worldPos.x = x; this->worldPos.y = y; }
+	inline void SetPos(FPOINT pos) { this->worldPos = pos; }
+	inline FPOINT GetWorldPos() { return this->worldPos; }
+	inline FPOINT GetLocalPos() { return this->localPos; }
+	inline bool GetIsFired() { return this->isFired; }
 	inline void SetAngle(float angle) { this->angle = angle; }
 	inline void SetFireIndex(int fireIndex) { this->fireIndex = fireIndex; }
-
 	inline int GetSize() { return this->size; }
 };
 

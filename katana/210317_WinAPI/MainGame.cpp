@@ -21,8 +21,9 @@ HRESULT MainGame::Init()
 
 	SceneManager::GetSingleton()->AddScene("전투_1", new BattleScene());
 	SceneManager::GetSingleton()->AddScene("타일맵툴", new TilemapTool());
+	SceneManager::GetSingleton()->AddScene("A스타", new AstarScene());
 
-	SceneManager::GetSingleton()->ChangeScene("전투_1");
+	SceneManager::GetSingleton()->ChangeScene("타일맵툴");
 
 	isInited = true;
 

@@ -1,7 +1,7 @@
 // CommonFunction.h
 #pragma once
 #include "config.h"
-
+#include "Camera.h"
 // 두 점 사이의 각도를 구하는 함수
 inline float GetAngle(FPOINT pos, FPOINT targetPos)
 {
@@ -162,21 +162,21 @@ inline void SetClientRect(HWND hWnd, int width, int height)
 }
 inline 	FPOINT GetWorldMousePos(FPOINT pos)
 {
-	FPOINT ClientSize;
 	FPOINT worldMousePos;
 
-	ClientSize.x = WINSIZE_X/2;
-	ClientSize.y = WINSIZE_Y/2;
-	if (pos.x > WINSIZE_X / 2)
-		worldMousePos.x = pos.x - ClientSize.x + g_ptMouse.x;
-	else
-		worldMousePos.x = g_ptMouse.x;
-	if(pos.y>WINSIZE_Y/2)
-		worldMousePos.y = pos.y - ClientSize.y + g_ptMouse.y;
-	else
-		worldMousePos.y = g_ptMouse.y;
+	worldMousePos.x = g_ptMouse.x + Camera::GetSingleton()->GetCameraPos().x;
+	worldMousePos.y = g_ptMouse.y + Camera::GetSingleton()->GetCameraPos().y;
 
 	return worldMousePos;
-
 }
+inline 	POINT GetWorldMousePos_p(FPOINT pos)
+{
+	POINT worldMousePos;
+
+	worldMousePos.x = g_ptMouse.x + Camera::GetSingleton()->GetCameraPos().x;
+	worldMousePos.y = g_ptMouse.y + Camera::GetSingleton()->GetCameraPos().y;
+
+	return worldMousePos;
+}
+
 

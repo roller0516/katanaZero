@@ -29,7 +29,7 @@ using namespace std;
 #define ASTARSIZE_Y	900
 
 #define Gravity			9.8f
-#define PI			3.141592f
+#define PI			3.14159274f
 #define DegToRad(x)	((x) * PI / 180.0f)
 #define SAFE_DELETE(p) { if (p) { delete p; p = nullptr; } }
 #define SAFE_RELEASE(p) { if (p) { p->Release(); delete p; p = nullptr; } }

@@ -9,7 +9,6 @@ class MissileManager : public GameNode
 private:
 	vector<Missile*> vMissiles;
 	vector<Missile*>::iterator itMissiles;
-
 	Enemy* owner;
 
 public:
@@ -17,7 +16,7 @@ public:
 	void Release();
 	void Update();
 	void Render(HDC hdc);
+	void Fire(float angle,int x, int y);
 
-	void Fire();
 };
 

@@ -19,6 +19,8 @@ public:
 		int width, int height, int maxFrameX, int maxFrameY,
 		bool isTransparent = FALSE, COLORREF transColor = FALSE);
 
+
+
 	void DeleteImage(string key);
 	Image* FindImage(string key);
 

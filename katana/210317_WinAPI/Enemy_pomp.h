@@ -13,7 +13,7 @@ private:
 	Player* target;
 	string name;
 	RECT shape;
-
+	EnemyData* data;
 	float currFrameX;
 	float angle;
 	float moveSpeed;
@@ -34,7 +34,7 @@ public:
 	virtual ~Enemy_pomp() {};
 	void Move();
 	void HorizonMove();
-
+	virtual RECT GetRect() { return this->data->shape; }
 	// get, set
 	virtual void SetMoveSpeed(float moveSpeed) { this->moveSpeed = moveSpeed; }
 	virtual void SetSample(bool isSample) { this->isSamPle = isSample; }

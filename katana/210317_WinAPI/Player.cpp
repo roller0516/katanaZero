@@ -350,7 +350,7 @@ void Player::PlayerKeyMove()
 		angle = GetAngle(Worldpos, GetWorldMousePos(Worldpos));
 		return;
 	}
-	if (KeyManager::GetSingleton()->IsOnceKeyDown('S'))
+	else if (KeyManager::GetSingleton()->IsOnceKeyDown('S'))
 	{
 		if (isFall) return;
 		currFrame = 0;
@@ -475,7 +475,7 @@ void Player::PixelCollisionRight()
 			break;
 		if (!(R == 255 && G == 0 && B == 255))
 		{
-			if ((R == 0 && G == 0 && B == 0) || (R == 50 && G == 56 && B == 71))
+			if (R == 0 && G == 0 && B == 0)
 				break;
 			else if (R == 255 && G == 0 && B == 0) 
 			{

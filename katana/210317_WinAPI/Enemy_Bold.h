@@ -1,5 +1,7 @@
 #pragma once
 #include "Enemy.h"
+
+class MissileManager;
 class Image;
 class Player;
 class Enemy_Bold :
@@ -12,12 +14,14 @@ private:
 	Image* armLImage;
 	Image* armRImage;
 	Image* GunImage;
+	MissileManager* missileManager;
 	Player* target;
 	string name;
-	RECT shape;
+
 	EnemyData* data;
 	EnemyDir dir;
 	EnemyState state;
+	float angle;
 public:
 	virtual HRESULT Init(int posX = 0, int posY = 0);
 	virtual void Release();
@@ -27,7 +31,7 @@ public:
 	virtual void Pattern();
 	virtual ~Enemy_Bold() {};
 
-	void Attack();
+	void Attack(EnemyDir dir);
 	void Run();
 	void Walk();
 	void Hurt();
@@ -43,7 +47,7 @@ public:
 	inline int GetSize() { return this->data->size; }
 	inline void SetIsAlive(bool isAlive) { this->data->isAlive = isAlive; }
 	inline bool GetIsAlive() { return this->data->isAlive; }
-
+	virtual RECT GetRect() { return this->data->shape; }
 	virtual void SetTarget(Player* player) { this->target = player; }
 	virtual void SetMoveSpeed(float moveSpeed) { this->data->moveSpeed = moveSpeed; }
 	virtual void SetSample(bool isSample) { this->data->isSamPle = isSample; }

@@ -73,7 +73,6 @@ Image* ImageManager::AddImage(string key, const char* fileName, int width, int h
     mImageDatas.insert(make_pair(key, image));
     return image;
 }
-
 void ImageManager::DeleteImage(string key)
 {
     map<string, Image*>::iterator it;

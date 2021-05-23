@@ -22,6 +22,7 @@ public:
 public:
 	struct EnemyData
 	{
+		RECT shape = { 0,0,0,0 };;
 		float currFrameX = 0;
 		float velocity = 60;
 		float angle = 0;
@@ -30,6 +31,7 @@ public:
 		float fallForce = 0;
 		float findRange = 0;
 		float attackRange = 0;
+		float attackSpeed = 0;
 		int maxFrame = 0;
 		int updateCount = 0;
 		int size = 0;
@@ -51,7 +53,7 @@ public:
 	virtual void SetSample(bool isSample) = 0;
 	virtual void Pattern() = 0;
 	virtual void SetTarget(Player* player) = 0;
-
+	virtual RECT GetRect() = 0;
 	virtual ~Enemy() {};
 };
 

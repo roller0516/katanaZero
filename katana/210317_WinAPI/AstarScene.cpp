@@ -50,7 +50,6 @@ void AstarTile::Render(HDC hdc)
 	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
 	FillRect(hdc, &rc, hBrush);
 	Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
-
 	SelectObject(hdc, hOldBrush);
 
 	if (type != AstarTileType::Wall)
@@ -96,7 +95,12 @@ HRESULT AstarScene::Init()
 	destTile = &(map[ASTAR_TILE_COUNT - 2][ASTAR_TILE_COUNT - 2]);
 	destTile->SetColor(RGB(0, 0, 255));
 	destTile->SetType(AstarTileType::End);
-
+	
+	pos.x = startTile->GetCenter().x;
+	pos.y = startTile->GetCenter().y;
+	angle = 0;
+	size = 100;
+	rcMain = { 0,0, ASTARSIZE_X ,ASTARSIZE_Y };
 	return S_OK;
 }
 
@@ -106,6 +110,11 @@ void AstarScene::Release()
 
 void AstarScene::Update()
 {
+	rctest.left = pos.x - size / 2;
+	rctest.top = pos.y - size / 2;
+	rctest.right = pos.x + size / 2;
+	rctest.bottom = pos.y + size / 2;
+
 	if (KeyManager::GetSingleton()->IsStayKeyDown(VK_LBUTTON))
 	{
 		// g_ptMouse로 인덱스를 계산
@@ -129,7 +138,29 @@ void AstarScene::Update()
 	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_SPACE))
 	{
 		FindPath();
+		AstarTile* parentTile = destTile;
+		while (parentTile->GetParentTile())
+		{
+			parentTile->SetColor(RGB(255, 0, 255));
+			parentTile = parentTile->GetParentTile();
+			parentList.push_back(parentTile);
+		}
 	}
+	if (RectInRect(rcMain, rctest))
+	{
+		int posX = pos.x - rcMain.left;
+		int posY = pos.y - rcMain.top;
+		ptStartSelectedFrame.x = posX / ASTAR_TILE_SIZE;
+		ptStartSelectedFrame.y = posY / ASTAR_TILE_SIZE;
+	}
+
+	if (parentList.size() > 0)
+	{
+		removeTile = parentList.back();
+		move = true;
+	}
+	if(move)
+		Move();
 }
 
 void AstarScene::Render(HDC hdc)
@@ -141,8 +172,28 @@ void AstarScene::Render(HDC hdc)
 			map[i][j].Render(hdc);
 		}
 	}
+	Rectangle(hdc, rctest.left, rctest.top, rctest.right, rctest.bottom);
 }
 
+void AstarScene::Move() 
+{	
+	if (removeTile->GetIdX() == ptStartSelectedFrame.x && removeTile->GetIdY() == ptStartSelectedFrame.y) 
+	{
+		if (parentList.size() == 0) 
+		{
+			removeTile = destTile;
+		}
+		else 
+		{
+			parentList.pop_back();
+			if(parentList.size()>0)
+				removeTile = parentList.back();
+		}
+		angle = GetAngle(pos, removeTile->GetCenter());
+	}
+	pos.x += cosf(angle) * 100 * TimerManager::GetSingleton()->GetElapsedTime();
+	pos.y -= sinf(angle) * 100 * TimerManager::GetSingleton()->GetElapsedTime();
+}
 void AstarScene::FindPath()
 {
 	if (currTile)
@@ -153,7 +204,6 @@ void AstarScene::FindPath()
 		//DeleteTileInOpenlist(currTile);
 
 		// 후보들 중 F값이 가장 작은 타일을 다음 currTile 선정
-		//currTile = GetMinTotalCostTile();
 		currTile = GetMinTotalCostTileWithHeap();
 		currTile->SetColor(RGB(130, 200, 130));
 
@@ -161,11 +211,12 @@ void AstarScene::FindPath()
 		if (currTile == destTile)
 		{
 			MarkTileToType();
+
 			return;
 		}
 
 		// 반복
-		//FindPath();
+		FindPath();
 	}
 }
 

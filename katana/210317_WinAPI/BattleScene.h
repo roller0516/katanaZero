@@ -20,7 +20,6 @@ private:
 	Image* curSor;
 	FPOINT bgPos;
 	char szText[128];
-
 public:
 	virtual HRESULT Init();
 	virtual void Release();

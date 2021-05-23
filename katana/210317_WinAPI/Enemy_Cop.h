@@ -12,7 +12,7 @@ private:
 	Player* target;
 	string name;
 	RECT shape;
-
+	EnemyData* data;
 	float currFrameX;
 	float angle;
 	float moveSpeed;
@@ -41,7 +41,7 @@ public:
 	inline int GetSize() { return this->size; }
 	inline void SetIsAlive(bool isAlive) { this->isAlive = isAlive; }
 	inline bool GetIsAlive() { return this->isAlive; }
-
+	virtual RECT GetRect() { return this->data->shape; }
 	virtual void SetTarget(Player* player) { this->target = player; }
 	virtual void SetMoveSpeed(float moveSpeed) { this->moveSpeed = moveSpeed; }
 	virtual void SetSample(bool isSample) { this->isSamPle = isSample; }

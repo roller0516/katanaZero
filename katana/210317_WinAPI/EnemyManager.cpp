@@ -58,6 +58,14 @@ void EnemyManager::AddEnemy(string name,int size)
     }
 }
 
+void EnemyManager::DeletEnemy(int index)
+{
+    vEnemyList[index]->Release();
+    delete vEnemyList[index];
+    vEnemyList[index] = nullptr;
+    vEnemyList.erase(vEnemyList.begin() + index);
+}
+
 Enemy* EnemyManager::CreateClone(string name)
 {
     return FindClone(name)->Clone();

@@ -12,7 +12,7 @@ private:
 	Player* target;
 	string name;
 	RECT shape;
-
+	EnemyData* data;
 	float currFrameX;
 	float angle;
 	float moveSpeed;
@@ -32,7 +32,7 @@ public:
 	virtual void Pattern();
 	virtual void SetTarget(Player* player) { this->target = player; }
 	virtual ~Enemy_Grunt() {};
-
+	virtual RECT GetRect() { return this->data->shape; }
 	void Move();
 	void HorizonMove();
 
