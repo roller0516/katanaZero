@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "CommonFunction.h"
 #include "MissileManager.h"
+#include "AstarManager.h"
 HRESULT Enemy_Bold::Init(int posX, int posY)
 {
 	image = ImageManager::GetSingleton()->AddImage("Bold_Idle", "Image/Katana/enemy/enemy_bold_Idle_8x2.bmp", 576, 140, 8, 2, true, RGB(255, 0, 255));
@@ -24,6 +25,7 @@ HRESULT Enemy_Bold::Init(int posX, int posY)
     worldPos.y = posY;
     data->maxFrame = 8;
     data->moveSpeed = 200;
+    destAngle = 0;
     data->size = image->GetImageInfo()->frameWidth;
     target = nullptr;
 	return S_OK;
@@ -37,6 +39,69 @@ void Enemy_Bold::Release()
 void Enemy_Bold::Update()
 {
     missileManager->Update();
+
+    if (astarManager)
+    {
+        FPOINT bottomPos;
+        bottomPos.x = worldPos.x - 20;
+        bottomPos.y = worldPos.y + 28;
+        for (int i = 0; i < 4; i++) 
+        {
+            if (destAngle < 0 && astarManager->GetTileIndex().x == 44 +i && astarManager->GetTileIndex().y == 76)
+            {
+                angle = 0;
+            }
+        }
+
+        if (astarManager->GetParentList().size() > 0)
+        {
+            targeton++;
+        }
+        if (astarManager->GetBackTile())
+        {
+            data->moveSpeed = 200;
+            
+            if (targeton == 1)
+            {
+                targeton = 2;
+                destAngle = GetAngle(bottomPos, astarManager->GetDestTile()->GetCenter());
+            }
+                
+            if (astarManager->GetBackTile()->GetIdX() == astarManager->GetTileIndex().x &&
+                astarManager->GetBackTile()->GetIdY() == astarManager->GetTileIndex().y )
+            {
+                
+                if (astarManager->GetParentList().size() == 0)
+                {
+                    astarManager->SetBackTile(astarManager->GetDestTile()); 
+                    targeton = 0;
+                    angle = 0;
+                }
+                else
+                {
+                    astarManager->ParentPopBack();
+                    if (astarManager->GetParentList().size() > 0) 
+                    {
+                        int a = astarManager->GetParentList().size();
+                        astarManager->SetBackTile(astarManager->GetParentList().back());
+                    }   
+                }
+                angle = GetAngle(bottomPos, astarManager->GetBackTile()->GetCenter());
+            }
+
+            worldPos.x += cosf(angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+            worldPos.y -= sinf(angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+
+            if (angle > DegToRad(90) || angle < DegToRad(-90))
+                dir = EnemyDir::Left;
+             else if (angle <= DegToRad(90) || angle <= DegToRad(-90))
+                 dir = EnemyDir::Right;
+
+            state = Enemy::EnemyState::run;
+            Animation(state);
+        }
+    }
+
 
     if (target) 
     {
@@ -104,8 +169,8 @@ void Enemy_Bold::Render(HDC hdc, bool world)
         }
         else 
         {
-            if (localPos.x > WINSIZE_X || localPos.y >WINSIZE_Y)
-                return;
+            //if (localPos.x > WINSIZE_X || localPos.y >WINSIZE_Y)
+            //    return;
             missileManager->Render(hdc);
             //Rectangle(hdc, data->shape.left, data->shape.top, data->shape.right, data->shape.bottom);
             if (dir == Enemy::EnemyDir::Left) 
@@ -312,6 +377,8 @@ void Enemy_Bold::PixelCollisionBottom()
 
         if (!(R == 255 && G == 0 && B == 255))
         {
+            if (angle  < DegToRad(0)&& destAngle < DegToRad(0)&&(R == 0 && G == 0 && B == 0))
+                break;
             data->velocity = 60;
             worldPos.y = i - playerHeight;
             data->fallForce = 0;

@@ -1,6 +1,7 @@
 #pragma once
 #include "Enemy.h"
 
+class AstarManager;
 class MissileManager;
 class Image;
 class Player;
@@ -8,20 +9,25 @@ class Enemy_Bold :
     public Enemy
 {
 private:
+	MissileManager* missileManager;
+	AstarManager* astarManager;
 	FPOINT worldPos;
 	FPOINT localPos;
 	Image* image;
 	Image* armLImage;
 	Image* armRImage;
 	Image* GunImage;
-	MissileManager* missileManager;
 	Player* target;
 	string name;
 
 	EnemyData* data;
 	EnemyDir dir;
 	EnemyState state;
+
+	int targeton;
+
 	float angle;
+	float destAngle;
 public:
 	virtual HRESULT Init(int posX = 0, int posY = 0);
 	virtual void Release();
@@ -42,8 +48,9 @@ public:
 	void PixelCollisionLeft();
 	void PixelCollisionRight();
 	// get, set
+	virtual void SetAstarManager(AstarManager* astar) { this->astarManager = astar; }
 	inline void SetPos(FPOINT pos) { this->worldPos = pos; }
-	inline FPOINT GetPos() { return this->worldPos; }
+	inline virtual FPOINT GetPos() { return this->worldPos; }
 	inline int GetSize() { return this->data->size; }
 	inline void SetIsAlive(bool isAlive) { this->data->isAlive = isAlive; }
 	inline bool GetIsAlive() { return this->data->isAlive; }

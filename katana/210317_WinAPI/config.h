@@ -27,6 +27,11 @@ using namespace std;
 #define TILEMAPTOOLSIZE_Y	900
 #define ASTARSIZE_X	1620
 #define ASTARSIZE_Y	900
+// 메인 그리기 공간 정보
+#define	TILE_X			150
+#define	TILE_Y			150
+#define TILESIZE		20
+#define TILE_COUNT		TILE_X*TILE_Y
 
 #define Gravity			9.8f
 #define PI			3.14159274f

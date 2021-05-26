@@ -1,6 +1,7 @@
 #pragma once
 #include "config.h"
 
+class AstarManager;
 class Player;
 class Enemy
 {
@@ -48,12 +49,14 @@ public:
 	virtual void Release() = 0;
 	virtual void Update() = 0;
 	virtual void Render(HDC hdc, bool world) = 0;
-	virtual Enemy* Clone() =0;
 	virtual void SetMoveSpeed(float moveSpeed) = 0;
 	virtual void SetSample(bool isSample) = 0;
 	virtual void Pattern() = 0;
 	virtual void SetTarget(Player* player) = 0;
+	virtual FPOINT GetPos() = 0;
+	virtual Enemy* Clone() =0;
 	virtual RECT GetRect() = 0;
+	virtual void SetAstarManager(AstarManager* astar) = 0;
 	virtual ~Enemy() {};
 };
 

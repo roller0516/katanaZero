@@ -2,11 +2,14 @@
 #include "Enemy.h"
 
 // TODO : 업캐스팅, 다운캐스팅 설명
+
+class AstarManager;
 class Image;
 class Player;
 class Enemy_pomp : public Enemy
 {
 private:
+	AstarManager* astarManager;
 	FPOINT worldPos;
 	FPOINT localPos;
 	Image* image;
@@ -40,7 +43,8 @@ public:
 	virtual void SetSample(bool isSample) { this->isSamPle = isSample; }
 	virtual void SetTarget(Player* player) { this->target = player; }
 	inline void SetPos(FPOINT pos) { this->worldPos = pos; }
-	inline FPOINT GetPos() { return this->worldPos; }
+	virtual void SetAstarManager(AstarManager* astar) { this->astarManager = astar; }
+	inline virtual FPOINT GetPos() { return this->worldPos; }
 	inline int GetSize() { return this->size; }
 	inline void SetIsAlive(bool isAlive) { this->isAlive = isAlive; }
 	inline bool GetIsAlive() { return this->isAlive; }

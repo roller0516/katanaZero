@@ -1,11 +1,13 @@
 #pragma once
 #include "Enemy.h"
+class AstarManager;
 class Player;
 class Image;
 class Enemy_Grunt :
     public Enemy
 {
 private:
+	AstarManager* astarManager;
 	FPOINT worldPos;
 	FPOINT localPos;
 	Image* image;
@@ -37,8 +39,9 @@ public:
 	void HorizonMove();
 
 	// get, set
+	virtual void SetAstarManager(AstarManager* astar) { this->astarManager = astar; }
 	inline void SetPos(FPOINT pos) { this->worldPos = pos; }
-	inline FPOINT GetPos() { return this->worldPos; }
+	inline virtual FPOINT GetPos() { return this->worldPos; }
 	inline int GetSize() { return this->size; }
 	inline void SetIsAlive(bool isAlive) { this->isAlive = isAlive; }
 	inline bool GetIsAlive() { return this->isAlive; }

@@ -1,9 +1,6 @@
 #pragma once
 #include "GameNode.h"
 
-#define ASTAR_TILE_SIZE		60
-#define ASTAR_TILE_COUNT	(ASTARSIZE_Y / ASTAR_TILE_SIZE)
-
 enum class AstarTileType { Start, End, Wall, None };
 
 class AstarTile : public GameNode
@@ -33,13 +30,13 @@ private:
 	int heapIndex;
 
 public:
-	virtual HRESULT Init();
+	HRESULT Init();
 	HRESULT Init(int idX, int idY);
-	virtual void Release();
-	virtual void Update();
-	virtual void Render(HDC hdc);
+	void Release();
+	void Update();
+	void Render(HDC hdc);
 
-	void SetColor(COLORREF color);
+	void SetColor(COLORREF color,bool nullcolor);
 	void SetType(AstarTileType type) { this->type = type; }
 	AstarTileType GetType() { return this->type; }
 	int GetIdX() { return this->idX; }
@@ -70,35 +67,38 @@ public:
 	virtual ~AstarTile() {};
 };
 
-class AstarScene : public GameNode
+class Enemy;
+class AstarManager : public GameNode
 {
-	// 이차원 배열 맵을 구성
-	AstarTile map[ASTAR_TILE_COUNT][ASTAR_TILE_COUNT];
+	AstarTile map[TILE_X][TILE_Y];
 
 	AstarTile* startTile;	// 빨간색
 	AstarTile* destTile;	// 파란색
-	AstarTile* removeTile;
+	AstarTile* backTile;
 	AstarTile* currTile;	// (녹색) 후보타일을 선정할 때의 기준타일
+
 	vector<AstarTile*> openList;
 	vector<AstarTile*> closeList;
 	vector<AstarTile*> heap;
 	vector<AstarTile*> parentList;
 
+	Enemy* target;
 	FPOINT pos;
 	RECT rctest;
 	RECT rcMain;
 
-	FPOINT ptStartSelectedFrame;
+	FPOINT TileIndex;
 	int ptSelected[3];
 	int size;
 	bool move;
 	bool start;
 	float angle;
+	int index;
 public:
-	virtual HRESULT Init();
-	virtual void Release();
-	virtual void Update();
-	virtual void Render(HDC hdc);
+	HRESULT Init();
+	void Release();
+	void Update();
+	void Render(HDC hdc);
 
 	void Move();
 	void FindPath();
@@ -110,12 +110,25 @@ public:
 	void Swap(AstarTile* tile1, AstarTile* tile2);
 	void InsertOpenlistWithHeap(AstarTile* tile);
 	void UpdateUpper(AstarTile* tile);
+	void SetRect(RECT rc) { this->rcMain = rc; }
+	void SetWall(int x, int y) { map[x][y].SetType(AstarTileType::Wall); }
 
 	void DeleteTileInOpenlist(AstarTile* tile);
+	void MarkTileToType();
+	vector<AstarTile*> GetParentList() { return this->parentList; }
 	int CalcEdgeCost(int x, int y);
 	int CalcHeuristics(int x, int y);
-	void MarkTileToType();
+	void ParentPopBack();
+	void Clear();
 
-	virtual ~AstarScene() {};
+	inline AstarTile* GetDestTile() { return this->destTile; }
+	inline void SetBackTile(AstarTile* astar) { this->backTile = astar; }
+	inline FPOINT GetTileIndex() { return this->TileIndex; }
+	inline AstarTile* GetBackTile() {return this->backTile;}
+	inline RECT GetMainRect() { return this->rcMain; }
+	inline void SetDestTile(int x, int y) { destTile = &(map[y][x]); }
+	inline void SetStartTile(int x, int y) { startTile = &(map[y][x]); }
+	inline void SetTarget(Enemy* target) { this->target = target; }
+	virtual ~AstarManager() {};
 };
 

@@ -25,6 +25,7 @@ enum class PlayerState
 	fall,
 	end
 };
+
 class Image;
 class Player : public GameNode
 {
@@ -36,6 +37,7 @@ private:
 	FPOINT Clientpos; //
 	FPOINT currPos;
 	POINT mousPos;
+
 
 	int size;
 	int tick;

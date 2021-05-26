@@ -32,7 +32,7 @@ HRESULT Player::Init()
 
 	image = ImageManager::GetSingleton()->FindImage("idle");
 	Animation(PlayerState::idle);
-	
+
 	Worldpos.x = WINSIZE_X / 2;
 	Worldpos.y = WINSIZE_Y / 2;
 	currFrame = 0.0f;
