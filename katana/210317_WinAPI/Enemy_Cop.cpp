@@ -49,3 +49,8 @@ Enemy* Enemy_Cop::Clone()
 void Enemy_Cop::Pattern()
 {
 }
+
+MissileManager* Enemy_Cop::GetMissileManager()
+{
+    return nullptr;
+}

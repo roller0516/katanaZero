@@ -25,24 +25,24 @@ inline float GetAngle(FPOINT pos, POINT targetPos)
 
 	return angle;
 }
-inline FPOINT Distance(FPOINT pos, FPOINT pos2) 
-{
-	FPOINT temp;
-
-	temp.x = abs(pos.x - pos2.x);
-	temp.y = abs(pos.y - pos2.y);
-
-	return temp;
-}
-inline FPOINT Distance(FPOINT pos, POINT pos2)
-{
-	FPOINT temp;
-
-	temp.x = abs(pos.x - pos2.x);
-	temp.y = abs(pos.y - pos2.y);
-
-	return temp;
-}
+//inline FPOINT Distance(FPOINT pos, FPOINT pos2) 
+//{
+//	FPOINT temp;
+//
+//	temp.x = abs(pos.x - pos2.x);
+//	temp.y = abs(pos.y - pos2.y);
+//
+//	return temp;
+//}
+//inline FPOINT Distance(FPOINT pos, POINT pos2)
+//{
+//	FPOINT temp;
+//
+//	temp.x = abs(pos.x - pos2.x);
+//	temp.y = abs(pos.y - pos2.y);
+//
+//	return temp;
+//}
 // 네모를 그리는 함수
 inline void RenderRect(HDC hdc, int x, int y, int width, int height)
 {
@@ -92,7 +92,7 @@ inline bool PointInRect(POINT ptMouse, POINT rcPos, int rcSize)
 	return true;
 }
 
-inline float Distacne(FPOINT pos, FPOINT pos2)
+inline float Distance(FPOINT pos, FPOINT pos2)
 {
 	FPOINT temp;
 	float distance;
@@ -104,7 +104,7 @@ inline float Distacne(FPOINT pos, FPOINT pos2)
 	return distance;
 }
 
-inline float Distascne(FPOINT pos, POINT pos2)
+inline float Distance(FPOINT pos, POINT pos2)
 {
 	FPOINT temp;
 	float distance;

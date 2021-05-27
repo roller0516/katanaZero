@@ -7,7 +7,8 @@
 #include "AstarManager.h"
 HRESULT Enemy_Bold::Init(int posX, int posY)
 {
-	image = ImageManager::GetSingleton()->AddImage("Bold_Idle", "Image/Katana/enemy/enemy_bold_Idle_8x2.bmp", 576, 140, 8, 2, true, RGB(255, 0, 255));
+    data = new Enemy::EnemyData;
+	data->image = ImageManager::GetSingleton()->AddImage("Bold_Idle", "Image/Katana/enemy/enemy_bold_Idle_8x2.bmp", 576, 140, 8, 2, true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("Bold_hurt", "Image/Katana/enemy/enemy_bold_hurt_14x2.bmp", 1036, 128, 14, 2, true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("Bold_run", "Image/Katana/enemy/enemy_bold_run_10x2.bmp", 900, 156, 10, 2, true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("Bold_walk", "Image/Katana/enemy/enemy_bold_walk_8x2.bmp", 544, 152, 8, 2, true, RGB(255, 0, 255));
@@ -15,19 +16,22 @@ HRESULT Enemy_Bold::Init(int posX, int posY)
     armRImage = ImageManager::GetSingleton()->AddImage("Bold_arm_r", "Image/Katana/enemy/enemy_bold_rightarm_R.bmp", 30, 18, 1, 1,true, RGB(255, 0, 255));
     GunImage = ImageManager::GetSingleton()->AddImage("Bold_gun", "Image/Katana/enemy/enemy_bold_gun.bmp", 54, 12, 1, 1,true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("Bold_attack", "Image/Katana/enemy/enemy_bold_aim_R.bmp", 42, 70, 1, 1, true, RGB(255, 0, 255));
-    data = new Enemy::EnemyData;
     missileManager = new MissileManager();
     missileManager->Init(this);
+    data->astar = new AstarManager();
+    data->astar->Init();
+    data->astar->SetOnwer(this);
     data->findRange = 200;
     data->attackRange = 300;
-    data->attackSpeed = 0;
-    worldPos.x = posX;
-    worldPos.y = posY;
+    data->worldPos.x = posX;
+    data->worldPos.y = posY;
     data->maxFrame = 8;
     data->moveSpeed = 200;
-    destAngle = 0;
-    data->size = image->GetImageInfo()->frameWidth;
-    target = nullptr;
+    data->size = data->image->GetImageInfo()->frameWidth;
+    data->Name = "Bold";
+    data->isAlive = true;
+    data->attackAngle = 0;
+    data->knockBackPower = 800;
 	return S_OK;
 }
 
@@ -40,166 +44,111 @@ void Enemy_Bold::Update()
 {
     missileManager->Update();
 
-    if (astarManager)
+    data->attackAngle = GetAngle(this->data->worldPos, data->target->GetWorldpos());
+
+    data->astar->Update();
+
+    data->localPos.x = data->worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
+    data->localPos.y = data->worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
+
+    data->currFrameX += TimerManager::GetSingleton()->GetElapsedTime() * 10;
+    if (data->currFrameX >= data->maxFrame) 
     {
-        FPOINT bottomPos;
-        bottomPos.x = worldPos.x - 20;
-        bottomPos.y = worldPos.y + 28;
-        for (int i = 0; i < 4; i++) 
-        {
-            if (destAngle < 0 && astarManager->GetTileIndex().x == 44 +i && astarManager->GetTileIndex().y == 76)
-            {
-                angle = 0;
-            }
-        }
-
-        if (astarManager->GetParentList().size() > 0)
-        {
-            targeton++;
-        }
-        if (astarManager->GetBackTile())
-        {
-            data->moveSpeed = 200;
-            
-            if (targeton == 1)
-            {
-                targeton = 2;
-                destAngle = GetAngle(bottomPos, astarManager->GetDestTile()->GetCenter());
-            }
-                
-            if (astarManager->GetBackTile()->GetIdX() == astarManager->GetTileIndex().x &&
-                astarManager->GetBackTile()->GetIdY() == astarManager->GetTileIndex().y )
-            {
-                
-                if (astarManager->GetParentList().size() == 0)
-                {
-                    astarManager->SetBackTile(astarManager->GetDestTile()); 
-                    targeton = 0;
-                    angle = 0;
-                }
-                else
-                {
-                    astarManager->ParentPopBack();
-                    if (astarManager->GetParentList().size() > 0) 
-                    {
-                        int a = astarManager->GetParentList().size();
-                        astarManager->SetBackTile(astarManager->GetParentList().back());
-                    }   
-                }
-                angle = GetAngle(bottomPos, astarManager->GetBackTile()->GetCenter());
-            }
-
-            worldPos.x += cosf(angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
-            worldPos.y -= sinf(angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
-
-            if (angle > DegToRad(90) || angle < DegToRad(-90))
-                dir = EnemyDir::Left;
-             else if (angle <= DegToRad(90) || angle <= DegToRad(-90))
-                 dir = EnemyDir::Right;
-
-            state = Enemy::EnemyState::run;
-            Animation(state);
-        }
+        data->currFrameX = 0;
+        if (data->isAlive == false)
+            data->currFrameX = data->maxFrame-1;
     }
-
-
-    if (target) 
-    {
-        angle = GetAngle(this->worldPos, target->GetWorldpos());
-    }
-
-    localPos.x = worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
-    localPos.y = worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
-
+        
+    
     if (data->isAlive)
     {
-        data->currFrameX += TimerManager::GetSingleton()->GetElapsedTime() * 10;
-        if (data->currFrameX >= data->maxFrame)
-            data->currFrameX = 0;
+        data->shape.left = data->localPos.x - data->size / 2;
+        data->shape.top = data->localPos.y - data->size / 2;
+        data->shape.right = data->localPos.x + data->size / 2;
+        data->shape.bottom = data->localPos.y + data->size / 2;
     }
     if (data->isPhysic&&data->isSamPle ==false)
     {
         data->fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * data->velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
-        worldPos.y -= data->fallForce * TimerManager::GetSingleton()->GetElapsedTime();
+        data->worldPos.y -= data->fallForce * TimerManager::GetSingleton()->GetElapsedTime();
     }
     if (data->isSamPle == false) 
     {
         Pattern();
+        if (data->isKnockBack)
+            KnockBack();
         PixelCollisionBottom();
         PixelCollisionRight();
         PixelCollisionLeft();
     }
-
-    data->shape.left = localPos.x - data->size / 2;
-    data->shape.top = localPos.y - data->size / 2;
-    data->shape.right = localPos.x + data->size / 2;
-    data->shape.bottom = localPos.y + data->size / 2;
 }
 
 void Enemy_Bold::Render(HDC hdc, bool world)
 {
-    if (data->isAlive)
-    {
+    //data->astar->Render(hdc);
+
         if (world)
         {
-            if ((dir == Enemy::EnemyDir::Left)) 
+            if ((dir == EnemyDir::Left)) 
             {
                 if (data->isAttack)
                 {
-                    armLImage->FrameRenderFlip(hdc, worldPos.x - 20, worldPos.y - 10, 0, 0, true);
-                    image->FrameRenderFlip(hdc, worldPos.x, worldPos.y, data->currFrameX, 0, true);
-                    GunImage->FrameRenderFlip(hdc, worldPos.x - 20, worldPos.y -12, 0, 0, true);
-                    armRImage->FrameRenderFlip(hdc, worldPos.x, worldPos.y - 10, 0, 0, true);
+                    armLImage->FrameRenderFlip(hdc, data->worldPos.x - 20, data->worldPos.y - 10, 0, 0, true);
+                    data->image->FrameRenderFlip(hdc, data->worldPos.x, data->worldPos.y, data->currFrameX, 0, true);
+                    GunImage->FrameRenderFlip(hdc, data->worldPos.x - 20, data->worldPos.y -12, 0, 0, true);
+                    armRImage->FrameRenderFlip(hdc, data->worldPos.x, data->worldPos.y - 10, 0, 0, true);
                 }
                 else
-                    image->FrameRenderFlip(hdc, worldPos.x, worldPos.y, data->currFrameX, 0, true);
+                    data->image->FrameRenderFlip(hdc, data->worldPos.x, data->worldPos.y, data->currFrameX, 0, true);
             } 
             else 
             {
                 if (data->isAttack)
                 {
-                    armLImage->FrameRender(hdc, worldPos.x + 20, worldPos.y - 10, 0, 0, true);
-                    image->FrameRender(hdc, worldPos.x, worldPos.y, data->currFrameX, 0, true);
-                    GunImage->FrameRender(hdc, worldPos.x + 20, worldPos.y - 12, 0, 0, true);
-                    armRImage->FrameRender(hdc, worldPos.x, worldPos.y - 10, 0, 0, true);
+                    armLImage->FrameRender(hdc, data->worldPos.x + 20, data->worldPos.y - 10, 0, 0, true);
+                    data->image->FrameRender(hdc, data->worldPos.x, data->worldPos.y, data->currFrameX, 0, true);
+                    GunImage->FrameRender(hdc, data->worldPos.x + 20, data->worldPos.y - 12, 0, 0, true);
+                    armRImage->FrameRender(hdc, data->worldPos.x, data->worldPos.y - 10, 0, 0, true);
                 }
                 else
-                    image->FrameRender(hdc, worldPos.x, worldPos.y, data->currFrameX, 0, true);
+                    data->image->FrameRender(hdc, data->worldPos.x, data->worldPos.y, data->currFrameX, 0, true);
             }    
         }
         else 
         {
-            //if (localPos.x > WINSIZE_X || localPos.y >WINSIZE_Y)
-            //    return;
+            if (data->localPos.x > WINSIZE_X || data->localPos.y >WINSIZE_Y)
+                return;
             missileManager->Render(hdc);
-            //Rectangle(hdc, data->shape.left, data->shape.top, data->shape.right, data->shape.bottom);
-            if (dir == Enemy::EnemyDir::Left) 
+            if (dir == EnemyDir::Left) 
             {
                 if (data->isAttack)
                 {
-                    armLImage->rotateRenderFlip(hdc, localPos.x - 20, localPos.y - 10, 0, 0, angle);
-                    image->FrameRenderFlip(hdc, localPos.x, localPos.y, data->currFrameX, 0, true);
-                    GunImage->rotateRenderFlip(hdc, localPos.x -10, localPos.y - 10, 0, 0, angle);
-                    armRImage->rotateRenderFlip(hdc, localPos.x+5, localPos.y-10, 0, 0, angle);
+                    armLImage->rotateRenderFlip(hdc, data->localPos.x - 20, data->localPos.y - 10, 0, 0, data->attackAngle);
+                    data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
+                    GunImage->rotateRenderFlip(hdc, data->localPos.x -10, data->localPos.y - 10, 0, 0, data->attackAngle);
+                    armRImage->rotateRenderFlip(hdc, data->localPos.x+5, data->localPos.y-10, 0, 0, data->attackAngle);
                 }
+                else if (state == EnemyState::hurt)
+                    data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y + 12, data->currFrameX, 0, true);
                 else
-                    image->FrameRenderFlip(hdc, localPos.x, localPos.y, data->currFrameX, 0, true);
+                    data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
             }  
             else 
             {
                 if (data->isAttack)
                 {
-                    armLImage->rotateRender(hdc, localPos.x + 20, localPos.y - 10,0,0,angle);
-                    image->FrameRender(hdc, localPos.x, localPos.y, data->currFrameX,0, true);
-                    GunImage->rotateRender(hdc, localPos.x+10, localPos.y-10,0,0,angle);
-                    armRImage->rotateRender(hdc, localPos.x-5, localPos.y-10,0,0,angle);
+                    armLImage->rotateRender(hdc, data->localPos.x + 20, data->localPos.y - 10,0,0, data->attackAngle);
+                    data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX,0, true);
+                    GunImage->rotateRender(hdc, data->localPos.x+10, data->localPos.y-10,0,0, data->attackAngle);
+                    armRImage->rotateRender(hdc, data->localPos.x-5, data->localPos.y-10,0,0, data->attackAngle);
                 }
+                else if (state == EnemyState::hurt)
+                    data->image->FrameRender(hdc, data->localPos.x, data->localPos.y + 12, data->currFrameX, 0, true);
                 else
-                    image->FrameRender(hdc, localPos.x, localPos.y, data->currFrameX, 0, true);
+                    data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
             }  
             
         }
-    }
 }
 
 Enemy* Enemy_Bold::Clone()
@@ -209,34 +158,29 @@ Enemy* Enemy_Bold::Clone()
 
 void Enemy_Bold::Pattern()
 {
-    if (target == nullptr) return;
-    float distance = Distacne(this->worldPos, target->GetWorldpos());
-    if (angle <DegToRad(90) && angle >DegToRad(-90)) 
+    if (data->isAlive == false) 
     {
-        if (data->rightWall)
-            dir = Enemy::EnemyDir::Left;
-        else
-            dir = Enemy::EnemyDir::Right;
+        data->isKnockBack = true;
+        Die();
+        return;
     }
-    else 
-    {
-        if (data->leftWall)
-            dir = Enemy::EnemyDir::Right;
-        else
-            dir = Enemy::EnemyDir::Left;
-    }
-
+    if (data->target == nullptr) return;
+    float distance = Distance(this->data->worldPos, data->target->GetWorldpos());
+    
     if (data->attackRange > distance && data->isFind) // 찾았고 공격 거리에있을때
     {
-        if (angle < DegToRad(30) && angle > DegToRad(-30))
+        if (data->attackAngle < DegToRad(30) && data->attackAngle > DegToRad(-30))
         {
             data->isAttack = true;
+            dir = EnemyDir::Right;
             Attack(dir);
             return;
         }
-        else if (angle >= DegToRad(150) && angle <= DegToRad(180) || angle <= DegToRad(-150) && angle >= DegToRad(-180))
+        else if (data->attackAngle >= DegToRad(150) && data->attackAngle <= DegToRad(180) || 
+            data->attackAngle <= DegToRad(-150) && data->attackAngle >= DegToRad(-180))
         {
             data->isAttack = true;
+            dir = EnemyDir::Left;
             Attack(dir);
             return;
         }
@@ -249,15 +193,12 @@ void Enemy_Bold::Pattern()
         Run();
         return;
     }
-    else if (data->findRange > distance) //거리로 찾을때
-    {   
-        data->delay = 0;
+
+    if (data->findRange > distance)
         data->isFind = true;
-        Run();
-        return;
-    }
+     //거리로 찾을때
     Idle();
-    data->isFind = false;
+
     data->delay += TimerManager::GetSingleton()->GetElapsedTime();
     if (data->delay > 5)
     {
@@ -274,16 +215,18 @@ void Enemy_Bold::Pattern()
 
 void Enemy_Bold::Attack(EnemyDir dir)
 {
+   //data->astar->Clear();
+   targeton = 0;
    data->attackSpeed += TimerManager::GetSingleton()->GetElapsedTime();
    if (data->attackSpeed > 1) 
    {
        data->attackSpeed = 0;
        if(dir == EnemyDir::Left)
-            missileManager->Fire(angle,this->worldPos.x - 5, this->worldPos.y -10);
+           missileManager->Fire(data->attackAngle,data->worldPos.x - 5, data->worldPos.y -10);
        else
-           missileManager->Fire(angle, this->worldPos.x + 5, this->worldPos.y - 10);
+           missileManager->Fire(data->attackAngle, data->worldPos.x + 5, data->worldPos.y - 10);
    }
-   state = Enemy::EnemyState::attack;
+   state = EnemyState::attack;
    Animation(state);
 }
 
@@ -293,70 +236,148 @@ void Enemy_Bold::Run()
         data->moveSpeed = 0;
     else
         data->moveSpeed = 150;
-
-    if (target) // 찾음 
+    FPOINT bottomPos;
+    bottomPos.x = data->worldPos.x - 20;
+    bottomPos.y = data->worldPos.y + 28;
+    for (int i = 0; i < 4; i++)
     {
-         worldPos.x += cosf(angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
-         worldPos.y -= cosf(angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
-
-         state = Enemy::EnemyState::run;
-         Animation(state);
+        if (destAngle < 0 && data->astar->GetTileIndex().x == 44 + i && data->astar->GetTileIndex().y == 76)
+        {
+            data->angle = 0;
+        }
     }
+    if (data->astar->GetParentList().size() > 0)
+    {
+        targeton++;
+    }
+    if (data->astar->GetBackTile())
+    {
+        if (targeton == 1)
+        {
+            targeton = 2;
+            destAngle = GetAngle(bottomPos, data->astar->GetDestTile()->GetCenter());
+        }
+
+        if (data->astar->GetBackTile()->GetIdX() == data->astar->GetTileIndex().x &&
+            data->astar->GetBackTile()->GetIdY() == data->astar->GetTileIndex().y)
+        {
+
+            if (data->astar->GetParentList().size() == 0)
+            {
+                data->astar->SetBackTile(data->astar->GetDestTile());
+                targeton = 0;
+                data->angle = 0;
+            }
+            else
+            {
+                data->astar->ParentPopBack();
+                if (data->astar->GetParentList().size() > 0)
+                {
+                    int a = data->astar->GetParentList().size();
+                    data->astar->SetBackTile(data->astar->GetParentList().back());
+                }
+            }
+            data->angle = GetAngle(bottomPos, data->astar->GetBackTile()->GetCenter());
+            if (data->angle > DegToRad(90) || data->angle < DegToRad(-90))
+            {
+                dir = EnemyDir::Left;
+            }
+            else if (data->angle <= DegToRad(90) || data->angle <= DegToRad(-90))
+            {
+                dir = EnemyDir::Right;
+            }
+        }
+        data->worldPos.x += cosf(data->angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+        data->worldPos.y -= sinf(data->angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+    }
+    state = EnemyState::run;
+    Animation(state);
 }
 
 void Enemy_Bold::Walk()
 {
+    if (data->leftWall)
+        dir = EnemyDir::Right;
+    else if (data->rightWall)
+        dir = EnemyDir::Left;
+
     if (data->isSamPle)
         data->moveSpeed = 0;
     else
         data->moveSpeed = 100;
 
-    if(dir == Enemy::EnemyDir::Right)
-        worldPos.x += data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+    if(dir == EnemyDir::Right)
+        data->worldPos.x += data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
     else
-        worldPos.x -= data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
-    state = Enemy::EnemyState::walk;
+        data->worldPos.x -= data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+    state = EnemyState::walk;
     Animation(state);
 }
 
 void Enemy_Bold::Hurt()
 {
     data->moveSpeed = 0;
-    state = Enemy::EnemyState::hurt;
+    state = EnemyState::hurt;
     Animation(state);
 }
 
 void Enemy_Bold::Idle()
 {
     data->moveSpeed = 0;
-    state = Enemy::EnemyState::idle;
+    state = EnemyState::idle;
     Animation(state);
 }
 
+void Enemy_Bold::Die()
+{
+    if (data->isAlive == false) 
+    {
+        data->isFind = false;
+        data->isAttack = false;
+        state = EnemyState::hurt;
+        Animation(state);
+    }
+}
 
-void Enemy_Bold::Animation(Enemy::EnemyState ani)
+void Enemy_Bold::KnockBack()
+{
+    float angle = data->target->GetPlayerAngle();
+    if (data->knockBackPower <= 0)
+    {
+        data->knockBackPower = 0;
+        data->isKnockBack = false;
+        return;
+    }
+    
+    data->knockBackPower -= 100 * TimerManager::GetSingleton()->GetElapsedTime();
+    data->worldPos.x += cosf(angle) * data->knockBackPower * TimerManager::GetSingleton()->GetElapsedTime();
+    data->worldPos.y -= sinf(angle) * data->knockBackPower * TimerManager::GetSingleton()->GetElapsedTime();
+}
+
+
+void Enemy_Bold::Animation(EnemyState ani)
 {
     switch (ani)
     {
-    case Enemy::idle:
+    case EnemyState::idle:
         data->maxFrame = 8;
-        image = ImageManager::GetSingleton()->FindImage("Bold_Idle");
+        data->image = ImageManager::GetSingleton()->FindImage("Bold_Idle");
         break;
-    case Enemy::walk:
+    case EnemyState::walk:
         data->maxFrame = 8;
-        image = ImageManager::GetSingleton()->FindImage("Bold_walk");
+        data->image = ImageManager::GetSingleton()->FindImage("Bold_walk");
         break;
-    case Enemy::run:
+    case EnemyState::run:
         data->maxFrame = 10;
-        image = ImageManager::GetSingleton()->FindImage("Bold_run");
+        data->image = ImageManager::GetSingleton()->FindImage("Bold_run");
         break;
-    case Enemy::attack:
+    case EnemyState::attack:
         data->maxFrame = 1;
-        image = ImageManager::GetSingleton()->FindImage("Bold_attack");
+        data->image = ImageManager::GetSingleton()->FindImage("Bold_attack");
         break;
-    case Enemy::hurt:
+    case EnemyState::hurt:
         data->maxFrame = 14;
-        image = ImageManager::GetSingleton()->FindImage("Bold_hurt");
+        data->image = ImageManager::GetSingleton()->FindImage("Bold_hurt");
         break;
     }
 }
@@ -364,12 +385,13 @@ void Enemy_Bold::PixelCollisionBottom()
 {
     COLORREF color;
     int R, G, B;
-    float playerHeight = 36;
-    float currPosBottom = worldPos.y + playerHeight;
-    for (int i = currPosBottom - 5; i < currPosBottom + 5; i++)
+    float playerHeight = 34;
+
+    float currPosBottom = data->worldPos.y + playerHeight;
+    for (int i = currPosBottom-10; i < currPosBottom+10; i++)
     {
         color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
-            worldPos.x, i);
+            data->worldPos.x, i);
 
         R = GetRValue(color);
         G = GetGValue(color);
@@ -377,11 +399,23 @@ void Enemy_Bold::PixelCollisionBottom()
 
         if (!(R == 255 && G == 0 && B == 255))
         {
-            if (angle  < DegToRad(0)&& destAngle < DegToRad(0)&&(R == 0 && G == 0 && B == 0))
+            if (data->angle < DegToRad(0)&& destAngle < DegToRad(0)&&(R == 0 && G == 0 && B == 0))
                 break;
             data->velocity = 60;
-            worldPos.y = i - playerHeight;
             data->fallForce = 0;
+            if (data->isKnockBack)
+            {
+                //data->fallForce = 100;
+                data->isKnockBack= false;
+                //data->worldPos.y = i - playerHeight - 20;
+                break;
+            }
+            if (data->isAlive == false)
+            {
+                break;
+            }
+            
+            data->worldPos.y = i - playerHeight -2;
             break;
         }
         else if ((R == 255 && G == 0 && B == 255))
@@ -395,19 +429,25 @@ void Enemy_Bold::PixelCollisionLeft()
     COLORREF color;
     int R, G, B;
     float playerwidth = 35;
-    float currPosLeft = worldPos.x - playerwidth;
+    float currPosLeft = data->worldPos.x - playerwidth;
     for (int i = currPosLeft; i < currPosLeft + 2; i++)
     {
         color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
-            i, worldPos.y);
+            i, data->worldPos.y);
 
         R = GetRValue(color);
         G = GetGValue(color);
         B = GetBValue(color);
         if (!(R == 255 && G == 0 && B == 255))
         {
+            if (data->isKnockBack) 
+            {
+                data->knockBackPower = 0;
+                data->isKnockBack = false;
+                break;
+            }
             if (R == 0 && G == 0 && B == 0)break;
-            worldPos.x = i + playerwidth+5;
+            data->worldPos.x = i + playerwidth+5;
             data->leftWall = true;
             break;
         }
@@ -421,19 +461,25 @@ void Enemy_Bold::PixelCollisionRight()
     COLORREF color;
     int R, G, B;
     float playerwidth = 35;
-    float currPosRight = worldPos.x + playerwidth;
+    float currPosRight = data->worldPos.x + playerwidth;
     for (int i = currPosRight-2; i < currPosRight; i++)
     {
         color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
-            i, worldPos.y);
+            i, data->worldPos.y);
 
         R = GetRValue(color);
         G = GetGValue(color);
         B = GetBValue(color);
         if (!(R == 255 && G == 0 && B == 255))
         {
+            if (data->isKnockBack)
+            {
+                data->knockBackPower = 0;
+                data->isKnockBack = false;
+                break;
+            }
             if (R == 0 && G == 0 && B == 0)break;
-            worldPos.x = i - playerwidth-2;
+            data->worldPos.x = i - playerwidth-2;
             data->rightWall = true;
             break;
         }

@@ -39,6 +39,8 @@ using namespace std;
 #define SAFE_DELETE(p) { if (p) { delete p; p = nullptr; } }
 #define SAFE_RELEASE(p) { if (p) { p->Release(); delete p; p = nullptr; } }
 
+enum class TileType { Start, End, Wall, None };
+
 typedef struct tagFPoint
 {
 	float x;
@@ -46,7 +48,30 @@ typedef struct tagFPoint
 
 } FPOINT, *PFPOINT;
 
+typedef struct tagTile
+{
+	RECT rcTile;
+	int frameX;
+	int frameY;
+	TileType type;
+	COLORREF color;
+	HBRUSH hBrush;
+	HBRUSH hOldBrush;
+} TILE_INFO;
 
+typedef struct ENMY_INFO
+{
+	char Name[256] = "";
+	int x;
+	int y;
+	int index;
+	ENMY_INFO()
+	{
+		x = 0;
+		y = 0;
+		index = 0;
+	}
+};
 //typedef tagFPoint FPOINT2;
 //typedef tagFPoint* PFPOINT2;
 

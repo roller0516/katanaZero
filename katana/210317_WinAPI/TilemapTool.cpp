@@ -115,10 +115,9 @@ HRESULT TilemapTool::Init()
         TILEMAPTOOLSIZE_Y - 300);
     Prev->SetFunc(PrevPage, 1);
 
-    astarManager = new AstarManager;
-    astarManager->Init();
+    //astarManager = new AstarManager;
+    //astarManager->Init();
     rcMain = { 0,0,WINSIZE_X,WINSIZE_Y };
-    astarManager->SetRect(rcMain);
     ShowCursor(true);
 
     MonsterSpwan = false;
@@ -141,8 +140,6 @@ void TilemapTool::Update()
     Camera::GetSingleton()->View();
     exhibition->Update();
     enemyManager->Update();
-    if(astarManager)
-        astarManager->Update();
     if (btnSave)    btnSave->Update();
     if (btnLoad)    btnLoad->Update();
     if (Next) Next->Update();
@@ -217,7 +214,7 @@ void TilemapTool::Update()
             {
                 if (GetTileType(&tileInfo[y * TILE_X + x]) == TileType::None && destTile)
                 {
-                    astarManager->SetDestTile(x, y);
+                   /* astarManager->SetDestTile(x, y);*/
                     SetColor(&tileInfo[y * TILE_X + x],RGB(0, 0, 255), false);
                     SetTileType(&tileInfo[y * TILE_X + x],TileType::End);
                 }
@@ -253,25 +250,25 @@ void TilemapTool::Update()
     }
     
     //테스트
-    for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
-    {
-        if (enemyManager->GetMonsterList().size() > 0)
-        {
-            enemyManager->GetMonsterList()[i]->SetAstarManager(astarManager);
-            astarManager->SetTarget(enemyManager->GetMonsterList()[i]);
-        }
-    }
+    //for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
+    //{
+    //    if (enemyManager->GetMonsterList().size() > 0)
+    //    {
+    //        enemyManager->GetMonsterList()[i]->SetAstarManager(astarManager);
+    //        astarManager->SetTarget(enemyManager->GetMonsterList()[i]);
+    //    }
+    //}
    
     
     //astar tilemap 연동
-    for (int i = 0; i < TILE_Y; i++)
+    /*for (int i = 0; i < TILE_Y; i++)
     {
         for (int j = 0; j < TILE_X; j++)
         {
             if (tileInfo[i * TILE_X + j].type == TileType::Wall)
                 astarManager->SetWall(i, j);
         }
-    }
+    }*/
 }
 
 void TilemapTool::Render(HDC hdc)
@@ -307,8 +304,8 @@ void TilemapTool::Render(HDC hdc)
             tileInfo[i].rcTile.bottom - Camera::GetSingleton()->GetCameraPos().y);
         SelectObject(hdc, tileInfo[i].hOldBrush);
     }
-    if (astarManager)
-        astarManager->Render(hdc);
+    //if (astarManager)
+    //    astarManager->Render(hdc);
     sprintf_s(szText, "playerX : %d , playerY : %d", g_ptMouse.x, g_ptMouse.y);
     TextOut(hdc, WINSIZE_X - 800, 20, szText, strlen(szText));
     sprintf_s(szText, "X : %f, Y : %f", GetWorldMousePos(worldPos).x, GetWorldMousePos(worldPos).y);
@@ -325,15 +322,16 @@ void TilemapTool::EraseEnemy()
     RECT rc;
     for (int i = 0; i < enemyManager->GetMonsterList().size(); i++) 
     {
-        rc = enemyManager->GetMonsterList()[i]->GetRect();
+        rc = enemyManager->GetMonsterList()[i]->GetData()->shape;
         if (PtInRect(&rc, g_ptMouse))
         {
             if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_RBUTTON)) 
             {
-                enemyManager->GetMonsterList()[i]->SetAstarManager(nullptr);
-                astarManager->SetTarget(nullptr);
+                string str = "";
+                //enemyManager->GetMonsterList()[i]->SetAstarManager(nullptr);
+                //astarManager->SetTarget(nullptr);
                 enemyManager->DeletEnemy(i);
-                enemySize[i].Name = "";
+                strcpy_s(enemySize[i].Name, str.c_str());
                 enemySize[i].x = 0;
                 enemySize[i].y = 0;
                 enemySize[i].index = 0;
@@ -361,13 +359,12 @@ void TilemapTool::SettingEnemy()
     monsterCount = enemyManager->GetMonsterList().size();
     enemyManager->AddEnemy(enenmyName,1);
     enemyManager->Init(nullptr, Camera::GetSingleton()->GetWorldMousePos().x, Camera::GetSingleton()->GetWorldMousePos().y, monsterCount);
-    for (int i = 0; i < monsterCount; i++) 
-    {
-        astarManager->SetTarget(enemyManager->GetMonsterList()[i]);
-        enemyManager->GetMonsterList()[i]->SetAstarManager(astarManager);
-    }
-   
-    enemySize[enemyManager->GetMonsterList().size() - 1].Name = enenmyName;
+    //for (int i = 0; i < monsterCount; i++) 
+    //{
+    //    astarManager->SetTarget(enemyManager->GetMonsterList()[i]);
+    //    enemyManager->GetMonsterList()[i]->SetAstarManager(astarManager);
+    //}
+    strcpy_s(enemySize[enemyManager->GetMonsterList().size() - 1].Name, enenmyName.c_str());
     enemySize[enemyManager->GetMonsterList().size() - 1].x = Camera::GetSingleton()->GetWorldMousePos().x;
     enemySize[enemyManager->GetMonsterList().size() - 1].y = Camera::GetSingleton()->GetWorldMousePos().y;
     enemySize[enemyManager->GetMonsterList().size() - 1].index = monsterCount;
@@ -382,29 +379,29 @@ void TilemapTool::ChangeEnemy(int Index)
     case 0:
         exhibition = enemyManager->CreateClone("PompEnemy");
         exhibition->Init(TILEMAPTOOLSIZE_X - 200, TILEMAPTOOLSIZE_Y - 400);
-        exhibition->SetMoveSpeed(0);
-        exhibition->SetSample(true);
+        exhibition->GetData()->moveSpeed = 0;
+        exhibition->GetData()->isSamPle = true;
         enenmyName = "PompEnemy";
         break;
     case 1:
         exhibition = enemyManager->CreateClone("BoldEnemy");
         exhibition->Init(TILEMAPTOOLSIZE_X - 200, TILEMAPTOOLSIZE_Y - 400);
-        exhibition->SetMoveSpeed(0);
-        exhibition->SetSample(true);
+        exhibition->GetData()->moveSpeed = 0;
+        exhibition->GetData()->isSamPle = true;
         enenmyName = "BoldEnemy";
         break;
     case 2:
         exhibition = enemyManager->CreateClone("GruntEnemy");
         exhibition->Init(TILEMAPTOOLSIZE_X - 200, TILEMAPTOOLSIZE_Y - 400);
-        exhibition->SetMoveSpeed(0);
-        exhibition->SetSample(true);
+        exhibition->GetData()->moveSpeed = 0;
+        exhibition->GetData()->isSamPle = true;
         enenmyName = "GruntEnemy";
         break;
     case 3:
         exhibition = enemyManager->CreateClone("CopEnemy");
         exhibition->Init(TILEMAPTOOLSIZE_X - 200, TILEMAPTOOLSIZE_Y - 400);
-        exhibition->SetMoveSpeed(0);
-        exhibition->SetSample(true);
+        exhibition->GetData()->moveSpeed = 0;
+        exhibition->GetData()->isSamPle = true;
         enenmyName = "CopEnemy";
         break;
     }
@@ -424,7 +421,6 @@ void TilemapTool::NextPage(int Index)
         changeIndex = 3;
     else
         changeIndex++;
-
     ChangeEnemy(changeIndex);
 }
 
@@ -458,6 +454,7 @@ void TilemapTool::Save(int stageNum)
     HANDLE hFile2 = CreateFile(fileName1.c_str(), GENERIC_WRITE, 0,
         0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     /*void**/
+
     WriteFile(hFile, enemySize, sizeof(ENMY_INFO) * 100,
             &writtenBytes[0], NULL);
 
@@ -475,7 +472,6 @@ void TilemapTool::Load(int stageNum)
     string fileName1 = "Save/saveMapDataTile";  // 1.map";
     fileName1 += to_string(stageNum) + ".map";
     DWORD readBytes[2];
-
     HANDLE hFile = CreateFile(fileName.c_str(), GENERIC_READ, 0,
         0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -487,9 +483,10 @@ void TilemapTool::Load(int stageNum)
     {
         for (int i = 0; i < 100; i++)
         {
+            string str(enemySize[i].Name);
             if (enemySize[i].Name == "")
                 break;
-            enemyManager->AddEnemy(enemySize[i].Name, 1);
+            enemyManager->AddEnemy(str, 1);
             enemyManager->Init(nullptr, enemySize[i].x, enemySize[i].y, enemySize[i].index);
         }
     }

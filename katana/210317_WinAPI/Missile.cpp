@@ -37,14 +37,14 @@ void Missile::Update()
 		if (localPos.x < 0 || localPos.y < 0 || localPos.x > WINSIZE_X || localPos.y > WINSIZE_Y)
 		{
 			isFired = false;
-			fireStep = 0;
 		}
+		
 	}
 
-	shape.left = worldPos.x - size / 2;
-	shape.top = 0;
-	shape.right = worldPos.x + size / 2;
-	shape.bottom =2;
+	shape.left = localPos.x - size / 2;
+	shape.top = localPos.y - 1;
+	shape.right = localPos.x + size / 2;
+	shape.bottom = localPos.y + 1;
 }
 
 void Missile::Render(HDC hdc)
@@ -54,8 +54,8 @@ void Missile::Render(HDC hdc)
 		localPos.x = worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
 		localPos.y = worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
 
-		if (angle == 0 || angle == -PI)
-			img->FrameRender(hdc, localPos.x, localPos.y, 0, 0, true, 1.5f);
+		if (angle >=0 && angle <DegToRad(10) || angle > DegToRad(170)&& angle <= DegToRad(180))
+			img->FrameRender(hdc, localPos.x, localPos.y, 0,0, true, 1.3f);
 		else
 			img->rotateRender(hdc, localPos.x, localPos.y,0,0,angle);
 	}

@@ -25,20 +25,27 @@ enum class PlayerState
 	fall,
 	end
 };
-
+class PlayerEffect;
+class ItemManager;
 class Image;
 class Player : public GameNode
 {
 private:
+	ItemManager* itemManager;
+	PlayerEffect* playerEffect;
 	Image* image;
 	RECT shape;
-
+	RECT hitShape;
+	RECT attackShape;
 	FPOINT Worldpos;
 	FPOINT Clientpos; //
 	FPOINT currPos;
 	POINT mousPos;
 
-
+	int count;
+	int runCount;
+	int attCount;
+	int itemCount;
 	int size;
 	int tick;
 	float angle;
@@ -66,6 +73,7 @@ private:
 	bool isPhysics;
 	bool isRoll;
 
+	int itemIndex;
 	int keycount;
 public:
 	Direction dir;
@@ -91,18 +99,23 @@ public:
 	void PlayerFSM();
 	void PlayerKeyMove();
 	void GrabEnd();
+	void Getitem();
 
 	void PixelCollisionBottom();
 	void PixelCollisionLeft();
 	void PixelCollisionRight();
 	void PixelCollisionTop();
-	
+
+	inline Direction GetDir() { return this->dir; }
+	inline int GetItemIndex() { return this->itemIndex; }
+	inline void SetitemManager(ItemManager* itemManager) { this->itemManager = itemManager; }
+	inline RECT GetAttackShape() { return this->attackShape; }
 	inline bool GetFalling(){ return isFall; }
 	inline void SetGround(bool isGround) { this->isGround = isGround; }
 	inline FPOINT GetWorldpos() { return this->Worldpos; }
 	inline FPOINT Getpos() { return this->Clientpos; }
 	inline FPOINT GetCurrPos() { return this->currPos; }
-	inline RECT GetRect() { return this->shape; }
+	inline RECT GetRect() { return this->hitShape; }
 	inline float GetPlayerAngle() { return this->angle; }
 	inline Image* GetImageInfo() { return this->image; }
 	inline void SetPosY(int y) { this->Worldpos.y = y; }

@@ -5,10 +5,13 @@
 #include "Enemy_Grunt.h"
 #include "Enemy_Cop.h"
 #include "Player.h"
+#include "AstarManager.h"
 HRESULT EnemyManager::Init(Player* player,int x, int y,int index)
 {
     vEnemyList[index]->Init(x,y);
-    vEnemyList[index]->SetTarget(player);
+    vEnemyList[index]->GetData()->target = player;
+    vEnemyList[index]->GetData()->astar->SetTarget(player);
+    
     return S_OK;
 }
 
@@ -22,12 +25,6 @@ void EnemyManager::Update()
 
 void EnemyManager::Release()
 {
-    //for (int i = 0; i < vEnemyList.size(); i++)
-    //{
-    //    SAFE_RELEASE(vEnemyList[i]);
-    //}
-    //vEnemyList.clear();
-
     map<string, Enemy*>::iterator it;
     for (it = mEnemyList.begin(); it != mEnemyList.end(); it++)
     {

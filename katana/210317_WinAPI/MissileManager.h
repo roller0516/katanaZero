@@ -18,5 +18,6 @@ public:
 	void Render(HDC hdc);
 	void Fire(float angle,int x, int y);
 
+	vector<Missile*> GetMissile() { return this->vMissiles; }
 };
 

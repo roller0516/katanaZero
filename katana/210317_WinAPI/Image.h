@@ -43,6 +43,8 @@ public:
 		int currFrameY;
 		int rotateWidth;
 		int rotateHeight;
+		int blendWidth;
+		int blendheight;
 		tagImageInfo()
 		{
 			resID = 0;
@@ -91,11 +93,10 @@ public:
 	void Render(HDC hdc, int destX = 0, int destY = 0,
 		bool isCenterRenderring = false);
 	void FrameRender(HDC hdc, int destX, int destY,
-		int currFrameX, int currFrameY, bool isCenterRenderring = false, int size = 1);
+		int currFrameX, int currFrameY, bool isCenterRenderring = false, float size = 1);
 	void FrameRenderFlip(HDC hdc, int destX, int destY,
 		int currFrameX, int currFrameY, bool isCenterRenderring = false, int size = 1);
-	void AlphaRender(HDC hdc, int destX, int destY,
-		bool isCenterRenderring = false);
+	void AlphaRender(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY, BYTE alpha, bool isCenterRenderring = false);
 	void CameraRender(HDC hdc, float destX, float destY,  int width, int height, bool isCenterRenderring);
 
 	void rotateRender(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle);

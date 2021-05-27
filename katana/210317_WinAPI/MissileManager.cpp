@@ -50,9 +50,10 @@ void MissileManager::Fire(float angle,int x, int y)
     {
         if ((*it)->GetIsFired() == false)
         {
+            (*it)->SetAngle(angle);
             (*it)->SetPos(x, y);
             (*it)->SetIsFired(true);
-            (*it)->SetAngle(angle);
+            (*it)->SetType(MissileType::enemy);
             break;
         }
     }

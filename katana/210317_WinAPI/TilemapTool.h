@@ -7,35 +7,6 @@
 #define SAMPLE_TILE_Y	9
 
 
-enum class TileType { Start, End, Wall, None };
-
-typedef struct tagTile
-{
-	RECT rcTile;
-	int frameX;
-	int frameY;
-	TileType type;
-	COLORREF color;
-	HBRUSH hBrush;
-	HBRUSH hOldBrush;
-} TILE_INFO;
-
-typedef struct ENMY_INFO
-{
-	string Name;
-	int x;
-	int y;
-	int index;
-	ENMY_INFO() 
-	{
-		Name = "";
-		x = 0;
-		y = 0;
-		index = 0;
-	}
-};
-
-class AstarManager;
 class Enemy;
 class EnemyManager;
 class Button;
@@ -60,7 +31,6 @@ private:
 
 	// 메인타일의 정보
 	static TILE_INFO tileInfo[TILE_X * TILE_Y];
-	AstarManager* astarManager;
 	RECT rcMain;
 
 	POINT ptStartSelectedFrame;

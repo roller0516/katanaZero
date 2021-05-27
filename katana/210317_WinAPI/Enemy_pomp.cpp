@@ -6,19 +6,15 @@
 
 HRESULT Enemy_pomp::Init(int posX, int posY)
 {
-    image = ImageManager::GetSingleton()->AddImage("Pomp_Idle", "Image/Katana/enemy/enemy_pomp_idle_8x2.bmp", 528, 168, 8, 2, true, RGB(255, 0, 255));
-    currFrameX = 0;
-    updateCount = 0;
-    worldPos.x =  posX;
-    worldPos.y = posY;
-    size = 80;
-    name = "NormalEnemy";
-    shape = { 0, 0, 0, 0 };
-    moveSpeed = 3.3f;
-    isAlive = true;
-    angle = 0.0f;
-    target = nullptr;
-    maxFrame = 8;
+    data = new EnemyData;
+    data->image = ImageManager::GetSingleton()->AddImage("Pomp_Idle", "Image/Katana/enemy/enemy_pomp_idle_8x2.bmp", 528, 168, 8, 2, true, RGB(255, 0, 255));
+    data->worldPos.x =  posX;
+    data->worldPos.y = posY;
+    data->size = 80;
+    data->Name = "Enemy_pomp";
+    data->moveSpeed = 3.3f;
+    data->isAlive = true;
+    data->maxFrame = 8;
     return S_OK;
 }
 
@@ -28,27 +24,27 @@ void Enemy_pomp::Release()
 
 void Enemy_pomp::Update()
 {
-    localPos.x = worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
-    localPos.y = worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
-    if (isAlive)
+    data->localPos.x = data->worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
+    data->localPos.y = data->worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
+    if (data->isAlive)
     {
-        currFrameX += TimerManager::GetSingleton()->GetElapsedTime() * 10;
-        if (currFrameX >= maxFrame)
-            currFrameX = 0;
+        data->currFrameX += TimerManager::GetSingleton()->GetElapsedTime() * 10;
+        if (data->currFrameX >= data->maxFrame)
+            data->currFrameX = 0;
     }
 }
 
 void Enemy_pomp::Render(HDC hdc,bool world)
 {
-    if (isAlive)
+    if (data->isAlive)
     {
         if (world) 
         {
-            if (image)
-                image->FrameRender(hdc, worldPos.x, worldPos.y, currFrameX, 0, true);
+            if (data->image)
+                data->image->FrameRender(hdc, data->worldPos.x, data->worldPos.y, data->currFrameX, 0, true);
         }
         else
-            image->FrameRender(hdc, localPos.x, localPos.y, currFrameX, 0, true);
+            data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
     }
 }
 
@@ -60,6 +56,11 @@ Enemy* Enemy_pomp::Clone()
 
 void Enemy_pomp::Pattern()
 {
+}
+
+MissileManager* Enemy_pomp::GetMissileManager()
+{
+    return nullptr;
 }
 
 void Enemy_pomp::Move()

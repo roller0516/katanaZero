@@ -2,6 +2,7 @@
 #include "CommonFunction.h"
 #include "Enemy.h"
 #include "Camera.h"
+#include "Player.h"
 
 HRESULT AstarTile::Init()
 {
@@ -46,14 +47,43 @@ void AstarTile::Release()
 
 void AstarTile::Update()
 {
+	
 }
 
 void AstarTile::Render(HDC hdc)
 {
-	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
-	Rectangle(hdc, rc.left-Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
-		rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
-	SelectObject(hdc, hOldBrush);
+	//if (parentTile) 
+	//{
+	//	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+	//	Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
+	//		rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
+	//	SelectObject(hdc, hOldBrush);
+	//}
+}
+
+void AstarTile::Clear()
+{
+	isInOpenlist = false;
+	isClosed = false;
+
+	this->idX = idX;
+	this->idY = idY;
+
+	center.x = idX * TILESIZE + (TILESIZE / 2);
+	center.y = idY * TILESIZE + (TILESIZE / 2);
+
+	rc.left = idX * TILESIZE;
+	rc.right = rc.left + TILESIZE;
+	rc.top = idY * TILESIZE;
+	rc.bottom = rc.top + TILESIZE;
+
+	costFromStart = 0.0f;
+	costToGoal = 0.0f;
+	totalCost = 0.0f;
+	color = RGB(100, 100, 100);
+
+	hBrush = (HBRUSH)GetStockObject(NULL_BRUSH); 
+	parentTile = nullptr;
 }
 
 void AstarTile::SetColor(COLORREF color,bool nullcolor)
@@ -72,9 +102,12 @@ HRESULT AstarManager::Init()
 			map[i][j].Init(j, i);
 		}
 	}
-
+	int worldX = Camera::GetSingleton()->GetWorld().x;
+	int worldY = Camera::GetSingleton()->GetWorld().y;
+	rcMain = { 0,0,worldX,worldY};
 	angle = 0;
 	size = 100;
+	isFind = true;
 	return S_OK;
 }
 
@@ -87,35 +120,41 @@ void AstarManager::Update()
 {
 	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_SPACE))
 	{
-		FindPath();
-		AstarTile* parentTile = destTile;
-		while (parentTile->GetParentTile())
+		if (isFind && startTile)
 		{
-			parentTile->SetColor(RGB(0, 0, 0),false);
-			parentTile = parentTile->GetParentTile();
-			parentList.push_back(parentTile);
+			isFind = false;
+			currTile = startTile;
+		}
+ 		FindPath();
+	}
+	if (owner)
+	{ 
+		if (RectInRect(owner->GetData()->shape, rcMain))
+		{
+			int posX = owner->GetData()->worldPos.x - 20;
+			int posY = owner->GetData()->worldPos.y + 22;
+			onwerTileIndex.x = posX / TILESIZE;
+			onwerTileIndex.y = posY / TILESIZE;
+			int xFrame = onwerTileIndex.x;
+			int yFrame = onwerTileIndex.y;
+			startTile = &map[yFrame][xFrame];
+			startTile->SetColor(RGB(255, 255, 255),false);
 		}
 	}
-	if (target) 
+	if (target)
 	{ 
 		if (RectInRect(target->GetRect(), rcMain))
 		{
-			int posX = target->GetPos().x - 20;
-			int posY = target->GetPos().y + 22;
-			TileIndex.x = posX / TILESIZE;
-			TileIndex.y = posY / TILESIZE;
-			int xFrame = TileIndex.x;
-			int yFrame = TileIndex.y;
-			startTile = &map[yFrame][xFrame];
-			startTile->SetColor(RGB(255, 255, 255),false);
-			currTile = startTile;
-			if (currTile == destTile) 
-			{
-				destTile = currTile;
-				Clear();
-			}
+			int posX = target->GetWorldpos().x;
+			int posY = target->GetWorldpos().y + 30;
+			targetTileIndex.x = posX / TILESIZE;
+			targetTileIndex.y = posY / TILESIZE;
+			int xFrame = targetTileIndex.x;
+			int yFrame = targetTileIndex.y;
+			SetDestTile(xFrame, yFrame);
 		}
 	}
+	
 	if (parentList.size() > 0)
 		backTile = parentList.back();
 	
@@ -254,7 +293,8 @@ AstarTile* AstarManager::GetMinTotalCostTile()
 
 AstarTile* AstarManager::GetMinTotalCostTileWithHeap()
 {
-	if (heap.empty()) return nullptr;
+	if (heap.empty())
+		return nullptr;
 
 	AstarTile* tile = heap[0];
 
@@ -263,6 +303,7 @@ AstarTile* AstarManager::GetMinTotalCostTileWithHeap()
 	heap.pop_back();
 
 	// 자식과 비교하면서 정렬한다
+	if(heap.size()>0)
  	UpdateLower(heap[0]);
 
 	return tile;
@@ -293,15 +334,16 @@ void AstarManager::UpdateLower(AstarTile* tile)	// 인덱스 : 3
 	{
 		Swap(tile, minChild);
 		UpdateLower(tile);
-	}
+	} 
 }
 
 void AstarManager::Swap(AstarTile* tile1, AstarTile* tile2)
 {
-	heap[tile1->GetHeapIndex()] = tile2;
+ 	heap[tile1->GetHeapIndex()] = tile2;
 	heap[tile2->GetHeapIndex()] = tile1;
 
 	int temp = tile1->GetHeapIndex();
+
 	tile1->SetHeapIndex(tile2->GetHeapIndex());
 	tile2->SetHeapIndex(temp);
 }
@@ -377,22 +419,28 @@ void AstarManager::Clear()
 	{
 		for (int j = 0; j < TILE_Y; j++)	// 가로반복 (x)
 		{
-			map[i][j].Init(j, i);
+			map[i][j].Clear();
 		}
+	}
+	for (int i = 0; i < heap.size(); i++) 
+	{
+ 		heap[i]->SetHeapIndex(0);
 	}
 	backTile = nullptr;
 	openList.clear();
 	closeList.clear();
 	heap.clear();
 	parentList.clear();
+	isFind = true;
 }
 
 void AstarManager::MarkTileToType()
 {
 	AstarTile* parentTile = destTile;
-	while (parentTile)
+	while (parentTile->GetParentTile())
 	{
-		parentTile->SetColor(RGB(255, 0, 255),false);
+		parentTile->SetColor(RGB(0, 0, 0), false);
 		parentTile = parentTile->GetParentTile();
+		parentList.push_back(parentTile);
 	}
 }

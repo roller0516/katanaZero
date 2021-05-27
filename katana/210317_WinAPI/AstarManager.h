@@ -35,6 +35,7 @@ public:
 	void Release();
 	void Update();
 	void Render(HDC hdc);
+	void Clear();
 
 	void SetColor(COLORREF color,bool nullcolor);
 	void SetType(AstarTileType type) { this->type = type; }
@@ -67,6 +68,7 @@ public:
 	virtual ~AstarTile() {};
 };
 
+class Player;
 class Enemy;
 class AstarManager : public GameNode
 {
@@ -82,15 +84,18 @@ class AstarManager : public GameNode
 	vector<AstarTile*> heap;
 	vector<AstarTile*> parentList;
 
-	Enemy* target;
+	Player* target;
+	Enemy* owner;
 	FPOINT pos;
 	RECT rctest;
 	RECT rcMain;
 
-	FPOINT TileIndex;
+	FPOINT onwerTileIndex;
+	FPOINT targetTileIndex;
 	int ptSelected[3];
 	int size;
 	bool move;
+	bool isFind;
 	bool start;
 	float angle;
 	int index;
@@ -123,12 +128,13 @@ public:
 
 	inline AstarTile* GetDestTile() { return this->destTile; }
 	inline void SetBackTile(AstarTile* astar) { this->backTile = astar; }
-	inline FPOINT GetTileIndex() { return this->TileIndex; }
+	inline FPOINT GetTileIndex() { return this->onwerTileIndex; }
 	inline AstarTile* GetBackTile() {return this->backTile;}
 	inline RECT GetMainRect() { return this->rcMain; }
-	inline void SetDestTile(int x, int y) { destTile = &(map[y][x]); }
+	inline void SetDestTile(int x, int y) { destTile = &(map[y][x]); destTile->SetColor(RGB(0, 0, 0), false);}
 	inline void SetStartTile(int x, int y) { startTile = &(map[y][x]); }
-	inline void SetTarget(Enemy* target) { this->target = target; }
+	inline void SetOnwer(Enemy* owner) { this->owner = owner; }
+	inline void SetTarget(Player* player) { this->target = player; }
 	virtual ~AstarManager() {};
 };
 

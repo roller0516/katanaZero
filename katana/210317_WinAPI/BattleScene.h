@@ -2,6 +2,7 @@
 #include "GameNode.h"
 
 // 기존 MainGame 클래스의 내용을 이동
+class ItemManager;
 class EnemyManager;
 class CollisionManager;
 class Player;
@@ -13,18 +14,22 @@ class BattleScene : public GameNode
 {
 private:
 	EnemyManager* enemyManager;
-	Enemy* enemy;
 	CollisionManager* collisionManager;
+	ItemManager* itemManager;
+	Enemy* enemy;
 	Player* player;
 	Image* BackGround;
 	Image* curSor;
 	FPOINT bgPos;
 	char szText[128];
+	TILE_INFO tileInfo[TILE_X * TILE_Y];
 public:
 	virtual HRESULT Init();
 	virtual void Release();
 	virtual void Update();
 	virtual void Render(HDC hdc);
+
+	void MapLoad(int stageNum);
 
 	virtual ~BattleScene() {};
 };

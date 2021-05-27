@@ -90,6 +90,19 @@ HRESULT Image::Init(const char* fileName, int width, int height, int maxFrameX, 
     imageInfo->hOldTempBit =
         (HBITMAP)SelectObject(imageInfo->hTempDC, imageInfo->hTempBitmap);
 
+    blendFunc.BlendOp = AC_SRC_OVER;
+    blendFunc.BlendFlags = 0;
+    blendFunc.AlphaFormat = 0;
+
+    imageInfo->hBlendDC = CreateCompatibleDC(hdc);
+    imageInfo->hBlendBit = CreateCompatibleBitmap(hdc,
+        imageInfo->width, imageInfo->height);
+    imageInfo->hOldBlendBit = (HBITMAP)SelectObject(imageInfo->hBlendDC,
+        imageInfo->hBlendBit);
+
+    imageInfo->blendWidth= WINSIZE_X;
+    imageInfo->blendheight = WINSIZE_Y;
+
     imageInfo->maxFrameX = maxFrameX;
     imageInfo->maxFrameY = maxFrameY;
     imageInfo->frameWidth = width / maxFrameX;
@@ -101,7 +114,7 @@ HRESULT Image::Init(const char* fileName, int width, int height, int maxFrameX, 
     imageInfo->frameWidth > imageInfo->frameHeight ? size = imageInfo->frameWidth : size = imageInfo->frameHeight;
 
     imageInfo->hRotateDC = CreateCompatibleDC(hdc);
-    imageInfo->hRotateBitmap = CreateCompatibleBitmap(hdc, size, imageInfo->frameWidth);
+    imageInfo->hRotateBitmap = CreateCompatibleBitmap(hdc, size, size);
     imageInfo->hOldRotateBit =
         (HBITMAP)SelectObject(imageInfo->hRotateDC, imageInfo->hRotateBitmap);
 
@@ -321,7 +334,7 @@ void Image::rotateRenderFlip(HDC hdc, float destX, float destY, int currentFrame
 
 
 void Image::FrameRender(HDC hdc, int destX, int destY,
-    int currFrameX, int currFrameY, bool isCenterRenderring, int size)
+    int currFrameX, int currFrameY, bool isCenterRenderring, float size)
 {
     imageInfo->currFrameX = currFrameX;
     imageInfo->currFrameY = currFrameY;
@@ -454,28 +467,48 @@ void Image::FrameRenderFlip(HDC hdc, int destX, int destY, int currFrameX, int c
     }
 }
 
-void Image::AlphaRender(HDC hdc, int destX, int destY, bool isCenterRenderring)
+void Image::AlphaRender(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY, BYTE alpha, bool isCenterRenderring)
 {
+
+    imageInfo->currFrameX = currentFrameX;
+    imageInfo->currFrameY = currentFrameY;
+
     int x = destX;
     int y = destY;
     if (isCenterRenderring)
     {
-        x = destX - (imageInfo->width / 2);
-        y = destY - (imageInfo->height / 2);
+        x = destX - (imageInfo->frameWidth / 2);
+        y = destY - (imageInfo->frameHeight / 2);
     }
 
-    // 1. 목적지 DC(hdc)에 그려져 있는 내용을 BlendDC에 복사
-    BitBlt(imageInfo->hBlendDC, 0, 0, imageInfo->width, imageInfo->height,
-        hdc, x, y, SRCCOPY);
+    blendFunc.SourceConstantAlpha = alpha;
 
-    //GdiTransparentBlt(imageInfo->)
+    if (isTransparent)
+    {
+      
+        BitBlt(imageInfo->hBlendDC, 0, 0, imageInfo->frameWidth, imageInfo->frameHeight, hdc, x, y, SRCCOPY);
 
-    // 2. 출력할 이미지 DC에 내용을 BlendDC에 지정한 색상을 제외하면서 복사
-
-
-    // 3.
-    AlphaBlend(hdc, x, y, imageInfo->width, imageInfo->height,
-        imageInfo->hBlendDC, 0, 0, imageInfo->width, imageInfo->height, blendFunc);
+        GdiTransparentBlt(
+            imageInfo->hBlendDC,	//복사할 장소의 DC
+            0,					//복사할 좌표 시작X
+            0,					//복사할 좌표 시작Y
+            imageInfo->frameWidth,		//복사할 이미지 가로크기
+            imageInfo->frameHeight,		//복사할 이미지 세로크기
+            imageInfo->hMemDC,		//복사될 대상 DC
+            imageInfo->currFrameX * imageInfo->frameWidth, 
+            imageInfo->currFrameY * imageInfo->frameHeight,					//복사될 대상의 시작지점
+            imageInfo->frameWidth,		//복사 영역 가로크기
+            imageInfo->frameHeight,		//복사 영역 세로크기
+            transColor);			//복사할때 제외할 색상(일반적으로 마젠타)
+        //3
+        GdiAlphaBlend(hdc, x, y, imageInfo->frameWidth, imageInfo->frameHeight,
+            imageInfo->hBlendDC, 0, 0, imageInfo->frameWidth, imageInfo->frameHeight, blendFunc);
+    }
+    else//원본 이미지 그대로 출력
+    {
+        GdiAlphaBlend(hdc, x, y, imageInfo->frameWidth, imageInfo->frameHeight,
+            imageInfo->hMemDC, 0, 0, imageInfo->frameWidth, imageInfo->frameHeight, blendFunc);
+    }
 }
 
 void Image::Release()
