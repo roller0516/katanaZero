@@ -2,6 +2,7 @@
 #include "GameNode.h"
 
 // 기존 MainGame 클래스의 내용을 이동
+class AstarManager;
 class ItemManager;
 class EnemyManager;
 class CollisionManager;
@@ -16,6 +17,7 @@ private:
 	EnemyManager* enemyManager;
 	CollisionManager* collisionManager;
 	ItemManager* itemManager;
+	AstarManager* astarManager;
 	Enemy* enemy;
 	Player* player;
 	Image* BackGround;

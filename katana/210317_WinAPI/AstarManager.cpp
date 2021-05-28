@@ -52,13 +52,15 @@ void AstarTile::Update()
 
 void AstarTile::Render(HDC hdc)
 {
-	//if (parentTile) 
-	//{
-	//	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
-	//	Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
-	//		rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
-	//	SelectObject(hdc, hOldBrush);
-	//}
+	if (parentTile) 
+	{
+		
+	}
+
+	//hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+	//Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
+	//	rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
+	//SelectObject(hdc, hOldBrush);
 }
 
 void AstarTile::Clear()
@@ -88,9 +90,9 @@ void AstarTile::Clear()
 
 void AstarTile::SetColor(COLORREF color,bool nullcolor)
 {
- 	this->color = color;
-	DeleteObject(hBrush);
-	this->hBrush = CreateSolidBrush(color);
+ 	//this->color = color;
+	//DeleteObject(hBrush);
+	//this->hBrush = CreateSolidBrush(color);
 }
 
 HRESULT AstarManager::Init()
@@ -99,7 +101,7 @@ HRESULT AstarManager::Init()
 	{
 		for (int j = 0; j < TILE_Y; j++)	// 가로반복 (x)
 		{
-			map[i][j].Init(j, i);
+			Map[i][j].Init(j, i);
 		}
 	}
 	int worldX = Camera::GetSingleton()->GetWorld().x;
@@ -120,6 +122,7 @@ void AstarManager::Update()
 {
 	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_SPACE))
 	{
+		Clear();
 		if (isFind && startTile)
 		{
 			isFind = false;
@@ -137,7 +140,7 @@ void AstarManager::Update()
 			onwerTileIndex.y = posY / TILESIZE;
 			int xFrame = onwerTileIndex.x;
 			int yFrame = onwerTileIndex.y;
-			startTile = &map[yFrame][xFrame];
+			startTile = &Map[yFrame][xFrame];
 			startTile->SetColor(RGB(255, 255, 255),false);
 		}
 	}
@@ -151,13 +154,18 @@ void AstarManager::Update()
 			targetTileIndex.y = posY / TILESIZE;
 			int xFrame = targetTileIndex.x;
 			int yFrame = targetTileIndex.y;
+			if (Map[yFrame][xFrame].GetType() == AstarTileType::Wall)
+			{
+				yFrame -= 1;
+			}
 			SetDestTile(xFrame, yFrame);
 		}
 	}
-	
-	if (parentList.size() > 0)
-		backTile = parentList.back();
-	
+	for (int i = 0; i < parentList.size(); i++) 
+	{
+		if (parentList[i].size() > 0)
+			backTile = parentList[i].back();
+	}
 }
 
 void AstarManager::Render(HDC hdc)
@@ -166,11 +174,11 @@ void AstarManager::Render(HDC hdc)
 	{
 		for (int j = 0; j < TILE_X; j++)	// 가로반복 (x)
 		{
-			if (map[i][j].GetCenter().x - Camera::GetSingleton()->GetCameraPos().x > WINSIZE_X)
+			if (Map[i][j].GetCenter().x - Camera::GetSingleton()->GetCameraPos().x > WINSIZE_X)
 				continue;
-			if (map[i][j].GetCenter().y - Camera::GetSingleton()->GetCameraPos().y > WINSIZE_Y)
+			if (Map[i][j].GetCenter().y - Camera::GetSingleton()->GetCameraPos().y > WINSIZE_Y)
 				continue;
-			map[i][j].Render(hdc);
+			Map[i][j].Render(hdc);
 		}
 	}
 }
@@ -181,6 +189,7 @@ void AstarManager::Move()
 }
 void AstarManager::FindPath()
 {
+	
 	if (currTile)
 	{
 		// 주위에 있는 이동가능한 타일들을 F값 계산 후보에 넣는다.
@@ -195,14 +204,14 @@ void AstarManager::FindPath()
 		// 도착여부 판단
 		if (currTile == destTile)
 		{
-			MarkTileToType();
-
+			MarkTileToType(0);
 			return;
 		} 
 
 		// 반복
 		FindPath();
 	}
+
 }
 
 void AstarManager::AddOpenList(AstarTile* currTile)
@@ -223,28 +232,28 @@ void AstarManager::AddOpenList(AstarTile* currTile)
 			// TODO : 오픈리스트에 추가하면 안되는 조건
 			// 1. 타입이 wall 일 때
 			// 2. 이미 확인된 타일일 때 ( closeList에 있을 때 )
-			if (map[currIdY + i][currIdX + j].GetIsClosed())
+			if (Map[currIdY + i][currIdX + j].GetIsClosed())
 				continue;
 
-			if (map[currIdY + i][currIdX + j].GetType() ==
+			if (Map[currIdY + i][currIdX + j].GetType() ==
 				AstarTileType::Wall)	continue;
 
 			// 3. 이미 오픈리스트에 있을 때
 			// 조건에 따라 다른 처리
 			int F, G, H;
-			if (map[currIdY + i][currIdX + j].GetIsInOpenlist())
+			if (Map[currIdY + i][currIdX + j].GetIsInOpenlist())
 			{
-				G = map[currIdY + i][currIdX + j].GetG();
+				G = Map[currIdY + i][currIdX + j].GetG();
 				if (G > currTile->GetG() + CalcEdgeCost(i, j))
 				{
 					G = currTile->GetG() + CalcEdgeCost(i, j);
-					map[currIdY + i][currIdX + j].SetG(G);
+					Map[currIdY + i][currIdX + j].SetG(G);
 
-					F = G + map[currIdY + i][currIdX + j].GetH();
-					map[currIdY + i][currIdX + j].SetF(F);
+					F = G + Map[currIdY + i][currIdX + j].GetH();
+					Map[currIdY + i][currIdX + j].SetF(F);
 
 					// parentNode도 함께 갱신한다.
-					map[currIdY + i][currIdX + j].SetParentTile(currTile);
+					Map[currIdY + i][currIdX + j].SetParentTile(currTile);
 				}
 			}
 			else
@@ -254,22 +263,22 @@ void AstarManager::AddOpenList(AstarTile* currTile)
 				G = currTile->GetG() + CalcEdgeCost(i, j);
 				H = CalcHeuristics(currIdX + j, currIdY + i);
 				F = G + H;
-				map[currIdY + i][currIdX + j].SetG(G);
-				map[currIdY + i][currIdX + j].SetH(H);
-				map[currIdY + i][currIdX + j].SetF(F);
+				Map[currIdY + i][currIdX + j].SetG(G);
+				Map[currIdY + i][currIdX + j].SetH(H);
+				Map[currIdY + i][currIdX + j].SetF(F);
 
 				// parentNode도 함께 갱신한다.
-				map[currIdY + i][currIdX + j].SetParentTile(currTile);
+				Map[currIdY + i][currIdX + j].SetParentTile(currTile);
 
 				// openList에 추가
-				map[currIdY + i][currIdX + j].SetIsInOpenlist(true);
-				//openList.push_back(&(map[currIdY + i][currIdX + j]));
+				Map[currIdY + i][currIdX + j].SetIsInOpenlist(true);
+				//openList.push_back(&(Map[currIdY + i][currIdX + j]));
 
 				// heap 자료구조에 추가
-				InsertOpenlistWithHeap(&(map[currIdY + i][currIdX + j]));
+				InsertOpenlistWithHeap(&(Map[currIdY + i][currIdX + j]));
 			}
 
-			//map[currIdY + i][currIdX + j].SetColor(RGB(205, 130, 130),false);
+			//Map[currIdY + i][currIdX + j].SetColor(RGB(205, 130, 130),false);
 		}
 	}
 }
@@ -295,7 +304,8 @@ AstarTile* AstarManager::GetMinTotalCostTileWithHeap()
 {
 	if (heap.empty())
 		return nullptr;
-
+	if (heap.size() > 300)
+		return nullptr;
 	AstarTile* tile = heap[0];
 
 	heap[0] = heap.back();
@@ -371,6 +381,12 @@ void AstarManager::UpdateUpper(AstarTile* tile)
 	}
 }
 
+void AstarManager::AddAtsar(int index)
+{
+	//vector<AstarTile*> v;
+	
+}
+
 void AstarManager::DeleteTileInOpenlist(AstarTile* tile)
 {
 	// TODO : heap 구조를 통해서 개선
@@ -408,9 +424,12 @@ int AstarManager::CalcHeuristics(int x, int y)
 	return sqrt(distX * distX + distY * distY) * 10;
 }
 
-void AstarManager::ParentPopBack()
+void AstarManager::ParentPopBack(int index)
 {
-	parentList.pop_back();
+	if (GetParentList(index)) 
+	{
+		GetParentList(index)->pop_back();
+	}
 }
 
 void AstarManager::Clear()
@@ -419,14 +438,15 @@ void AstarManager::Clear()
 	{
 		for (int j = 0; j < TILE_Y; j++)	// 가로반복 (x)
 		{
-			map[i][j].Clear();
+			Map[i][j].Clear();
 		}
 	}
 	for (int i = 0; i < heap.size(); i++) 
 	{
  		heap[i]->SetHeapIndex(0);
 	}
-	backTile = nullptr;
+
+	//backTile = nullptr;
 	openList.clear();
 	closeList.clear();
 	heap.clear();
@@ -434,13 +454,29 @@ void AstarManager::Clear()
 	isFind = true;
 }
 
-void AstarManager::MarkTileToType()
+void AstarManager::MarkTileToType(int index)
 {
 	AstarTile* parentTile = destTile;
 	while (parentTile->GetParentTile())
 	{
-		parentTile->SetColor(RGB(0, 0, 0), false);
+		parentTile->SetColor(RGB(50, 50, 50), false);
 		parentTile = parentTile->GetParentTile();
-		parentList.push_back(parentTile);
+		parentList[index].push_back(parentTile);
 	}
+	//parentList.insert(make_pair(index, *GetParentList(index)));
+}
+
+vector<AstarTile*>* AstarManager::GetParentList(int index)
+{
+	map<int, vector<AstarTile*>> ::iterator it;
+	it = parentList.find(index);
+
+	if (it == parentList.end())
+	{
+		return nullptr;
+	}
+
+	//MarkTileToType(index);
+
+	return &(it->second);
 }

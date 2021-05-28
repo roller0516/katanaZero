@@ -44,6 +44,8 @@ public:
 		int maxFrame = 0;
 		int updateCount = 0;
 		int size = 0;
+		int Index;
+		bool isTurn = false;
 		bool isKnockBack = false;
 		bool isSamPle = false;
 		bool isFind = false;

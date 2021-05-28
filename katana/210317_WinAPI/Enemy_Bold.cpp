@@ -18,9 +18,10 @@ HRESULT Enemy_Bold::Init(int posX, int posY)
     ImageManager::GetSingleton()->AddImage("Bold_attack", "Image/Katana/enemy/enemy_bold_aim_R.bmp", 42, 70, 1, 1, true, RGB(255, 0, 255));
     missileManager = new MissileManager();
     missileManager->Init(this);
-    data->astar = new AstarManager();
-    data->astar->Init();
-    data->astar->SetOnwer(this);
+    //data->astar = new AstarManager();
+    //data->astar->Init();
+    //data->astar->SetOnwer(this);
+    data->isTurn = false;
     data->findRange = 200;
     data->attackRange = 300;
     data->worldPos.x = posX;
@@ -32,6 +33,7 @@ HRESULT Enemy_Bold::Init(int posX, int posY)
     data->isAlive = true;
     data->attackAngle = 0;
     data->knockBackPower = 800;
+    data->Index = 0;
 	return S_OK;
 }
 
@@ -44,22 +46,21 @@ void Enemy_Bold::Update()
 {
     missileManager->Update();
 
-    data->attackAngle = GetAngle(this->data->worldPos, data->target->GetWorldpos());
-
+    if(data->astar)
     data->astar->Update();
 
     data->localPos.x = data->worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
     data->localPos.y = data->worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
 
     data->currFrameX += TimerManager::GetSingleton()->GetElapsedTime() * 10;
-    if (data->currFrameX >= data->maxFrame) 
+    if (data->currFrameX >= data->maxFrame)
     {
         data->currFrameX = 0;
         if (data->isAlive == false)
-            data->currFrameX = data->maxFrame-1;
+            data->currFrameX = data->maxFrame - 1;
     }
-        
-    
+    if (data->target)
+        data->attackAngle = GetAngle(this->data->worldPos, data->target->GetWorldpos());
     if (data->isAlive)
     {
         data->shape.left = data->localPos.x - data->size / 2;
@@ -67,12 +68,7 @@ void Enemy_Bold::Update()
         data->shape.right = data->localPos.x + data->size / 2;
         data->shape.bottom = data->localPos.y + data->size / 2;
     }
-    if (data->isPhysic&&data->isSamPle ==false)
-    {
-        data->fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * data->velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
-        data->worldPos.y -= data->fallForce * TimerManager::GetSingleton()->GetElapsedTime();
-    }
-    if (data->isSamPle == false) 
+    if (data->isSamPle == false)
     {
         Pattern();
         if (data->isKnockBack)
@@ -80,6 +76,12 @@ void Enemy_Bold::Update()
         PixelCollisionBottom();
         PixelCollisionRight();
         PixelCollisionLeft();
+    }
+
+    if (data->isPhysic && data->isSamPle == false)
+    {
+        data->fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * data->velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
+        data->worldPos.y -= data->fallForce * TimerManager::GetSingleton()->GetElapsedTime();
     }
 }
 
@@ -116,8 +118,8 @@ void Enemy_Bold::Render(HDC hdc, bool world)
         }
         else 
         {
-            if (data->localPos.x > WINSIZE_X || data->localPos.y >WINSIZE_Y)
-                return;
+            //if (data->localPos.x > WINSIZE_X || data->localPos.y >WINSIZE_Y)
+            //    return;
             missileManager->Render(hdc);
             if (dir == EnemyDir::Left) 
             {
@@ -129,7 +131,7 @@ void Enemy_Bold::Render(HDC hdc, bool world)
                     armRImage->rotateRenderFlip(hdc, data->localPos.x+5, data->localPos.y-10, 0, 0, data->attackAngle);
                 }
                 else if (state == EnemyState::hurt)
-                    data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y + 12, data->currFrameX, 0, true);
+                    data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
                 else
                     data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
             }  
@@ -143,7 +145,7 @@ void Enemy_Bold::Render(HDC hdc, bool world)
                     armRImage->rotateRender(hdc, data->localPos.x-5, data->localPos.y-10,0,0, data->attackAngle);
                 }
                 else if (state == EnemyState::hurt)
-                    data->image->FrameRender(hdc, data->localPos.x, data->localPos.y + 12, data->currFrameX, 0, true);
+                    data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
                 else
                     data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
             }  
@@ -215,7 +217,7 @@ void Enemy_Bold::Pattern()
 
 void Enemy_Bold::Attack(EnemyDir dir)
 {
-   //data->astar->Clear();
+   data->astar->Clear();
    targeton = 0;
    data->attackSpeed += TimerManager::GetSingleton()->GetElapsedTime();
    if (data->attackSpeed > 1) 
@@ -236,9 +238,7 @@ void Enemy_Bold::Run()
         data->moveSpeed = 0;
     else
         data->moveSpeed = 150;
-    FPOINT bottomPos;
-    bottomPos.x = data->worldPos.x - 20;
-    bottomPos.y = data->worldPos.y + 28;
+ 
     for (int i = 0; i < 4; i++)
     {
         if (destAngle < 0 && data->astar->GetTileIndex().x == 44 + i && data->astar->GetTileIndex().y == 76)
@@ -246,50 +246,72 @@ void Enemy_Bold::Run()
             data->angle = 0;
         }
     }
-    if (data->astar->GetParentList().size() > 0)
+    if (data->astar->GetParentList(data->Index))
     {
-        targeton++;
-    }
-    if (data->astar->GetBackTile())
-    {
-        if (targeton == 1)
+        if (data->astar->GetBackTile())
         {
-            targeton = 2;
-            destAngle = GetAngle(bottomPos, data->astar->GetDestTile()->GetCenter());
-        }
+            
 
-        if (data->astar->GetBackTile()->GetIdX() == data->astar->GetTileIndex().x &&
-            data->astar->GetBackTile()->GetIdY() == data->astar->GetTileIndex().y)
-        {
+            if (data->astar->GetBackTile()->GetIdX() == data->astar->GetTileIndex().x &&
+                data->astar->GetBackTile()->GetIdY() == data->astar->GetTileIndex().y)
+            {
+                int x = data->astar->GetTileIndex().x;
+                int y = data->astar->GetTileIndex().y;
+                
+                currPos.x = data->astar->GetMap(x, y)->GetCenter().x;
+                currPos.y = data->astar->GetMap(x, y)->GetCenter().y + TILESIZE / 2;
 
-            if (data->astar->GetParentList().size() == 0)
-            {
-                data->astar->SetBackTile(data->astar->GetDestTile());
-                targeton = 0;
-                data->angle = 0;
-            }
-            else
-            {
-                data->astar->ParentPopBack();
-                if (data->astar->GetParentList().size() > 0)
+                if (data->astar->GetParentList(data->Index)->size() == 0)
                 {
-                    int a = data->astar->GetParentList().size();
-                    data->astar->SetBackTile(data->astar->GetParentList().back());
+                    data->astar->SetBackTile(data->astar->GetDestTile());
+                    data->astar->Clear();
+                    targeton = 0;
+                }
+                else
+                {
+                    data->astar->ParentPopBack(data->Index);
+                    if (data->astar->GetParentList(data->Index)->size() > 0)
+                    {
+                        data->astar->SetBackTile(data->astar->GetParentList(data->Index)->back());
+                    }
                 }
             }
-            data->angle = GetAngle(bottomPos, data->astar->GetBackTile()->GetCenter());
-            if (data->angle > DegToRad(90) || data->angle < DegToRad(-90))
+            float centerX = data->astar->GetBackTile()->GetCenter().x;
+            float centerY = data->astar->GetBackTile()->GetCenter().y + TILESIZE / 2;
+            float x = abs(centerX - currPos.x);
+            float y = abs(centerY - currPos.y);
+
+            if (centerX >= currPos.x && centerY >= currPos.y)
             {
-                dir = EnemyDir::Left;
+                 data->worldPos.x += x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                 data->worldPos.y += y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
             }
-            else if (data->angle <= DegToRad(90) || data->angle <= DegToRad(-90))
+
+            else if (centerX > currPos.x && centerY < currPos.y)
             {
+                data->worldPos.x += x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y -= y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+            }
+            else if (centerX < currPos.x && centerY > currPos.y)
+            {
+                data->worldPos.x -= x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y += y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+            }
+            else if (centerX <= currPos.x && centerY <= currPos.y) // 타일 센터 x 보다 현재 좌표가 
+            {
+                data->worldPos.x -= x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y -= y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+            }
+
+            if (centerX > currPos.x)
                 dir = EnemyDir::Right;
-            }
+            else 
+                dir = EnemyDir::Left;
         }
-        data->worldPos.x += cosf(data->angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
-        data->worldPos.y -= sinf(data->angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+
+        
     }
+    
     state = EnemyState::run;
     Animation(state);
 }
@@ -382,13 +404,15 @@ void Enemy_Bold::Animation(EnemyState ani)
     }
 }
 void Enemy_Bold::PixelCollisionBottom()
-{
+{ 
+    if (data->isTurn)
+        return;
     COLORREF color;
     int R, G, B;
     float playerHeight = 34;
 
     float currPosBottom = data->worldPos.y + playerHeight;
-    for (int i = currPosBottom-10; i < currPosBottom+10; i++)
+    for (int i = currPosBottom-10; i < currPosBottom; i++)
     {
         color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
             data->worldPos.x, i);
@@ -399,23 +423,21 @@ void Enemy_Bold::PixelCollisionBottom()
 
         if (!(R == 255 && G == 0 && B == 255))
         {
-            if (data->angle < DegToRad(0)&& destAngle < DegToRad(0)&&(R == 0 && G == 0 && B == 0))
-                break;
             data->velocity = 60;
             data->fallForce = 0;
-            if (data->isKnockBack)
+            if (data->isAlive && (R == 0 && G == 0 && B == 0)) 
             {
-                //data->fallForce = 100;
-                data->isKnockBack= false;
-                //data->worldPos.y = i - playerHeight - 20;
+                data->isTurn = true;
+                data->isPhysic = false;
                 break;
             }
-            if (data->isAlive == false)
+            if (!data->isAlive)
             {
+                //data->isPhysic = true;
+                data->worldPos.y = i - playerHeight;
                 break;
             }
-            
-            data->worldPos.y = i - playerHeight -2;
+            data->worldPos.y = i - playerHeight;
             break;
         }
         else if ((R == 255 && G == 0 && B == 255))

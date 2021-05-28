@@ -60,6 +60,7 @@ private:
 	int StartchangeWallIndex;
 	int EndchangeWallIndex;
 
+	bool black;
 	bool isFilp;
 	bool isGrab;
 	bool leftWall;

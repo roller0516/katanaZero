@@ -72,7 +72,7 @@ class Player;
 class Enemy;
 class AstarManager : public GameNode
 {
-	AstarTile map[TILE_X][TILE_Y];
+	AstarTile Map[TILE_X][TILE_Y];
 
 	AstarTile* startTile;	// 빨간색
 	AstarTile* destTile;	// 파란색
@@ -82,7 +82,7 @@ class AstarManager : public GameNode
 	vector<AstarTile*> openList;
 	vector<AstarTile*> closeList;
 	vector<AstarTile*> heap;
-	vector<AstarTile*> parentList;
+	map<int,vector<AstarTile*>> parentList;
 
 	Player* target;
 	Enemy* owner;
@@ -109,6 +109,7 @@ public:
 	void FindPath();
 	void AddOpenList(AstarTile* currTile);
 	AstarTile* GetMinTotalCostTile();
+	AstarTile* GetMap(int x, int y) { return &Map[y][x]; }
 	// heap 사용
 	AstarTile* GetMinTotalCostTileWithHeap();
 	void UpdateLower(AstarTile* tile);
@@ -116,14 +117,15 @@ public:
 	void InsertOpenlistWithHeap(AstarTile* tile);
 	void UpdateUpper(AstarTile* tile);
 	void SetRect(RECT rc) { this->rcMain = rc; }
-	void SetWall(int x, int y) { map[x][y].SetType(AstarTileType::Wall); }
-
+	void SetWall(int x, int y) { Map[x][y].SetType(AstarTileType::Wall); }
+	void AddAtsar(int index);
 	void DeleteTileInOpenlist(AstarTile* tile);
-	void MarkTileToType();
-	vector<AstarTile*> GetParentList() { return this->parentList; }
+	void MarkTileToType(int index);
+	vector<AstarTile*>* GetParentList(int index);
+	
 	int CalcEdgeCost(int x, int y);
 	int CalcHeuristics(int x, int y);
-	void ParentPopBack();
+	void ParentPopBack(int index);
 	void Clear();
 
 	inline AstarTile* GetDestTile() { return this->destTile; }
@@ -131,8 +133,8 @@ public:
 	inline FPOINT GetTileIndex() { return this->onwerTileIndex; }
 	inline AstarTile* GetBackTile() {return this->backTile;}
 	inline RECT GetMainRect() { return this->rcMain; }
-	inline void SetDestTile(int x, int y) { destTile = &(map[y][x]); destTile->SetColor(RGB(0, 0, 0), false);}
-	inline void SetStartTile(int x, int y) { startTile = &(map[y][x]); }
+	inline void SetDestTile(int x, int y) { destTile = &(Map[y][x]); destTile->SetColor(RGB(0, 0, 0), false);}
+	inline void SetStartTile(int x, int y) { startTile = &(Map[y][x]); }
 	inline void SetOnwer(Enemy* owner) { this->owner = owner; }
 	inline void SetTarget(Player* player) { this->target = player; }
 	virtual ~AstarManager() {};

@@ -115,10 +115,20 @@ HRESULT TilemapTool::Init()
         TILEMAPTOOLSIZE_Y - 300);
     Prev->SetFunc(PrevPage, 1);
 
-    //astarManager = new AstarManager;
-    //astarManager->Init();
+    astarManager = new AstarManager;
+    astarManager->Init();
     rcMain = { 0,0,WINSIZE_X,WINSIZE_Y };
     ShowCursor(true);
+
+
+    for (int i = 0; i < TILE_Y; i++)
+    {
+        for (int j = 0; j < TILE_X; j++)
+        {
+            if (tileInfo[i * TILE_X + j].type == TileType::Wall)
+                astarManager->SetWall(i, j);
+        }
+    }
 
     MonsterSpwan = false;
     return S_OK;
@@ -214,7 +224,7 @@ void TilemapTool::Update()
             {
                 if (GetTileType(&tileInfo[y * TILE_X + x]) == TileType::None && destTile)
                 {
-                   /* astarManager->SetDestTile(x, y);*/
+                   
                     SetColor(&tileInfo[y * TILE_X + x],RGB(0, 0, 255), false);
                     SetTileType(&tileInfo[y * TILE_X + x],TileType::End);
                 }
@@ -241,34 +251,24 @@ void TilemapTool::Update()
             {
                 if (GetTileType(&tileInfo[y * TILE_X + x]) == TileType::Wall || GetTileType(&tileInfo[y * TILE_X + x]) == TileType::End)
                 {
+                    astarManager->SetDestTile(y, x);
                     SetColor(&tileInfo[y * TILE_X + x], RGB(0, 0, 0), true);
                     SetTileType(&tileInfo[y * TILE_X + x], TileType::None);
                 }
-
             }
         }  
     }
     
-    //테스트
-    //for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
-    //{
-    //    if (enemyManager->GetMonsterList().size() > 0)
-    //    {
-    //        enemyManager->GetMonsterList()[i]->SetAstarManager(astarManager);
-    //        astarManager->SetTarget(enemyManager->GetMonsterList()[i]);
-    //    }
-    //}
-   
     
-    //astar tilemap 연동
-    /*for (int i = 0; i < TILE_Y; i++)
+    for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
     {
-        for (int j = 0; j < TILE_X; j++)
+        if (enemyManager->GetMonsterList().size() > 0)
         {
-            if (tileInfo[i * TILE_X + j].type == TileType::Wall)
-                astarManager->SetWall(i, j);
+            enemyManager->GetMonsterList()[i]->GetData()->astar = astarManager;
+            enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
         }
-    }*/
+    }
+    
 }
 
 void TilemapTool::Render(HDC hdc)
@@ -484,7 +484,7 @@ void TilemapTool::Load(int stageNum)
         for (int i = 0; i < 100; i++)
         {
             string str(enemySize[i].Name);
-            if (enemySize[i].Name == "")
+            if (str == "")
                 break;
             enemyManager->AddEnemy(str, 1);
             enemyManager->Init(nullptr, enemySize[i].x, enemySize[i].y, enemySize[i].index);

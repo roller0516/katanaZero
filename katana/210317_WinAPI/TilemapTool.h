@@ -6,7 +6,7 @@
 #define SAMPLE_TILE_X	20
 #define SAMPLE_TILE_Y	9
 
-
+class AstarManager;
 class Enemy;
 class EnemyManager;
 class Button;
@@ -21,7 +21,7 @@ private:
 	static Enemy* exhibition;
 	static string enenmyName;
 	static ENMY_INFO enemySize[100];
-
+	AstarManager* astarManager;
 	FPOINT worldPos;
 	FPOINT localPos;
 

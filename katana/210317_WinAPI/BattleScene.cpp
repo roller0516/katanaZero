@@ -16,14 +16,15 @@
 #include "AstarManager.h"
 #include "CollisionManager.h"
 #include "ItemManager.h"
+#include "AstarManager.h"
 
 HRESULT BattleScene::Init()
 {
 	SetClientRect(g_hWnd, WINSIZE_X, WINSIZE_Y);
 	curSor = ImageManager::GetSingleton()->AddImage("cursor", "Image/Katana/effect/cursor.bmp", 50, 50, true,RGB(255,0,255));
-
 	player = new Player();
 	player->Init();
+
 	itemManager = new ItemManager;
 	itemManager->AddItem("Knife",new Item);
 	itemManager->Init(WINSIZE_X/2-100, WINSIZE_Y / 2,player);
@@ -33,7 +34,13 @@ HRESULT BattleScene::Init()
 	itemManager->Init(WINSIZE_X / 2 - 60, WINSIZE_Y / 2, player);
 	itemManager->AddItem("Bust", new Item);
 	itemManager->Init(WINSIZE_X / 2 - 40, WINSIZE_Y / 2, player);
+
 	player->SetitemManager(itemManager);
+
+	astarManager = new AstarManager;
+	astarManager->Init();
+	astarManager->SetTarget(player);
+
 	enemyManager = new EnemyManager;
 	enemyManager->RegisterClone("PompEnemy", new Enemy_pomp);
 	enemyManager->RegisterClone("BoldEnemy", new Enemy_Bold);
@@ -48,14 +55,17 @@ HRESULT BattleScene::Init()
 
 	for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
 	{
-		AstarManager* astar = enemyManager->GetMonsterList()[i]->GetData()->astar;
-		for (int j = 0; j < TILE_Y; j++)
+		enemyManager->GetMonsterList()[i]->GetData()->astar = astarManager;
+		enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
+		astarManager->AddAtsar(i);
+	}
+
+	for (int j = 0; j < TILE_Y; j++)
+	{
+		for (int k = 0; k < TILE_X; k++)
 		{
-			for (int k = 0; k < TILE_X; k++)
-			{
-				if (tileInfo[j * TILE_X + k].type == TileType::Wall)
-					astar->SetWall(j, k);
-			}
+			if (tileInfo[j * TILE_X + k].type == TileType::Wall)
+				astarManager->SetWall(j, k);
 		}
 	}
 
@@ -72,10 +82,13 @@ void BattleScene::Release()
 	SAFE_RELEASE(player);
 	SAFE_RELEASE(enemyManager);
 	SAFE_RELEASE(itemManager);
+	SAFE_RELEASE(astarManager);
 }
 
 void BattleScene::Update()
 {
+	if (astarManager)
+		astarManager->Update();
 	if (enemyManager)
 		enemyManager->Update();
 
@@ -103,6 +116,9 @@ void BattleScene::Render(HDC hdc)
 
 	if (itemManager)
 		itemManager->Render(hdc);
+
+	if (astarManager)
+		astarManager->Render(hdc);
 
 	if (enemyManager)
 		enemyManager->Render(hdc);

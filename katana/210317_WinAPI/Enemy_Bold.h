@@ -10,6 +10,8 @@ class Enemy_Bold :
 {
 private:
 	MissileManager* missileManager;
+
+	FPOINT currPos;
 	Image* armLImage;
 	Image* armRImage;
 	Image* GunImage;
@@ -31,12 +33,6 @@ public:
 	virtual EnemyData* GetData() { return this->data; }
 	virtual MissileManager* GetMissileManager() { return this->missileManager; }
 
-	/*virtual RECT GetRect() { return this->data->shape; }
-	virtual FPOINT GetPos() { return this->data->worldPos; }
-	virtual void SetTarget(Player* player) { this->data->target = player; }
-	virtual void SetMoveSpeed(float moveSpeed) { this->data->moveSpeed = moveSpeed; }
-	virtual AstarManager* GetastarManager() { return this->data->astar; }*/
-
 	virtual ~Enemy_Bold() {};
 
 	void Attack(EnemyDir dir);
@@ -51,6 +47,7 @@ public:
 	void PixelCollisionBottom();
 	void PixelCollisionLeft();
 	void PixelCollisionRight();
+	void SetIndex(int index) { this->data->Index; }
 	// get, set
 	
 	inline int GetSize() { return this->data->size; }

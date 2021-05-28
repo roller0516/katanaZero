@@ -125,6 +125,13 @@ void Player::Update()
 			attackShape = { -100,-100,-100,-100 };
 		}
 	}
+
+	if (isGround && count == 0)
+	{
+		playerEffect[3].SetAlive(true);
+		playerEffect[3].SetWorldPos(Worldpos.x, Worldpos.y + 30);
+		count = 1;
+	}
 }
 
 void Player::Render(HDC hdc)
@@ -177,22 +184,24 @@ void Player::Run()
 			minus = -1;
 			Worldpos.x += moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
 		}
-		if (runCount == 0) 
+
+		if (isGround) 
 		{
-			for (int i = 4; i < 7; i++)
+			if (runCount == 0)
 			{
-				x = (rand() % 30) + 7+i;
-				y = (rand() % 15) - 5;
-				playerEffect[i].SetCurrFrame();
-				playerEffect[i].SetAlive(true);
-				playerEffect[i].SetWorldPos(Worldpos.x + minus * x, Worldpos.y + y);
+				for (int i = 4; i < 7; i++)
+				{
+					x = (rand() % 30) + 7 + i;
+					y = (rand() % 15) - 5;
+					playerEffect[i].SetCurrFrame();
+					playerEffect[i].SetAlive(true);
+					playerEffect[i].SetWorldPos(Worldpos.x + minus * x, Worldpos.y + y);
+				}
+				playerEffect[4].SetSize(1.5f);
+				runCount = 1;
 			}
-			playerEffect[4].SetSize(1.5f);
-			runCount = 1;
-		}
-		
-		if (isGround)
 			Animation(PlayerState::run);
+		}
 		else
 			Animation(PlayerState::fall);
 	}
@@ -207,7 +216,6 @@ void Player::RuntoIdle()
 		Animation(PlayerState::run_to_idle);
 		tick = 0;
 	}
-	
 }
 
 void Player::Attack()
@@ -272,12 +280,6 @@ void Player::JumpingEnd()
 		return;
 	if (fallForce <= 10 && isJumping)
 		isJumping = false;
-	if (isGround && count == 0)
-	{
-		playerEffect[3].SetAlive(true);
-		playerEffect[3].SetWorldPos(Worldpos.x, Worldpos.y +30);
-		count = 1;
-	}
 }
 void Player::Roll()
 {
@@ -286,9 +288,9 @@ void Player::Roll()
 		frameRun = true;
 		Animation(PlayerState::roll);
 		if (dir == Direction::RIHGT )
-			Worldpos.x += cosf(DegToRad(0)) * 800 * TimerManager::GetSingleton()->GetElapsedTime();
+			Worldpos.x += cosf(DegToRad(0)) * 500 * TimerManager::GetSingleton()->GetElapsedTime();
 		else if (dir == Direction::LEFT) 
-			Worldpos.x += cosf(DegToRad(180)) * 800 * TimerManager::GetSingleton()->GetElapsedTime();
+			Worldpos.x += cosf(DegToRad(180)) * 500 * TimerManager::GetSingleton()->GetElapsedTime();
 	}
 }
 void Player::Flip()
@@ -489,8 +491,9 @@ void Player::PlayerKeyMove()
 		currPos.y = Worldpos.y;
 		return;
 	}
-	else if (KeyManager::GetSingleton()->IsOnceKeyDown('S'))
+	if (KeyManager::GetSingleton()->IsOnceKeyDown('S'))
 	{
+		if (black == false) return;
 		if (isFall) return;
 		currFrame = 0;
 		fallForce = 0;
@@ -499,7 +502,7 @@ void Player::PlayerKeyMove()
 		isFall = true;
 		return;
 	}
-	else if (KeyManager::GetSingleton()->IsOnceKeyUp('D'))
+	if (KeyManager::GetSingleton()->IsOnceKeyUp('D'))
 	{
 		currFrame = 0;
 		isMove = false;
@@ -559,7 +562,7 @@ void Player::PlayerKeyMove()
 		isMove = true;
 		return;
 	}
-
+	
 	if (isGround && isGrab)
 	{
 		isGrab = false;
@@ -675,7 +678,7 @@ void Player::PixelCollisionBottom()
 	int R, G, B;
 	float playerHeight = 36;
 	float currPosBottom = Worldpos.y + playerHeight;
-	for (int i = currPosBottom-5; i < currPosBottom; i++)
+	for (int i = currPosBottom-10; i < currPosBottom+10; i++)
 	{
 		color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
 			Worldpos.x, i);
@@ -686,19 +689,21 @@ void Player::PixelCollisionBottom()
 			
 		if (!(R == 255 && G == 0 && B == 255))
 		{
-
+			if ((R == 0 && G == 0 && B == 0))
+				black = true;
+			else
+				black = false;
 			velocity = 80;
 			if ((R == 0 && G == 0 && B == 0) && isAttack) break;
 			if (isAttack) 
 			{
-				Worldpos.y = i - playerHeight;
+				Worldpos.y = i - playerHeight-10;
 				break;
 			}
-			//if (isAttack && angle >0) break;
 			if ((R == 0 && G == 0 && B == 0) && isFall) 
 				break;
 			fallForce = 0;
-			Worldpos.y = i - playerHeight+2;
+			Worldpos.y = i - playerHeight+4;
 			isGround = true;
 			isFall = false;
 			isFilp = false;
@@ -774,7 +779,8 @@ void Player::Animation(PlayerState ani) // 더좋은방법이 생기면 수정
 	case PlayerState::fall: 
 		maxFrame = 4;
 		isGround = false;
-		count = 0;
+		if(isMove==false)
+			count = 0;
 		image = ImageManager::GetSingleton()->FindImage("player_fall");
 		break;
 	}

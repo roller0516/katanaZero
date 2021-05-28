@@ -53,10 +53,12 @@ void PlayerEffect::Update()
         currFrame += 15 * TimerManager::GetSingleton()->GetElapsedTime();
         if (currFrame > maxFrame)
         {
-            currFrame = 0;
             moveSpeed = 0;
+            currFrame = 0;
             count = 0;
             isAlive = false;
+            worldPos.x = -100;
+            worldPos.y = -100;
         }
     }
     localPos.x = worldPos.x - Camera::GetSingleton()->GetCameraPos().x;

@@ -31,6 +31,7 @@ public:
     void SetCurrFrame() { this->currFrame = 0; }
     void SetAlive(bool alive) { this->isAlive = alive; }
     void SetSize(float size) { this->size = size; }
+    bool GetAlive() { return this->isAlive; }
     //map<EffectType, PlayerEffect*> GetPlayerEffect() { return this->vPlayerEffect; }
 };
 
