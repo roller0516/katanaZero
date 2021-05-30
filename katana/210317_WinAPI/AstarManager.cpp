@@ -53,18 +53,19 @@ void AstarTile::Update()
 
 void AstarTile::Render(HDC hdc)
 {
+	//hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+	//Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
+	//	rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
+	//SelectObject(hdc, hOldBrush);
+
+	if (parentTile) 
+	{
+		
+	}
 	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
 	Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
 		rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
 	SelectObject(hdc, hOldBrush);
-
-	//if (parentTile) 
-	//{
-	//	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
-	//	Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
-	//		rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
-	//	SelectObject(hdc, hOldBrush);
-	//}
 	//if (type == AstarTileType::End)
 	//{
 	//	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
@@ -103,9 +104,10 @@ void AstarTile::Clear()
 
 void AstarTile::SetColor(COLORREF color,bool nullcolor)
 {
-   	//this->color = color;
-	//DeleteObject(hBrush);
-	//this->hBrush = CreateSolidBrush(color);
+   	this->color = color;
+
+	this->hBrush = CreateSolidBrush(color);
+	DeleteObject(hBrush);
 }
 
 HRESULT AstarManager::Init()
@@ -149,7 +151,7 @@ void AstarManager::Update()
 
 	if (owner->GetData()->isFind) 
 	{
-		if (startTile != destTile)
+		if (startTile != destTile&& target->GetisGround())
 		{
 			Clear();
 
@@ -168,15 +170,38 @@ void AstarManager::Update()
 	{ 
 		if (RectInRect(owner->GetData()->shape, rcMain))
 		{
-			int posX = owner->GetData()->worldPos.x - 5;
-			int posY = owner->GetData()->worldPos.y + 22;
+			int posX = 0;
+			int	posY = 0;
+
+			if (owner->GetData()->dir == EnemyDir::Right) 
+			{
+				posX = owner->GetData()->worldPos.x - 8;
+				posY = owner->GetData()->worldPos.y + 35;
+			}
+			else 
+			{
+				posX = owner->GetData()->worldPos.x - 8;
+				posY = owner->GetData()->worldPos.y + 35;
+			}
+
+			//else 
+			//{
+			//	posX = owner->GetData()->worldPos.x - 20;
+			//	posY = owner->GetData()->worldPos.y + 40;
+			//}
+			 
 			onwerTileIndex.x = posX / TILESIZE;
 			onwerTileIndex.y = posY / TILESIZE;
 			int xFrame = onwerTileIndex.x;
 			int yFrame = onwerTileIndex.y;
 
+			//if (Map[yFrame][xFrame].GetType() == AstarTileType::Wall)
+			//{
+			//	yFrame -= 1;
+			//}
+
 			startTile = &Map[yFrame][xFrame];
-			//startTile->SetColor(RGB(255, 255, 255), false);
+			startTile->SetColor(RGB(255, 255, 255), false);
 		}
 	}
 	if (target)
@@ -184,7 +209,7 @@ void AstarManager::Update()
 		if (RectInRect(target->GetRect(), rcMain) )
 		{
 			int posX = target->GetWorldpos().x;
-			int posY = target->GetWorldpos().y + 20;
+			int posY = target->GetWorldpos().y + 30;
 			targetTileIndex.x = posX / TILESIZE;
 			targetTileIndex.y = posY / TILESIZE;
 			int xFrame = targetTileIndex.x;
@@ -325,7 +350,6 @@ AstarTile* AstarManager::GetMinTotalCostTile()
 			minFTile = openList[i];
 		}
 	}
-
 	return minFTile;
 }
 

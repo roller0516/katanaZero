@@ -23,6 +23,7 @@ class Enemy
 public:
 	struct EnemyData
 	{
+		EnemyDir dir = EnemyDir::Right;
 		Image* image = nullptr;
 		Player* target = nullptr;
 		AstarManager* astar = nullptr;

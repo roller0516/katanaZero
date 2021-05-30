@@ -60,6 +60,7 @@ void Enemy_Grunt::Update()
     if (data->target) 
     {
         data->attackAngle = GetAngle(this->data->worldPos, data->target->GetWorldpos());
+        data->angle = GetAngle(this->data->worldPos, data->target->GetWorldpos());
     }
         
     if (data->isAlive)
@@ -82,11 +83,11 @@ void Enemy_Grunt::Update()
         PixelCollisionLeft();
     }
 
-    if (data->isPhysic && data->isSamPle == false)
-    {
-        data->fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * data->velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
-        data->worldPos.y -= data->fallForce * TimerManager::GetSingleton()->GetElapsedTime();
-    }
+    //if (data->isPhysic && data->isSamPle == false)
+    //{
+    //    data->fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * data->velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
+    //    data->worldPos.y -= data->fallForce * TimerManager::GetSingleton()->GetElapsedTime();
+    //}
     if(data->isAttack == false)
         data->attackShape = { -100,-100,-100,-100 };
 }
@@ -97,7 +98,7 @@ void Enemy_Grunt::Render(HDC hdc, bool world)
 
     if (world)
     {
-        if ((dir == EnemyDir::Left))
+        if ((data->dir == EnemyDir::Left))
         {
             if (data->isAttack)
             {
@@ -120,7 +121,7 @@ void Enemy_Grunt::Render(HDC hdc, bool world)
     {
         if (data->localPos.x > WINSIZE_X || data->localPos.y > WINSIZE_Y)
             return;
-        if (dir == EnemyDir::Left)
+        if (data->dir == EnemyDir::Left)
         {
             if (state == EnemyState::hurt)
                 data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
@@ -160,16 +161,16 @@ void Enemy_Grunt::Pattern()
         if (data->attackAngle < DegToRad(90) && data->attackAngle > DegToRad(-90))
         {
             data->isAttack = true;
-            dir = EnemyDir::Right;
-            Attack(dir);
+            data->dir = EnemyDir::Right;
+            Attack(data->dir);
             return;
         }
         else if (data->attackAngle >= DegToRad(90) && data->attackAngle <= DegToRad(180) ||
             data->attackAngle <= DegToRad(-90) && data->attackAngle >= DegToRad(-180))
         {
             data->isAttack = true;
-            dir = EnemyDir::Left;
-            Attack(dir);
+            data->dir = EnemyDir::Left;
+            Attack(data->dir);
             return;
         }
     }
@@ -229,7 +230,6 @@ void Enemy_Grunt::Attack(EnemyDir dir)
             data->attackShape.top = data->worldPos.y - 80 / 2;
             data->attackShape.right = data->worldPos.x + 40 + (40 / 2);
             data->attackShape.bottom = data->worldPos.y + 80 / 2;
-
         }
         else 
         {
@@ -279,13 +279,13 @@ void Enemy_Grunt::Run()
                 else
                 {
                     data->astar->ParentPopBack(data->Index);
+                    if (data->astar->GetParentList(data->Index)->size() > 0)
+                        data->astar->SetBackTile(data->astar->GetParentList(data->Index)->back());
                     if (data->astar->GetParentList(data->Index)->size() > 1)
                     {
-                        if (data->astar->GetParentList(data->Index)->size() > 0)
-                            data->astar->SetBackTile(data->astar->GetParentList(data->Index)->back());
-                        //data->astar->ParentPopBack(data->Index);
+                     
+                        //data->astar->SetBackTile(data->astar->GetParentList(data->Index)->back());
                     }
-                    
                 }
             }
             float centerX = data->astar->GetBackTile()->GetCenter().x;
@@ -295,33 +295,31 @@ void Enemy_Grunt::Run()
 
             if (centerX >= currPos.x && centerY >= currPos.y)//오른쪽 아래
             {
-                data->worldPos.x += x * 1 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y += y * 1 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.x += x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y += y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
             }
 
             else if (centerX > currPos.x && centerY < currPos.y)//왼쪽 아래
             {
-                data->worldPos.x += x * 1 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y -= y * 1 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.x += x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y -= y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
             }
             else if (centerX <= currPos.x && centerY >= currPos.y)//왼 위
             {
-                data->worldPos.x -= x * 1 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y += y * 1 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.x -= x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y += y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
             }
             else if (centerX < currPos.x && centerY < currPos.y) // rigt up
             {
-                data->worldPos.x -= x * 1 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y -= y * 1 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.x -= x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y -= y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
             }
 
             if (centerX > currPos.x)
-                dir = EnemyDir::Right;
+                data->dir = EnemyDir::Right;
             else
-                dir = EnemyDir::Left;
+                data->dir = EnemyDir::Left;
         }
-
-
     }
     state = EnemyState::run;
     Animation(state);
@@ -330,16 +328,16 @@ void Enemy_Grunt::Run()
 void Enemy_Grunt::Walk()
 {
     if (data->leftWall)
-        dir = EnemyDir::Right;
+        data->dir = EnemyDir::Right;
     else if (data->rightWall)
-        dir = EnemyDir::Left;
+        data->dir = EnemyDir::Left;
 
     if (data->isSamPle)
         data->moveSpeed = 0;
     else
         data->moveSpeed = 100;
 
-    if (dir == EnemyDir::Right)
+    if (data->dir == EnemyDir::Right)
         data->worldPos.x += data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
     else
         data->worldPos.x -= data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
@@ -417,17 +415,13 @@ void Enemy_Grunt::Animation(EnemyState ani)
 }
 void Enemy_Grunt::PixelCollisionBottom()
 {
-    if (data->isTurn) 
-    {
-        data->fallForce = 0;
-        return;
-    }
-        
+    //if (data->isTurn)
+    //    return;
     COLORREF color;
     int R, G, B;
-    float playerHeight = 28;
+    float playerHeight = 30;
     float currPosBottom = data->worldPos.y + playerHeight;
-    for (int i = currPosBottom-1 ; i < currPosBottom; i++)
+    for (int i = currPosBottom; i < currPosBottom + 1; i++)
     {
         color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
             data->worldPos.x, i);
@@ -438,31 +432,29 @@ void Enemy_Grunt::PixelCollisionBottom()
 
         if (!(R == 255 && G == 0 && B == 255))
         {
+            data->velocity = 60;
+            data->fallForce = 0;
             if (data->isAlive && (R == 0 && G == 0 && B == 0))
             {
                 data->isTurn = true;
                 data->isPhysic = false;
                 break;
             }
-            data->fallForce = 0;
             data->isTurn = false;
             data->isPhysic = true;
             if (!data->isAlive)
             {
-                data->velocity = 80;
                 data->worldPos.y = i - playerHeight;
                 break;
             }
-            //if (data->isTurn)
-            //    break;
-            data->worldPos.y = i - playerHeight;
 
+            data->worldPos.y = i - playerHeight - 1;
             break;
         }
         else if ((R == 255 && G == 0 && B == 255))
         {
-            //data->isTurn = false;
-            //data->isPhysic = true;
+           data->isTurn = false;
+           data->isPhysic = true;
         }
     }
 }

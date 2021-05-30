@@ -69,6 +69,7 @@ HRESULT BattleScene::Init()
 
 	MapLoad(1);
 
+
 	for (int j = 0; j < TILE_Y; j++)
 	{
 		for (int k = 0; k < TILE_X; k++)
@@ -77,7 +78,7 @@ HRESULT BattleScene::Init()
 				astarManager->SetWall(j, k);
 		}
 	}
-
+	
 	bgPos.x = 0;
 	bgPos.y = 0;
 
@@ -96,6 +97,9 @@ void BattleScene::Release()
 
 void BattleScene::Update()
 {
+
+
+
 	if(missileManager)
 		missileManager->Update();
 	if (astarManager)
@@ -124,8 +128,8 @@ void BattleScene::Render(HDC hdc)
 	if (itemManager)
 		itemManager->Render(hdc);
 
-	//if (astarManager)
-	//	astarManager->Render(hdc);
+	if (astarManager)
+		astarManager->Render(hdc);
 
 	if (missileManager)
 		missileManager->Render(hdc);
@@ -198,14 +202,15 @@ void BattleScene::MapLoad(int stageNum)
 	if (ReadFile(hFile2, tileInfo, sizeof(TILE_INFO) * TILE_X * TILE_Y,
 		&readBytes[1], NULL))
 	{
-		for (int i = 0; i < TILE_Y; i++)
-		{
-			for (int j = 0; j < TILE_X; j++)
-			{
-				if (tileInfo[i * TILE_X + j].color)
-					tileInfo[i * TILE_X + j].hBrush = CreateSolidBrush(tileInfo[i * TILE_X + j].color);
-			}
-		}
+		
+		//for (int i = 0; i < TILE_Y; i++)
+		//{
+		//	for (int j = 0; j < TILE_X; j++)
+		//	{
+		//		if (tileInfo[i * TILE_X + j].color)
+		//			tileInfo[i * TILE_X + j].hBrush = CreateSolidBrush(tileInfo[i * TILE_X + j].color);
+		//	}
+		//}
 	}
 	else
 	{
