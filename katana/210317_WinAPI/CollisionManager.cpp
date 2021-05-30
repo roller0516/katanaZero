@@ -74,8 +74,9 @@ void CollisionManager::EnemyItem(Player* player,EnemyManager* enemy, ItemManager
 	if (IntersectRect(&rcTemp, &rcitem, &rcEnemy)&& item->GetItemList()[player->GetItemIndex()]->Getfired()==true)
 	{
 		enemy->GetMonsterList()[index]->GetData()->isAlive = false;
-		enemy->GetMonsterList()[index]->GetData()->shape = {-100,-100,-100,-100};
+		
 		item->GetItemList()[player->GetItemIndex()]->SetAlive(false);
+		//item->GetItemList()[player->GetItemIndex()]->SetRect();
 	}
 }
 

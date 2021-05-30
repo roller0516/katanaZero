@@ -2,22 +2,24 @@
 #include "GameNode.h"
 
 // 기존 MainGame 클래스의 내용을 이동
+class MissileManager;
 class AstarManager;
 class ItemManager;
+class EnemyManager;
 class EnemyManager;
 class CollisionManager;
 class Player;
 class Tank;
-class EnemyManager;
 class Image;
 class Enemy;
 class BattleScene : public GameNode
 {
 private:
-	EnemyManager* enemyManager;
 	CollisionManager* collisionManager;
-	ItemManager* itemManager;
+	MissileManager* missileManager;
 	AstarManager* astarManager;
+	EnemyManager* enemyManager;
+	ItemManager* itemManager;
 	Enemy* enemy;
 	Player* player;
 	Image* BackGround;

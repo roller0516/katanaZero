@@ -16,8 +16,8 @@ HRESULT Enemy_Bold::Init(int posX, int posY)
     armRImage = ImageManager::GetSingleton()->AddImage("Bold_arm_r", "Image/Katana/enemy/enemy_bold_rightarm_R.bmp", 30, 18, 1, 1,true, RGB(255, 0, 255));
     GunImage = ImageManager::GetSingleton()->AddImage("Bold_gun", "Image/Katana/enemy/enemy_bold_gun.bmp", 54, 12, 1, 1,true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("Bold_attack", "Image/Katana/enemy/enemy_bold_aim_R.bmp", 42, 70, 1, 1, true, RGB(255, 0, 255));
-    missileManager = new MissileManager();
-    missileManager->Init(this);
+    //missileManager = new MissileManager();
+    //missileManager->Init(this);
     //data->astar = new AstarManager();
     //data->astar->Init();
     //data->astar->SetOnwer(this);
@@ -44,10 +44,10 @@ void Enemy_Bold::Release()
 
 void Enemy_Bold::Update()
 {
-    missileManager->Update();
+   // missileManager->Update();
 
     if(data->astar)
-    data->astar->Update();
+        data->astar->Update();
 
     data->localPos.x = data->worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
     data->localPos.y = data->worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
@@ -63,11 +63,14 @@ void Enemy_Bold::Update()
         data->attackAngle = GetAngle(this->data->worldPos, data->target->GetWorldpos());
     if (data->isAlive)
     {
-        data->shape.left = data->localPos.x - data->size / 2;
-        data->shape.top = data->localPos.y - data->size / 2;
-        data->shape.right = data->localPos.x + data->size / 2;
-        data->shape.bottom = data->localPos.y + data->size / 2;
+        data->shape.left = data->worldPos.x - data->size / 2;
+        data->shape.top = data->worldPos.y - data->size / 2;
+        data->shape.right = data->worldPos.x + data->size / 2;
+        data->shape.bottom = data->worldPos.y + data->size / 2;
     }
+    if (data->isSamPle == false && data->target == nullptr)
+        MaptoolAstar();
+
     if (data->isSamPle == false)
     {
         Pattern();
@@ -118,9 +121,9 @@ void Enemy_Bold::Render(HDC hdc, bool world)
         }
         else 
         {
-            //if (data->localPos.x > WINSIZE_X || data->localPos.y >WINSIZE_Y)
-            //    return;
-            missileManager->Render(hdc);
+            if (data->localPos.x > WINSIZE_X || data->localPos.y >WINSIZE_Y)
+                return;
+            //missileManager->Render(hdc);
             if (dir == EnemyDir::Left) 
             {
                 if (data->isAttack)
@@ -189,15 +192,22 @@ void Enemy_Bold::Pattern()
     }
     data->isAttack = false;
     //찾았을때 무조건 내위치로 따라옴
-    if (data->isFind) 
+    if (data->isFind)
     {
         data->delay = 0;
         Run();
         return;
     }
-
     if (data->findRange > distance)
-        data->isFind = true;
+    {
+        if (data->findCooltime > 1.0f)
+        {
+            data->findCooltime = 0;
+            data->isFind = true;
+            return;
+        }
+        data->isFind = false;
+    }
      //거리로 찾을때
     Idle();
 
@@ -217,6 +227,7 @@ void Enemy_Bold::Pattern()
 
 void Enemy_Bold::Attack(EnemyDir dir)
 {
+   data->isTurn = false;
    data->astar->Clear();
    targeton = 0;
    data->attackSpeed += TimerManager::GetSingleton()->GetElapsedTime();
@@ -224,9 +235,9 @@ void Enemy_Bold::Attack(EnemyDir dir)
    {
        data->attackSpeed = 0;
        if(dir == EnemyDir::Left)
-           missileManager->Fire(data->attackAngle,data->worldPos.x - 5, data->worldPos.y -10);
+           data->missileManager->Fire(data->attackAngle,data->worldPos.x - 5, data->worldPos.y -10);
        else
-           missileManager->Fire(data->attackAngle, data->worldPos.x + 5, data->worldPos.y - 10);
+           data->missileManager->Fire(data->attackAngle, data->worldPos.x + 5, data->worldPos.y - 10);
    }
    state = EnemyState::attack;
    Animation(state);
@@ -238,22 +249,18 @@ void Enemy_Bold::Run()
         data->moveSpeed = 0;
     else
         data->moveSpeed = 150;
- 
-    for (int i = 0; i < 4; i++)
-    {
-        if (destAngle < 0 && data->astar->GetTileIndex().x == 44 + i && data->astar->GetTileIndex().y == 76)
-        {
-            data->angle = 0;
-        }
-    }
+
     if (data->astar->GetParentList(data->Index))
     {
         if (data->astar->GetBackTile())
         {
-            
+            int bx = data->astar->GetBackTile()->GetIdX();
+            int by = data->astar->GetBackTile()->GetIdY();
 
-            if (data->astar->GetBackTile()->GetIdX() == data->astar->GetTileIndex().x &&
-                data->astar->GetBackTile()->GetIdY() == data->astar->GetTileIndex().y)
+            int cx = data->astar->GetTileIndex().x;
+            int cy = data->astar->GetTileIndex().y;
+
+            if (bx == cx && by == cy)
             {
                 int x = data->astar->GetTileIndex().x;
                 int y = data->astar->GetTileIndex().y;
@@ -263,6 +270,7 @@ void Enemy_Bold::Run()
 
                 if (data->astar->GetParentList(data->Index)->size() == 0)
                 {
+                    data->isTurn = false;
                     data->astar->SetBackTile(data->astar->GetDestTile());
                     data->astar->Clear();
                     targeton = 0;
@@ -270,12 +278,17 @@ void Enemy_Bold::Run()
                 else
                 {
                     data->astar->ParentPopBack(data->Index);
-                    if (data->astar->GetParentList(data->Index)->size() > 0)
+                   
+                    if (data->astar->GetParentList(data->Index)->size() > 1)
                     {
-                        data->astar->SetBackTile(data->astar->GetParentList(data->Index)->back());
+                        data->astar->ParentPopBack(data->Index);
+                        //data->astar->SetBackTile(data->astar->GetParentList(data->Index)->back());
                     }
+                    if(data->astar->GetParentList(data->Index)->size()>0)
+                        data->astar->SetBackTile(data->astar->GetParentList(data->Index)->back());
                 }
             }
+
             float centerX = data->astar->GetBackTile()->GetCenter().x;
             float centerY = data->astar->GetBackTile()->GetCenter().y + TILESIZE / 2;
             float x = abs(centerX - currPos.x);
@@ -283,24 +296,24 @@ void Enemy_Bold::Run()
 
             if (centerX >= currPos.x && centerY >= currPos.y)
             {
-                 data->worldPos.x += x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-                 data->worldPos.y += y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.x += x * 5 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y += y * 5 * TimerManager::GetSingleton()->GetElapsedTime();
             }
 
-            else if (centerX > currPos.x && centerY < currPos.y)
+            else if (centerX >= currPos.x && centerY <= currPos.y)
             {
-                data->worldPos.x += x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y -= y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.x += x * 5 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y -= y * 5 * TimerManager::GetSingleton()->GetElapsedTime();
             }
-            else if (centerX < currPos.x && centerY > currPos.y)
+            else if (centerX <= currPos.x && centerY >= currPos.y)
             {
-                data->worldPos.x -= x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y += y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.x -= x * 5 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y += y * 5 * TimerManager::GetSingleton()->GetElapsedTime();
             }
             else if (centerX <= currPos.x && centerY <= currPos.y) // 타일 센터 x 보다 현재 좌표가 
             {
-                data->worldPos.x -= x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y -= y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.x -= x * 5 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->worldPos.y -= y * 5 * TimerManager::GetSingleton()->GetElapsedTime();
             }
 
             if (centerX > currPos.x)
@@ -308,8 +321,6 @@ void Enemy_Bold::Run()
             else 
                 dir = EnemyDir::Left;
         }
-
-        
     }
     
     state = EnemyState::run;
@@ -354,6 +365,7 @@ void Enemy_Bold::Die()
 {
     if (data->isAlive == false) 
     {
+        data->shape = { -100,-100,-100,-100 };
         data->isFind = false;
         data->isAttack = false;
         state = EnemyState::hurt;
@@ -405,14 +417,11 @@ void Enemy_Bold::Animation(EnemyState ani)
 }
 void Enemy_Bold::PixelCollisionBottom()
 { 
-    if (data->isTurn)
-        return;
     COLORREF color;
     int R, G, B;
     float playerHeight = 34;
-
     float currPosBottom = data->worldPos.y + playerHeight;
-    for (int i = currPosBottom-10; i < currPosBottom; i++)
+    for (int i = currPosBottom; i < currPosBottom+5; i++)
     {
         color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
             data->worldPos.x, i);
@@ -431,18 +440,21 @@ void Enemy_Bold::PixelCollisionBottom()
                 data->isPhysic = false;
                 break;
             }
+            data->isTurn = false;
+            data->isPhysic = true;
             if (!data->isAlive)
             {
-                //data->isPhysic = true;
                 data->worldPos.y = i - playerHeight;
                 break;
             }
-            data->worldPos.y = i - playerHeight;
+            
+            data->worldPos.y = i - playerHeight-2;
             break;
         }
         else if ((R == 255 && G == 0 && B == 255))
         {
-            
+            data->isTurn = false;
+            data->isPhysic = true;
         }
     }
 }
@@ -508,4 +520,9 @@ void Enemy_Bold::PixelCollisionRight()
         else if ((R == 255 && G == 0 && B == 255))
             data->rightWall = false;
     }
+}
+
+void Enemy_Bold::MaptoolAstar()
+{
+    Run();
 }

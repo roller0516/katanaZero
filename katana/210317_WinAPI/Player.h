@@ -48,6 +48,7 @@ private:
 	int itemCount;
 	int size;
 	int tick;
+
 	float angle;
 	float moveSpeed;	// 초당 이동거리
 	float currFrame;
@@ -107,6 +108,7 @@ public:
 	void PixelCollisionRight();
 	void PixelCollisionTop();
 
+	inline bool GetisGround() { return isGround; }
 	inline Direction GetDir() { return this->dir; }
 	inline int GetItemIndex() { return this->itemIndex; }
 	inline void SetitemManager(ItemManager* itemManager) { this->itemManager = itemManager; }

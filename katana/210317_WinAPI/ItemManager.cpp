@@ -44,15 +44,18 @@ void Item::Release()
 
 void Item::Update()
 {
-	if (isFire) 
+	if (isAlive) 
 	{
-		ChangeImage(false);
-		alpha = 0;
-		arrowOn = false;
-		getItem = false;
-		isAlpha = false;
-		fireAngle += 15*TimerManager::GetSingleton()->GetElapsedTime();
-		Fire();
+		if (isFire)
+		{
+			ChangeImage(false);
+			alpha = 0;
+			arrowOn = false;
+			getItem = false;
+			isAlpha = false;
+			fireAngle += 15 * TimerManager::GetSingleton()->GetElapsedTime();
+			Fire();
+		}
 	}
 
 	if (isAlive == false)

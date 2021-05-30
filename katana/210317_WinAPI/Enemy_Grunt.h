@@ -1,39 +1,60 @@
 #pragma once
 #include "Enemy.h"
+
 class AstarManager;
-class Player;
+class MissileManager;
 class Image;
+class Player;
 class Enemy_Grunt :
-    public Enemy
+	public Enemy
 {
 private:
-	AstarManager* astarManager;
-	Image* image;
-	Player* target;
+	MissileManager* missileManager;
+
+	FPOINT currPos;
+	Image* armLImage;
+	Image* armRImage;
+	Image* GunImage;
 	EnemyData* data;
+	EnemyDir dir;
+	EnemyState state;
+
+	int dieHeight;
+	int targeton;
+	float destAngle;
 public:
 	virtual HRESULT Init(int posX = 0, int posY = 0);
 	virtual void Release();
 	virtual void Update();
 	virtual void Render(HDC hdc, bool world);
 	virtual Enemy* Clone();
-	virtual EnemyData* GetData() { return this->data; }
-	virtual void Pattern();
-	virtual MissileManager* GetMissileManager();
-	/*virtual void SetTarget(Player* player) { this->target = player; }
-	virtual FPOINT GetPos() { return this->data->worldPos; }
-	virtual AstarManager* GetastarManager() { return this->astarManager; }
-	virtual void SetMoveSpeed(float moveSpeed) { this->data->moveSpeed = moveSpeed; }
 	virtual void SetSample(bool isSample) { this->data->isSamPle = isSample; }
-	virtual RECT GetRect() { return data->shape; }*/
+	virtual void Pattern();
+	virtual EnemyData* GetData() { return this->data; }
+	virtual MissileManager* GetMissileManager() { return this->missileManager; }
+
 	virtual ~Enemy_Grunt() {};
 
-	void Move();
-	void HorizonMove();
+	void Attack(EnemyDir dir);
+	void Run();
+	void Walk();
+	void Hurt();
+	void Idle();
+	void Die();
+	void KnockBack();
 
+	void Animation(EnemyState ani);
+	void PixelCollisionBottom();
+	void PixelCollisionLeft();
+	void PixelCollisionRight();
+	void SetIndex(int index) { this->data->Index; }
+
+	void MaptoolAstar();
 	// get, set
+
+	inline int GetSize() { return this->data->size; }
+	inline bool GetIsAlive() { return this->data->isAlive; }
 	inline void SetPos(FPOINT pos) { this->data->worldPos = pos; }
 	inline void SetIsAlive(bool isAlive) { this->data->isAlive = isAlive; }
-	inline bool GetIsAlive() { return this->data->isAlive; }
 };
 

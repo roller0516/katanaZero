@@ -21,10 +21,10 @@ private:
 	int fireIndex;
 	int fireStep;
 	float destAngle;
-	Enemy* owner;
+	//Enemy* owner;
 	MissileType missile;
 public:
-	HRESULT Init(Enemy* owner);
+	HRESULT Init();//Enemy* owner);
 	void Release();		
 	void Update();		
 	void Render(HDC hdc);

@@ -33,7 +33,8 @@ HRESULT AstarTile::Init(int idX, int idY)
 
 	parentTile = nullptr;
 
-	color = RGB(100, 100, 100);
+	if( type == AstarTileType::End)
+		color = RGB(100, 100, 100);
 
 	hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
 
@@ -52,15 +53,25 @@ void AstarTile::Update()
 
 void AstarTile::Render(HDC hdc)
 {
-	if (parentTile) 
-	{
-		
-	}
+	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+	Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
+		rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
+	SelectObject(hdc, hOldBrush);
 
-	//hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
-	//Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
+	//if (parentTile) 
+	//{
+	//	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+	//	Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
+	//		rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
+	//	SelectObject(hdc, hOldBrush);
+	//}
+	//if (type == AstarTileType::End)
+	//{
+	//	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+	//	Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
 	//	rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
-	//SelectObject(hdc, hOldBrush);
+	//	SelectObject(hdc, hOldBrush);
+	//}
 }
 
 void AstarTile::Clear()
@@ -82,15 +93,17 @@ void AstarTile::Clear()
 	costFromStart = 0.0f;
 	costToGoal = 0.0f;
 	totalCost = 0.0f;
+
 	color = RGB(100, 100, 100);
 
 	hBrush = (HBRUSH)GetStockObject(NULL_BRUSH); 
+
 	parentTile = nullptr;
 }
 
 void AstarTile::SetColor(COLORREF color,bool nullcolor)
 {
- 	//this->color = color;
+   	//this->color = color;
 	//DeleteObject(hBrush);
 	//this->hBrush = CreateSolidBrush(color);
 }
@@ -120,36 +133,58 @@ void AstarManager::Release()
 
 void AstarManager::Update()
 {
-	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_SPACE))
+	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_SPACE)) 
 	{
 		Clear();
+
 		if (isFind && startTile)
 		{
 			isFind = false;
 			currTile = startTile;
 		}
- 		FindPath();
+
+		FindPath();
 	}
+
+
+	if (owner->GetData()->isFind) 
+	{
+		if (startTile != destTile)
+		{
+			Clear();
+
+			if (startTile)
+			{
+				currTile = startTile;
+			}
+	
+			FindPath();
+		}
+	}
+
+
+
 	if (owner)
 	{ 
 		if (RectInRect(owner->GetData()->shape, rcMain))
 		{
-			int posX = owner->GetData()->worldPos.x - 20;
+			int posX = owner->GetData()->worldPos.x - 5;
 			int posY = owner->GetData()->worldPos.y + 22;
 			onwerTileIndex.x = posX / TILESIZE;
 			onwerTileIndex.y = posY / TILESIZE;
 			int xFrame = onwerTileIndex.x;
 			int yFrame = onwerTileIndex.y;
+
 			startTile = &Map[yFrame][xFrame];
-			startTile->SetColor(RGB(255, 255, 255),false);
+			//startTile->SetColor(RGB(255, 255, 255), false);
 		}
 	}
 	if (target)
 	{ 
-		if (RectInRect(target->GetRect(), rcMain))
+		if (RectInRect(target->GetRect(), rcMain) )
 		{
 			int posX = target->GetWorldpos().x;
-			int posY = target->GetWorldpos().y + 30;
+			int posY = target->GetWorldpos().y + 20;
 			targetTileIndex.x = posX / TILESIZE;
 			targetTileIndex.y = posY / TILESIZE;
 			int xFrame = targetTileIndex.x;
@@ -161,12 +196,7 @@ void AstarManager::Update()
 			SetDestTile(xFrame, yFrame);
 		}
 	}
-	for (int i = 0; i < parentList.size(); i++) 
-	{
-		if (parentList[i].size() > 0)
-			backTile = parentList[i].back();
-	}
-}
+}	
 
 void AstarManager::Render(HDC hdc)
 {
@@ -189,7 +219,6 @@ void AstarManager::Move()
 }
 void AstarManager::FindPath()
 {
-	
 	if (currTile)
 	{
 		// 주위에 있는 이동가능한 타일들을 F값 계산 후보에 넣는다.
@@ -199,7 +228,7 @@ void AstarManager::FindPath()
 
 		// 후보들 중 F값이 가장 작은 타일을 다음 currTile 선정
 		currTile = GetMinTotalCostTileWithHeap();
-		//currTile->SetColor(RGB(130, 200, 130),false);
+   		//currTile->SetColor(RGB(130, 200, 130),false);
 
 		// 도착여부 판단
 		if (currTile == destTile)
@@ -313,7 +342,7 @@ AstarTile* AstarManager::GetMinTotalCostTileWithHeap()
 	heap.pop_back();
 
 	// 자식과 비교하면서 정렬한다
-	if(heap.size()>0)
+	//if(heap.size()>0)
  	UpdateLower(heap[0]);
 
 	return tile;
@@ -361,6 +390,7 @@ void AstarManager::Swap(AstarTile* tile1, AstarTile* tile2)
 void AstarManager::InsertOpenlistWithHeap(AstarTile* tile)
 {
 	tile->SetHeapIndex(heap.size());
+
 	heap.push_back(tile);
 
 	// 부모 타일과 비교하면서 갱신
@@ -426,10 +456,7 @@ int AstarManager::CalcHeuristics(int x, int y)
 
 void AstarManager::ParentPopBack(int index)
 {
-	if (GetParentList(index)) 
-	{
-		GetParentList(index)->pop_back();
-	}
+	parentList[index].pop_back();
 }
 
 void AstarManager::Clear()
@@ -454,6 +481,15 @@ void AstarManager::Clear()
 	isFind = true;
 }
 
+void AstarManager::SetDestTile(int x, int y)
+{
+	//if(!target->GetisGround()) return;
+	 destTile = &(Map[y][x]); 
+	 destTile->SetColor(RGB(0, 0, 0), false); 
+	 destTile->SetType(AstarTileType::End);
+	 //count == 0;
+}
+
 void AstarManager::MarkTileToType(int index)
 {
 	AstarTile* parentTile = destTile;
@@ -463,6 +499,9 @@ void AstarManager::MarkTileToType(int index)
 		parentTile = parentTile->GetParentTile();
 		parentList[index].push_back(parentTile);
 	}
+	
+	backTile = parentList[index].back();
+	//ParentPopBack(index);
 	//parentList.insert(make_pair(index, *GetParentList(index)));
 }
 

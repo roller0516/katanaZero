@@ -1,7 +1,7 @@
 #pragma once
 #include "GameNode.h"
 
-enum class AstarTileType { Start, End, Wall, None };
+enum class AstarTileType { Start, End, Wall, None ,Parent};
 
 class AstarTile : public GameNode
 {
@@ -82,7 +82,7 @@ class AstarManager : public GameNode
 	vector<AstarTile*> openList;
 	vector<AstarTile*> closeList;
 	vector<AstarTile*> heap;
-	map<int,vector<AstarTile*>> parentList;
+	map<int, vector<AstarTile*>> parentList;
 
 	Player* target;
 	Enemy* owner;
@@ -94,6 +94,7 @@ class AstarManager : public GameNode
 	FPOINT targetTileIndex;
 	int ptSelected[3];
 	int size;
+	int count;
 	bool move;
 	bool isFind;
 	bool start;
@@ -122,18 +123,20 @@ public:
 	void DeleteTileInOpenlist(AstarTile* tile);
 	void MarkTileToType(int index);
 	vector<AstarTile*>* GetParentList(int index);
-	
+
 	int CalcEdgeCost(int x, int y);
 	int CalcHeuristics(int x, int y);
 	void ParentPopBack(int index);
 	void Clear();
+	
+	void SetDestTile(int x, int y);
 
 	inline AstarTile* GetDestTile() { return this->destTile; }
 	inline void SetBackTile(AstarTile* astar) { this->backTile = astar; }
 	inline FPOINT GetTileIndex() { return this->onwerTileIndex; }
+	inline void SetGetTileIndex(int x, int y) { onwerTileIndex.x = x; onwerTileIndex.y; }
 	inline AstarTile* GetBackTile() {return this->backTile;}
 	inline RECT GetMainRect() { return this->rcMain; }
-	inline void SetDestTile(int x, int y) { destTile = &(Map[y][x]); destTile->SetColor(RGB(0, 0, 0), false);}
 	inline void SetStartTile(int x, int y) { startTile = &(Map[y][x]); }
 	inline void SetOnwer(Enemy* owner) { this->owner = owner; }
 	inline void SetTarget(Player* player) { this->target = player; }

@@ -39,16 +39,17 @@ public:
     void ChangeImage(bool change);
     Item* Clone();
 
-   inline void SetAngle(float angle) { this->angle = angle; }
-   inline void SetOwner(Player* owner) { this->owner = owner; }
-   inline void SetAlive(bool alive) { this->isAlive = alive; }
-   inline void SetisFire(bool fire) { this->isFire = fire; }
-   inline void SetGetItem(bool getItem) { this->getItem = getItem; }
-   inline bool GetItem() { return this->getItem; }
-   inline bool Getfired() { return this->isFire; }
-   inline void SetArrowOn(bool on) { this->arrowOn = on; }
-   inline RECT GetRect() { return this->hitShape; }
-   inline FPOINT GetWorldPos() { return this->worldPos; }
+    inline void SetRect() { this->hitShape = { -100,-100,-100,-100 }; }
+    inline void SetAngle(float angle) { this->angle = angle; }
+    inline void SetOwner(Player* owner) { this->owner = owner; }
+    inline void SetAlive(bool alive) { this->isAlive = alive; }
+    inline void SetisFire(bool fire) { this->isFire = fire; }
+    inline void SetGetItem(bool getItem) { this->getItem = getItem; }
+    inline bool GetItem() { return this->getItem; }
+    inline bool Getfired() { return this->isFire; }
+    inline void SetArrowOn(bool on) { this->arrowOn = on; }
+    inline RECT GetRect() { return this->hitShape; }
+    inline FPOINT GetWorldPos() { return this->worldPos; }
 
 };
 

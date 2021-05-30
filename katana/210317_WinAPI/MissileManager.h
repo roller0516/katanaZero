@@ -9,10 +9,10 @@ class MissileManager : public GameNode
 private:
 	vector<Missile*> vMissiles;
 	vector<Missile*>::iterator itMissiles;
-	Enemy* owner;
+	//Enemy* owner;
 
 public:
-	HRESULT Init(Enemy* owner);
+	HRESULT Init();
 	void Release();
 	void Update();
 	void Render(HDC hdc);

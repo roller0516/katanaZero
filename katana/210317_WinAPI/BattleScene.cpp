@@ -1,12 +1,10 @@
 #include "BattleScene.h"
-#include "Enemy.h"
-#include "EnemyManager.h"
 #include "CommonFunction.h"
 #include "Missile.h"
+#include "MissileManager.h"
 #include "Image.h"
 #include "Player.h"
 #include "Camera.h"
-#include "CollisionManager.h"
 #include "EnemyManager.h"
 #include "Enemy_Bold.h"
 #include "Enemy_pomp.h"
@@ -48,17 +46,28 @@ HRESULT BattleScene::Init()
 	enemyManager->RegisterClone("CopEnemy", new Enemy_Cop);
 
 	collisionManager = new CollisionManager;
-	enemyManager->AddEnemy("BoldEnemy",1);
+	enemyManager->AddEnemy("GruntEnemy",1);
 	enemyManager->Init(player,500, 500, 0);
 
-	MapLoad(1);
+	//enemyManager->AddEnemy("CopEnemy", 5);
+	//enemyManager->Init(player, 300, 500, 1);
+	//enemyManager->Init(player, 100, 500, 2);
+	//enemyManager->Init(player, 700, 500, 3);
+	//enemyManager->Init(player, 450, 500, 4);
+	//enemyManager->Init(player, 600, 500, 5);
+
+	missileManager = new MissileManager;
+	missileManager->Init();
 
 	for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
 	{
+		enemyManager->GetMonsterList()[i]->GetData()->Index = i;
 		enemyManager->GetMonsterList()[i]->GetData()->astar = astarManager;
 		enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
-		astarManager->AddAtsar(i);
+		enemyManager->GetMonsterList()[i]->GetData()->missileManager = missileManager;
 	}
+
+	MapLoad(1);
 
 	for (int j = 0; j < TILE_Y; j++)
 	{
@@ -73,7 +82,7 @@ HRESULT BattleScene::Init()
 	bgPos.y = 0;
 
 	ShowCursor(false);
-	
+
 	return S_OK;
 }
 
@@ -87,22 +96,20 @@ void BattleScene::Release()
 
 void BattleScene::Update()
 {
+	if(missileManager)
+		missileManager->Update();
 	if (astarManager)
 		astarManager->Update();
 	if (enemyManager)
 		enemyManager->Update();
-
 	if (itemManager)
 		itemManager->Update();
-
 	if (player)
-	{
 		player->Update();
-	}
-	
+
 	for (int i = 0; i < enemyManager->GetMonsterList().size(); i++) 
 	{
-		collisionManager->MissilePlayerEnemy(enemyManager->GetMonsterList()[i]->GetMissileManager(),player, enemyManager,i);
+		collisionManager->MissilePlayerEnemy(missileManager,player, enemyManager,i);
 		collisionManager->EnemyPlayer(enemyManager, player, i);
 		collisionManager->EnemyItem(player, enemyManager, itemManager, i);
 	}
@@ -117,8 +124,11 @@ void BattleScene::Render(HDC hdc)
 	if (itemManager)
 		itemManager->Render(hdc);
 
-	if (astarManager)
-		astarManager->Render(hdc);
+	//if (astarManager)
+	//	astarManager->Render(hdc);
+
+	if (missileManager)
+		missileManager->Render(hdc);
 
 	if (enemyManager)
 		enemyManager->Render(hdc);
@@ -168,22 +178,22 @@ void BattleScene::MapLoad(int stageNum)
 	HANDLE hFile2 = CreateFile(fileName1.c_str(), GENERIC_READ, 0,
 		0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	/*if (ReadFile(hFile, enemySize, sizeof(ENMY_INFO) * 100,
-		&readBytes[0], NULL))
-	{
-		for (int i = 0; i < 100; i++)
-		{
-			string str(enemySize[i].Name);
-			if (enemySize[i].Name == "")
-				break;
-			enemyManager->AddEnemy(str, 1);
-			enemyManager->Init(nullptr, enemySize[i].x, enemySize[i].y, enemySize[i].index);
-		}
-	}
-	else
-	{
-		MessageBox(g_hWnd, "저장파일 로드 실패", "실패", MB_OK);
-	}*/
+	//if (ReadFile(hFile, enemySize, sizeof(ENMY_INFO) * 100,
+	//	&readBytes[0], NULL))
+	//{
+	//	for (int i = 0; i < 100; i++)
+	//	{
+	//		string str(enemySize[i].Name);
+	//		if (enemySize[i].Name == "")
+	//			break;
+	//		enemyManager->AddEnemy(str, 1);
+	//		enemyManager->Init(nullptr, enemySize[i].x, enemySize[i].y, enemySize[i].index);
+	//	}
+	//}
+	//else
+	//{
+	//	MessageBox(g_hWnd, "저장파일 로드 실패", "실패", MB_OK);
+	//}
 
 	if (ReadFile(hFile2, tileInfo, sizeof(TILE_INFO) * TILE_X * TILE_Y,
 		&readBytes[1], NULL))

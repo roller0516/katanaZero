@@ -52,10 +52,12 @@ void Enemy_pomp::Render(HDC hdc,bool world)
 Enemy* Enemy_pomp::Clone()
 {
     return new Enemy_pomp();
+
 }
 
 void Enemy_pomp::Pattern()
 {
+    data->shape = { -100,-100,-100,-100 };
 }
 
 MissileManager* Enemy_pomp::GetMissileManager()

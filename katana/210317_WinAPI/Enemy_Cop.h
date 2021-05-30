@@ -2,53 +2,59 @@
 #include "Enemy.h"
 
 class AstarManager;
+class MissileManager;
 class Image;
 class Player;
 class Enemy_Cop :
-    public Enemy
+	public Enemy
 {
 private:
-	AstarManager* astarManager;
-	FPOINT worldPos;
-	FPOINT localPos;
-	Image* image;
-	Player* target;
-	string name;
-	RECT shape;
+	MissileManager* missileManager;
+
+	FPOINT currPos;
+	Image* armLImage;
+	Image* armRImage;
+	Image* GunImage;
 	EnemyData* data;
-	float currFrameX;
-	float angle;
-	float moveSpeed;
+	EnemyDir dir;	
+	EnemyState state;
 
-	int maxFrame;
-	int updateCount;
-	int size;
-
-	bool isAlive;
-	bool isSamPle;
+	int dieHeight;
+	int targeton;
+	float destAngle;
 public:
 	virtual HRESULT Init(int posX = 0, int posY = 0);
 	virtual void Release();
 	virtual void Update();
 	virtual void Render(HDC hdc, bool world);
 	virtual Enemy* Clone();
+	virtual void SetSample(bool isSample) { this->data->isSamPle = isSample; }
 	virtual void Pattern();
 	virtual EnemyData* GetData() { return this->data; }
-	virtual MissileManager* GetMissileManager();
-	/*virtual void SetTarget(Player* player) { this->target = player; }
-	virtual void SetMoveSpeed(float moveSpeed) { this->moveSpeed = moveSpeed; }
-	virtual void SetSample(bool isSample) { this->isSamPle = isSample; }
-	virtual AstarManager* GetastarManager() { return this->astarManager; }
-	virtual FPOINT GetPos() { return this->worldPos; }
-	virtual RECT GetRect() { return this->data->shape; }*/
+	virtual MissileManager* GetMissileManager() { return this->missileManager; }
+
 	virtual ~Enemy_Cop() {};
 
-	void Move();
-	void HorizonMove();
+	void Attack(EnemyDir dir);
+	void Run();
+	void Walk();
+	void Hurt();
+	void Idle();
+	void Die();
+	void KnockBack();
 
+	void Animation(EnemyState ani);
+	void PixelCollisionBottom();
+	void PixelCollisionLeft();
+	void PixelCollisionRight();
+	void SetIndex(int index) { this->data->Index; }
+
+	void MaptoolAstar();
 	// get, set
-	inline void SetPos(FPOINT pos) { this->worldPos = pos; }
-	inline void SetIsAlive(bool isAlive) { this->isAlive = isAlive; }
-	inline bool GetIsAlive() { return this->isAlive; }
+
+	inline int GetSize() { return this->data->size; }
+	inline bool GetIsAlive() { return this->data->isAlive; }
+	inline void SetPos(FPOINT pos) { this->data->worldPos = pos; }
+	inline void SetIsAlive(bool isAlive) { this->data->isAlive = isAlive; }
 };
 

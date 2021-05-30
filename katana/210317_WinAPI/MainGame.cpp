@@ -50,7 +50,7 @@ void MainGame::Render()
 {
 	HDC hBackDC = backBuffer->GetMemDC();
 
-	SceneManager::GetSingleton()->Render(hBackDC);
+	SceneManager::GetSingleton()->Render(hBackDC); 
 
 	// ¿ŒªÁ
 	TextOut(hBackDC, 20, 20, "MainGame ∑ª¥ı ¡ﬂ", strlen("MainGame ∑ª¥ı ¡ﬂ"));

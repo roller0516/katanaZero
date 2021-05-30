@@ -1,16 +1,16 @@
 #include "MissileManager.h"
 #include "Missile.h"
 
-HRESULT MissileManager::Init(Enemy* owner)
+HRESULT MissileManager::Init()
 {
-    this->owner = owner;
+    //this->owner = owner;
 
     vMissiles.resize(10);
     vector<Missile*>::iterator it;
     for (it = vMissiles.begin(); it != vMissiles.end(); it++)
     {
         (*it) = new Missile();
-        (*it)->Init(this->owner);
+        (*it)->Init();
     }
     return S_OK;
 }

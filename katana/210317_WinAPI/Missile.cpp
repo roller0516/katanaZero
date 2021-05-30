@@ -4,9 +4,9 @@
 #include "Image.h"
 #include "Camera.h"
 
-HRESULT Missile::Init(Enemy* owner)
+HRESULT Missile::Init()//Enemy* owner)
 {
-	this->owner = owner;
+	//this->owner = owner;
 
 	worldPos = {-100, -100};
 	shape = { 0, 0, 0, 0 };
@@ -41,10 +41,10 @@ void Missile::Update()
 		
 	}
 
-	shape.left = localPos.x - size / 2;
-	shape.top = localPos.y - 1;
-	shape.right = localPos.x + size / 2;
-	shape.bottom = localPos.y + 1;
+	shape.left = worldPos.x - size / 2;
+	shape.top = worldPos.y - 1;
+	shape.right = worldPos.x + size / 2;
+	shape.bottom = worldPos.y + 1;
 }
 
 void Missile::Render(HDC hdc)

@@ -48,6 +48,8 @@ public:
 	void PixelCollisionLeft();
 	void PixelCollisionRight();
 	void SetIndex(int index) { this->data->Index; }
+
+	void MaptoolAstar();
 	// get, set
 	
 	inline int GetSize() { return this->data->size; }

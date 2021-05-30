@@ -34,11 +34,12 @@ void TimerManager::Render(HDC hdc)
 float TimerManager::GetElapsedTime()
 {
     if(KeyManager::GetSingleton()->IsStayKeyDown(VK_SHIFT))
-        return 0.001;
+        return 0.0008;
     if(KeyManager::GetSingleton()->IsOnceKeyUp(VK_SHIFT))
         return timer->GetElapsedTime();
 
-    return timer->GetElapsedTime();
+    return 0.005;
+    //return timer->GetElapsedTime();
 }
 
 float TimerManager::GetCurrTime()

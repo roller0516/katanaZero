@@ -30,7 +30,7 @@ HRESULT TilemapTool::Init()
     exhibition = enemyManager->CreateClone("PompEnemy");
     enenmyName = "PompEnemy";
     exhibition->Init(TILEMAPTOOLSIZE_X-200, TILEMAPTOOLSIZE_Y - 400);
-
+    
     Camera::GetSingleton()->Init(this);
     worldPos.x = WINSIZE_X / 2;
     worldPos.y = WINSIZE_Y / 2;
@@ -117,18 +117,21 @@ HRESULT TilemapTool::Init()
 
     astarManager = new AstarManager;
     astarManager->Init();
+
+    
+
     rcMain = { 0,0,WINSIZE_X,WINSIZE_Y };
     ShowCursor(true);
 
-
-    for (int i = 0; i < TILE_Y; i++)
-    {
-        for (int j = 0; j < TILE_X; j++)
-        {
-            if (tileInfo[i * TILE_X + j].type == TileType::Wall)
-                astarManager->SetWall(i, j);
-        }
-    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     MonsterSpwan = false;
     return S_OK;
@@ -145,6 +148,7 @@ void TilemapTool::Release()
 
 void TilemapTool::Update()
 {
+    exhibition->GetData()->astar = astarManager;
     CameraMove();
     Camera::GetSingleton()->Update();
     Camera::GetSingleton()->View();
@@ -224,7 +228,7 @@ void TilemapTool::Update()
             {
                 if (GetTileType(&tileInfo[y * TILE_X + x]) == TileType::None && destTile)
                 {
-                   
+                    astarManager->SetDestTile(x, y);
                     SetColor(&tileInfo[y * TILE_X + x],RGB(0, 0, 255), false);
                     SetTileType(&tileInfo[y * TILE_X + x],TileType::End);
                 }
@@ -251,14 +255,13 @@ void TilemapTool::Update()
             {
                 if (GetTileType(&tileInfo[y * TILE_X + x]) == TileType::Wall || GetTileType(&tileInfo[y * TILE_X + x]) == TileType::End)
                 {
-                    astarManager->SetDestTile(y, x);
+                    
                     SetColor(&tileInfo[y * TILE_X + x], RGB(0, 0, 0), true);
                     SetTileType(&tileInfo[y * TILE_X + x], TileType::None);
                 }
             }
         }  
     }
-    
     
     for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
     {
@@ -268,6 +271,17 @@ void TilemapTool::Update()
             enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
         }
     }
+   
+
+   for (int i = 0; i < TILE_Y; i++)
+   {
+       for (int j = 0; j < TILE_X; j++)
+       {
+           if (tileInfo[i * TILE_X + j].type == TileType::Wall)
+               astarManager->SetWall(i, j);
+       }
+   }
+    
     
 }
 
@@ -304,8 +318,8 @@ void TilemapTool::Render(HDC hdc)
             tileInfo[i].rcTile.bottom - Camera::GetSingleton()->GetCameraPos().y);
         SelectObject(hdc, tileInfo[i].hOldBrush);
     }
-    //if (astarManager)
-    //    astarManager->Render(hdc);
+    if (astarManager)
+        astarManager->Render(hdc);
     sprintf_s(szText, "playerX : %d , playerY : %d", g_ptMouse.x, g_ptMouse.y);
     TextOut(hdc, WINSIZE_X - 800, 20, szText, strlen(szText));
     sprintf_s(szText, "X : %f, Y : %f", GetWorldMousePos(worldPos).x, GetWorldMousePos(worldPos).y);
@@ -506,6 +520,8 @@ void TilemapTool::Load(int stageNum)
                     tileInfo[i * TILE_X + j].hBrush = CreateSolidBrush(tileInfo[i * TILE_X + j].color);
             }
         }
+
+        
     }
     else
     {

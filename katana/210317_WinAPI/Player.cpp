@@ -94,10 +94,10 @@ void Player::Update()
 	shape.right = Worldpos.x + size/5;
 	shape.bottom = Worldpos.y + size/4;
 
-	hitShape.left = Clientpos.x - (size-30) /2;
-	hitShape.top = Clientpos.y - (size-30) / 2;
-	hitShape.right = Clientpos.x + (size-30) / 2;
-	hitShape.bottom = Clientpos.y + (size-30) / 2;
+	hitShape.left = Worldpos.x - (size-30) /2;
+	hitShape.top = Worldpos.y - (size-30) / 2;
+	hitShape.right = Worldpos.x + (size-30) / 2;
+	hitShape.bottom = Worldpos.y + (size-30) / 2;
 
 	PlayerKeyMove();
 	PlayerFSM();
@@ -223,10 +223,10 @@ void Player::Attack()
 	float range = 100;
 	Animation(PlayerState::attack);
 
-	attackShape.left = Clientpos.x + (cosf(angle) * 50) - (size - 50) / 2;
-	attackShape.top = Clientpos.y - (sinf(angle) * 50) - (size - 50) / 2;
-	attackShape.right = Clientpos.x + (cosf(angle) * 50) + (size - 50) / 2;
-	attackShape.bottom = Clientpos.y - (sinf(angle) * 50) + (size - 50) / 2;
+	attackShape.left = Worldpos.x + (cosf(angle) * 50) - (size - 50) / 2;
+	attackShape.top = Worldpos.y - (sinf(angle) * 50) - (size - 50) / 2;
+	attackShape.right = Worldpos.x + (cosf(angle) * 50) + (size - 50) / 2;
+	attackShape.bottom = Worldpos.y - (sinf(angle) * 50) + (size - 50) / 2;
 
 	if (angle>0 && angle<PI / 2 || angle<0 && angle>(-1 * PI / 2))
 	{
@@ -694,20 +694,26 @@ void Player::PixelCollisionBottom()
 			else
 				black = false;
 			velocity = 80;
-			if ((R == 0 && G == 0 && B == 0) && isAttack) break;
+			if ((R == 0 && G == 0 && B == 0) && isAttack) 
+			{
+				attCount = 0; 
+				break;
+			}
 			if (isAttack) 
 			{
-				Worldpos.y = i - playerHeight-10;
+				attCount = 0;
+				//Worldpos.y = i - playerHeight-10;
 				break;
 			}
 			if ((R == 0 && G == 0 && B == 0) && isFall) 
 				break;
+
 			fallForce = 0;
 			Worldpos.y = i - playerHeight+4;
 			isGround = true;
 			isFall = false;
 			isFilp = false;
-			attCount = 0;
+			//attCount = 0;
 			break;
 		}
 		else if ((R == 255 && G == 0 && B == 255))
