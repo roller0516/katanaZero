@@ -23,6 +23,7 @@ enum class PlayerState
 	hit_fly,
 	hit_ground,
 	fall,
+	door_break,
 	end
 };
 class PlayerEffect;
@@ -74,18 +75,17 @@ private:
 	bool isAttack;
 	bool isPhysics;
 	bool isRoll;
-
+	bool isDoor;
 	int itemIndex;
 	int keycount;
 public:
 	Direction dir;
 	PlayerState playerstate;
 
-	virtual HRESULT Init();
-	virtual void Release();
-	virtual void Update();
-	virtual void Render(HDC hdc);
-	virtual Player* Clone();
+	HRESULT Init();
+	void Release();
+	void Update();
+	void Render(HDC hdc);
 
 	void Animation(PlayerState ani);
 
@@ -102,12 +102,13 @@ public:
 	void PlayerKeyMove();
 	void GrabEnd();
 	void Getitem();
-
+	void DoorBreak();
 	void PixelCollisionBottom();
 	void PixelCollisionLeft();
 	void PixelCollisionRight();
 	void PixelCollisionTop();
 
+	inline void SetDoor(bool door) { this->isDoor = door; }
 	inline bool GetisGround() { return isGround; }
 	inline Direction GetDir() { return this->dir; }
 	inline int GetItemIndex() { return this->itemIndex; }
@@ -115,6 +116,7 @@ public:
 	inline RECT GetAttackShape() { return this->attackShape; }
 	inline bool GetFalling(){ return isFall; }
 	inline void SetGround(bool isGround) { this->isGround = isGround; }
+	inline void SetPos(int x, int y) { this->Worldpos.x = x; this->Worldpos.y = y; }
 	inline FPOINT GetWorldpos() { return this->Worldpos; }
 	inline FPOINT Getpos() { return this->Clientpos; }
 	inline FPOINT GetCurrPos() { return this->currPos; }

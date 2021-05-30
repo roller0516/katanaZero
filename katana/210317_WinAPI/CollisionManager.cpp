@@ -8,6 +8,7 @@
 #include "Missile.h"
 #include "EnemyManager.h"
 #include "Enemy.h"
+#include "installObject.h"
 
 void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* player, EnemyManager* enemy, int index)
 {
@@ -77,6 +78,24 @@ void CollisionManager::EnemyItem(Player* player,EnemyManager* enemy, ItemManager
 		
 		item->GetItemList()[player->GetItemIndex()]->SetAlive(false);
 		//item->GetItemList()[player->GetItemIndex()]->SetRect();
+	}
+}
+
+void CollisionManager::PlayerDoor(Player* player, InstallObject* installobj)
+{
+	RECT rcTemp, rcPlayer, rcDoor;
+	rcPlayer = player->GetRect();
+	rcDoor = installobj->GetShape();
+
+	if (IntersectRect(&rcTemp, &rcPlayer, &rcDoor) && installobj->GetClose())
+	{
+		player->SetDoor(true);
+		player->DoorBreak();
+		player->SetPos(player->GetWorldpos().x, player->GetWorldpos().y);
+		if (KeyManager::GetSingleton()->IsOnceKeyDown('D')) 
+		{
+			installobj->SetOpen(true);
+		}
 	}
 }
 

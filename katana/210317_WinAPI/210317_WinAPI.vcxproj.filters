@@ -144,6 +144,9 @@
     <ClCompile Include="PlayerEffect.cpp">
       <Filter>MainGame\Obj\MoveObj\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="installObject.cpp">
+      <Filter>MainGame\Obj\MoveObj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFunction.h">
@@ -232,6 +235,9 @@
     </ClInclude>
     <ClInclude Include="PlayerEffect.h">
       <Filter>MainGame\Obj\MoveObj\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="installObject.h">
+      <Filter>MainGame\Obj\MoveObj</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

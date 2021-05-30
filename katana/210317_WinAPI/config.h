@@ -40,7 +40,7 @@ using namespace std;
 #define SAFE_RELEASE(p) { if (p) { p->Release(); delete p; p = nullptr; } }
 
 enum class TileType { Start, End, Wall, None };
-
+enum class InstallType { Door, Flame };
 typedef struct tagFPoint
 {
 	float x;
@@ -66,6 +66,21 @@ typedef struct ENMY_INFO
 	int y;
 	int index;
 	ENMY_INFO()
+	{
+		x = 0;
+		y = 0;
+		index = 0;
+	}
+};
+
+typedef struct INSTALLOBJ_INFO
+{
+	InstallType Type;
+	char Name[256] = "";
+	int x;
+	int y;
+	int index;
+	INSTALLOBJ_INFO()
 	{
 		x = 0;
 		y = 0;

@@ -15,6 +15,7 @@
 #include "CollisionManager.h"
 #include "ItemManager.h"
 #include "AstarManager.h"
+#include "InstallObject.h"
 
 HRESULT BattleScene::Init()
 {
@@ -33,11 +34,14 @@ HRESULT BattleScene::Init()
 	itemManager->AddItem("Bust", new Item);
 	itemManager->Init(WINSIZE_X / 2 - 40, WINSIZE_Y / 2, player);
 
+	installObj = new InstallObject;
+	installObj->Init(1600, 2880, InstallType::Door);
+
 	player->SetitemManager(itemManager);
 
-	astarManager = new AstarManager;
-	astarManager->Init();
-	astarManager->SetTarget(player);
+	//astarManager = new AstarManager;
+	//astarManager->Init();
+	//astarManager->SetTarget(player);
 
 	enemyManager = new EnemyManager;
 	enemyManager->RegisterClone("PompEnemy", new Enemy_pomp);
@@ -46,8 +50,8 @@ HRESULT BattleScene::Init()
 	enemyManager->RegisterClone("CopEnemy", new Enemy_Cop);
 
 	collisionManager = new CollisionManager;
-	enemyManager->AddEnemy("GruntEnemy",1);
-	enemyManager->Init(player,500, 500, 0);
+	//enemyManager->AddEnemy("GruntEnemy",1);
+	//enemyManager->Init(player,500, 500, 0);
 
 	//enemyManager->AddEnemy("CopEnemy", 5);
 	//enemyManager->Init(player, 300, 500, 1);
@@ -55,6 +59,8 @@ HRESULT BattleScene::Init()
 	//enemyManager->Init(player, 700, 500, 3);
 	//enemyManager->Init(player, 450, 500, 4);
 	//enemyManager->Init(player, 600, 500, 5);
+
+	//¹® 1572 2886
 
 	missileManager = new MissileManager;
 	missileManager->Init();
@@ -70,14 +76,14 @@ HRESULT BattleScene::Init()
 	MapLoad(1);
 
 
-	for (int j = 0; j < TILE_Y; j++)
-	{
-		for (int k = 0; k < TILE_X; k++)
-		{
-			if (tileInfo[j * TILE_X + k].type == TileType::Wall)
-				astarManager->SetWall(j, k);
-		}
-	}
+	//for (int j = 0; j < TILE_Y; j++)
+	//{
+	//	for (int k = 0; k < TILE_X; k++)
+	//	{
+	//		if (tileInfo[j * TILE_X + k].type == TileType::Wall)
+	//			astarManager->SetWall(j, k);
+	//	}
+	//}
 	
 	bgPos.x = 0;
 	bgPos.y = 0;
@@ -98,8 +104,9 @@ void BattleScene::Release()
 void BattleScene::Update()
 {
 
-
-
+	if (installObj)
+		installObj->Update();
+	
 	if(missileManager)
 		missileManager->Update();
 	if (astarManager)
@@ -117,6 +124,7 @@ void BattleScene::Update()
 		collisionManager->EnemyPlayer(enemyManager, player, i);
 		collisionManager->EnemyItem(player, enemyManager, itemManager, i);
 	}
+	collisionManager->PlayerDoor(player, installObj);
 }
 
 
@@ -128,8 +136,8 @@ void BattleScene::Render(HDC hdc)
 	if (itemManager)
 		itemManager->Render(hdc);
 
-	if (astarManager)
-		astarManager->Render(hdc);
+	//if (astarManager)
+	//	astarManager->Render(hdc);
 
 	if (missileManager)
 		missileManager->Render(hdc);
@@ -137,9 +145,13 @@ void BattleScene::Render(HDC hdc)
 	if (enemyManager)
 		enemyManager->Render(hdc);
 
+	if (installObj)
+		installObj->Render(hdc);
+
+
 	if (player)
 		player->Render(hdc);
-
+	
 	//for (int i = 0; i < TILE_X * TILE_Y; i++)
 	//{
 	//	if (tileInfo[i].rcTile.left - Camera::GetSingleton()->GetCameraPos().x > WINSIZE_X)

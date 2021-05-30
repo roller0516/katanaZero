@@ -2,6 +2,7 @@
 #include "GameNode.h"
 
 // 기존 MainGame 클래스의 내용을 이동
+class InstallObject;
 class MissileManager;
 class AstarManager;
 class ItemManager;
@@ -20,6 +21,7 @@ private:
 	AstarManager* astarManager;
 	EnemyManager* enemyManager;
 	ItemManager* itemManager;
+	InstallObject* installObj;
 	Enemy* enemy;
 	Player* player;
 	Image* BackGround;

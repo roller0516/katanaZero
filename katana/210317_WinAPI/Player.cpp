@@ -31,6 +31,8 @@ HRESULT Player::Init()
 		"Image/Katana/player/player_run_to_idle_5x2.bmp", 400, 140, 5, 2, true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("player_idle_to_run",
 		"Image/Katana/player/player_idle_to_run_4x2.bmp", 336, 128, 4, 2, true, RGB(255, 0, 255));
+	ImageManager::GetSingleton()->AddImage("player_player_doorbreak",
+		"Image/Katana/player/player_doorbreak_10x2.bmp", 1000, 176, 10, 2, true, RGB(255, 0, 255));
 
 	image = ImageManager::GetSingleton()->FindImage("idle");
 	Animation(PlayerState::idle);
@@ -46,8 +48,8 @@ HRESULT Player::Init()
 		playerEffect[i].Init(EffectType::dustEffect, this);
 	}
 	srand((unsigned)time(NULL));
-	Worldpos.x = 400;
-	Worldpos.y = 100;
+	Worldpos.x = 1500;
+	Worldpos.y = 2880;
 	currFrame = 0.0f;
 	maxFrame = 4.0f;
 	moveSpeed = 200.0f;
@@ -124,6 +126,11 @@ void Player::Update()
 			isAttack = false;
 			attackShape = { -100,-100,-100,-100 };
 		}
+		if (isDoor) 
+		{
+			isDoor = false;
+			moveSpeed = 200;
+		}
 	}
 
 	if (isGround && count == 0)
@@ -163,10 +170,7 @@ void Player::Render(HDC hdc)
 	}
 }
 
-Player* Player::Clone()
-{
-	return new Player();
-}
+
 
 void Player::Run()
 {
@@ -395,6 +399,18 @@ void Player::Getitem()
 	}
 	
 }
+void Player::DoorBreak()
+{
+	if (isDoor) 
+	{
+		playerstate = PlayerState::door_break;
+		moveSpeed = 0;
+		//currFrame = 0;
+		frameRun = true;
+		Animation(PlayerState::door_break);
+	}
+}
+
 void Player::PlayerFSM()
 {
 	switch (playerstate)
@@ -429,12 +445,15 @@ void Player::PlayerFSM()
 		break;
 	case PlayerState::fall:
 		Falling();
+	case PlayerState::door_break:
+		DoorBreak();
 		break;
 	}
 }
 
 void Player::PlayerKeyMove()
 {
+	if (isDoor) return;
 	if (KeyManager::GetSingleton()->IsOnceKeyDown('W'))
 	{
 		isJumping = true;
@@ -788,6 +807,10 @@ void Player::Animation(PlayerState ani) // 더좋은방법이 생기면 수정
 		if(isMove==false)
 			count = 0;
 		image = ImageManager::GetSingleton()->FindImage("player_fall");
+		break;
+	case PlayerState::door_break:
+		maxFrame = 10;
+		image = ImageManager::GetSingleton()->FindImage("player_player_doorbreak");
 		break;
 	}
 }

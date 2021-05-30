@@ -9,13 +9,17 @@
 #include "Enemy_Grunt.h"
 #include "Enemy_Cop.h"
 #include "AstarManager.h"
+#include "installObject.h"
+#include "ItemManager.h"
 
+InstallObject* TilemapTool::installObj;
 TILE_INFO TilemapTool::tileInfo[TILE_X * TILE_Y];
 EnemyManager* TilemapTool::enemyManager;
 Enemy* TilemapTool::exhibition;
 ENMY_INFO TilemapTool::enemySize[100];
 string TilemapTool::enenmyName;
 int TilemapTool::changeIndex;
+int TilemapTool::menuIndex;
 
 HRESULT TilemapTool::Init()
 {
@@ -59,31 +63,14 @@ HRESULT TilemapTool::Init()
         }
     }
 
-    // 샘플 공간 렉트 설정
-    //for (int i = 0; i < SAMPLE_TILE_Y; i++)
-    //{
-    //    for (int j = 0; j < SAMPLE_TILE_X; j++)
-    //    {
-    //        SetRect(&sampleTileInfo[i * SAMPLE_TILE_X + j].rcTile,
-    //            TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + (TILESIZE * j),
-    //            (TILESIZE * i),
-    //            TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + (TILESIZE * j) + TILESIZE,
-    //            (TILESIZE * i) + TILESIZE);
-
-    //        sampleTileInfo[i * SAMPLE_TILE_X + j].frameX = j;
-    //        sampleTileInfo[i * SAMPLE_TILE_X + j].frameY = i;
-
-    //        //sampleTileInfo[i * SAMPLE_TILE_X + j].rcTile.left =
-    //        //    TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + (TILESIZE * j);
-    //        //sampleTileInfo[i * SAMPLE_TILE_X + j].rcTile.top = (TILESIZE * i);
-    //        //sampleTileInfo[i * SAMPLE_TILE_X + j].rcTile.right =
-    //        //    sampleTileInfo[i * SAMPLE_TILE_X + j].rcTile.left + TILESIZE;
-    //        //sampleTileInfo[i * SAMPLE_TILE_X + j].rcTile.bottom =
-    //        //    sampleTileInfo[i * SAMPLE_TILE_X + j].rcTile.top + TILESIZE;
-    //    }
-    //}
-   
     // UI Button
+    ImageManager::GetSingleton()->AddImage("아이템", "Image/button.bmp",
+        122, 62, 1, 2);
+    ImageManager::GetSingleton()->AddImage("몬스터", "Image/button.bmp",
+        122, 62, 1, 2);
+    ImageManager::GetSingleton()->AddImage("설치형오브젝트", "Image/button.bmp",
+        122, 62, 1, 2);
+
     ImageManager::GetSingleton()->AddImage("저장버튼", "Image/button.bmp",
         122, 62, 1, 2);
     ImageManager::GetSingleton()->AddImage("불러오기버튼", "Image/button.bmp",
@@ -95,6 +82,21 @@ HRESULT TilemapTool::Init()
         62, 38, 1, 1, true, RGB(255, 0, 255));
 
     changeIndex = 0;
+
+    btnItem = new Button();
+    btnItem->Init("아이템", TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + 550,
+        TILEMAPTOOLSIZE_Y-400);
+    btnItem->SetFunc(itemMenu, 1);
+
+    btnMonster = new Button();
+    btnMonster->Init("몬스터", TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + 550,
+        TILEMAPTOOLSIZE_Y - 500);
+    btnMonster->SetFunc(Monseter, 1);
+
+    btnObject = new Button();
+    btnObject->Init("설치형오브젝트", TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + 550,
+        TILEMAPTOOLSIZE_Y - 600);
+    btnObject->SetFunc(ObjectMenu, 1);
 
     btnSave = new Button();
     btnSave->Init("저장버튼", TILEMAPTOOLSIZE_X - sampleTile->GetWidth() + 400,
@@ -118,22 +120,14 @@ HRESULT TilemapTool::Init()
     astarManager = new AstarManager;
     astarManager->Init();
 
-    
-
     rcMain = { 0,0,WINSIZE_X,WINSIZE_Y };
     ShowCursor(true);
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
     MonsterSpwan = false;
+
+    installObj = new InstallObject;
+    installObj->Init(0, 0, InstallType::Door);
+    installObj->SetWrold(true);
     return S_OK;
 }
 
@@ -144,11 +138,23 @@ void TilemapTool::Release()
     SAFE_RELEASE(Next);
     SAFE_RELEASE(Prev);
     SAFE_RELEASE(enemyManager);
+    SAFE_RELEASE(installObj);
+    SAFE_RELEASE(btnObject);
+    SAFE_RELEASE(btnItem);
+    SAFE_RELEASE(btnMonster);
 }
 
 void TilemapTool::Update()
 {
+    installObj->Update();
+
+    if (menuIndex != 2) 
+    {
+        astarManager = nullptr;
+    }
+
     exhibition->GetData()->astar = astarManager;
+
     CameraMove();
     Camera::GetSingleton()->Update();
     Camera::GetSingleton()->View();
@@ -158,7 +164,9 @@ void TilemapTool::Update()
     if (btnLoad)    btnLoad->Update();
     if (Next) Next->Update();
     if (Prev) Prev->Update();
-
+    if (btnMonster) btnMonster->Update();
+    if (btnObject) btnObject->Update();
+    if (btnItem) btnItem->Update();
     Prev->SetFunc(PrevPage, changeIndex);
     Next->SetFunc(NextPage, changeIndex);
 
@@ -214,29 +222,45 @@ void TilemapTool::Update()
     if (PtInRect(&rcMain, g_ptMouse))
     {
         // 마우스 왼쪽 버튼 클릭시 좌표 사용
-        if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON) && MonsterSpwan)
-            SettingEnemy();
-        if ((KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON) || KeyManager::GetSingleton()->IsStayKeyDown(VK_LBUTTON)) && MonsterSpwan == false)
+        if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON)) 
+        {
+            if (menuIndex == 0)//아이템
+            {
+
+            }
+            if (menuIndex == 1)//오브젝트
+            {
+                SettingObject();
+            }
+            if(menuIndex == 2 && MonsterSpwan) // 몬스터
+                SettingEnemy();
+ 
+        }
+           
+        if ((KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON) || KeyManager::GetSingleton()->IsStayKeyDown(VK_LBUTTON)) )
         {
             // g_ptMouse로 인덱스를 계산
             int x, y;
             x = GetWorldMousePos_p(worldPos).x / TILESIZE;
             y = GetWorldMousePos_p(worldPos).y / TILESIZE;
 
-            if (0 <= x && x < TILE_COUNT &&
-                0 <= y && y < TILE_COUNT)
+            if (menuIndex == 2 && MonsterSpwan == false) 
             {
-                if (GetTileType(&tileInfo[y * TILE_X + x]) == TileType::None && destTile)
+                if (0 <= x && x < TILE_COUNT &&
+                    0 <= y && y < TILE_COUNT)
                 {
-                    astarManager->SetDestTile(x, y);
-                    SetColor(&tileInfo[y * TILE_X + x],RGB(0, 0, 255), false);
-                    SetTileType(&tileInfo[y * TILE_X + x],TileType::End);
-                }
-                else if (GetTileType(&tileInfo[y * TILE_X + x]) != TileType::Start &&
-                    GetTileType(&tileInfo[y * TILE_X + x]) != TileType::End)
-                {
-                    SetColor(&tileInfo[y * TILE_X + x], RGB(255, 0, 0), false);
-                    SetTileType(&tileInfo[y * TILE_X + x], TileType::Wall);
+                    if (GetTileType(&tileInfo[y * TILE_X + x]) == TileType::None && destTile)
+                    {
+                        astarManager->SetDestTile(x, y);
+                        SetColor(&tileInfo[y * TILE_X + x], RGB(0, 0, 255), false);
+                        SetTileType(&tileInfo[y * TILE_X + x], TileType::End);
+                    }
+                    else if (GetTileType(&tileInfo[y * TILE_X + x]) != TileType::Start &&
+                        GetTileType(&tileInfo[y * TILE_X + x]) != TileType::End)
+                    {
+                        SetColor(&tileInfo[y * TILE_X + x], RGB(255, 0, 0), false);
+                        SetTileType(&tileInfo[y * TILE_X + x], TileType::Wall);
+                    }
                 }
             }
         }
@@ -263,33 +287,33 @@ void TilemapTool::Update()
         }  
     }
     
-    for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
+    if (astarManager) 
     {
-        if (enemyManager->GetMonsterList().size() > 0)
+        for (int i = 0; i < TILE_Y; i++)
         {
-            enemyManager->GetMonsterList()[i]->GetData()->astar = astarManager;
-            enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
+            for (int j = 0; j < TILE_X; j++)
+            {
+                if (tileInfo[i * TILE_X + j].type == TileType::Wall)
+                    astarManager->SetWall(i, j);
+            }
+        }
+
+        for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
+        {
+            if (enemyManager->GetMonsterList().size() > 0)
+            {
+                enemyManager->GetMonsterList()[i]->GetData()->astar = astarManager;
+                enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
+            }
         }
     }
-   
-
-   for (int i = 0; i < TILE_Y; i++)
-   {
-       for (int j = 0; j < TILE_X; j++)
-       {
-           if (tileInfo[i * TILE_X + j].type == TileType::Wall)
-               astarManager->SetWall(i, j);
-       }
-   }
-    
-    
 }
 
 void TilemapTool::Render(HDC hdc)
 {
     PatBlt(hdc, 0, 0,
         TILEMAPTOOLSIZE_X, TILEMAPTOOLSIZE_Y, WHITENESS);
-
+    
     // 선택 영역 표시
     //hOldSelectedBrush = (HBRUSH)SelectObject(hdc, hSelectedBrush);
     //Rectangle(hdc, ptSelected[0].x, ptSelected[0].y, ptSelected[1].x, ptSelected[1].y);
@@ -302,6 +326,9 @@ void TilemapTool::Render(HDC hdc)
     // UI Button
     if (btnSave)    btnSave->Render(hdc);
     if (btnLoad)    btnLoad->Render(hdc);
+    if (btnItem) btnItem->Render(hdc);
+    if (btnMonster) btnMonster->Render(hdc);
+    if (btnObject) btnObject->Render(hdc);
     if (Next) Next->Render(hdc);
     if (Prev)  Prev->Render(hdc, true);
     for (int i = 0; i < TILE_X * TILE_Y; i++)
@@ -318,15 +345,21 @@ void TilemapTool::Render(HDC hdc)
             tileInfo[i].rcTile.bottom - Camera::GetSingleton()->GetCameraPos().y);
         SelectObject(hdc, tileInfo[i].hOldBrush);
     }
+    if(menuIndex == 0)
+        installObj->Render(hdc);
+
     if (astarManager)
         astarManager->Render(hdc);
+
     sprintf_s(szText, "playerX : %d , playerY : %d", g_ptMouse.x, g_ptMouse.y);
     TextOut(hdc, WINSIZE_X - 800, 20, szText, strlen(szText));
     sprintf_s(szText, "X : %f, Y : %f", GetWorldMousePos(worldPos).x, GetWorldMousePos(worldPos).y);
     TextOut(hdc, 200, 20, szText, strlen(szText));
-
-    enemyManager->Render(hdc);
-    exhibition->Render(hdc,true);
+    if (menuIndex == 2) 
+    {
+        enemyManager->Render(hdc);
+        exhibition->Render(hdc, true);
+    }  
 }
 
 void TilemapTool::EraseEnemy()
@@ -342,8 +375,8 @@ void TilemapTool::EraseEnemy()
             if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_RBUTTON)) 
             {
                 string str = "";
-                //enemyManager->GetMonsterList()[i]->SetAstarManager(nullptr);
-                //astarManager->SetTarget(nullptr);
+                enemyManager->GetMonsterList()[i]->GetData()->astar = nullptr;
+                astarManager->SetTarget(nullptr);
                 enemyManager->DeletEnemy(i);
                 strcpy_s(enemySize[i].Name, str.c_str());
                 enemySize[i].x = 0;
@@ -373,16 +406,27 @@ void TilemapTool::SettingEnemy()
     monsterCount = enemyManager->GetMonsterList().size();
     enemyManager->AddEnemy(enenmyName,1);
     enemyManager->Init(nullptr, Camera::GetSingleton()->GetWorldMousePos().x, Camera::GetSingleton()->GetWorldMousePos().y, monsterCount);
-    //for (int i = 0; i < monsterCount; i++) 
-    //{
-    //    astarManager->SetTarget(enemyManager->GetMonsterList()[i]);
-    //    enemyManager->GetMonsterList()[i]->SetAstarManager(astarManager);
-    //}
     strcpy_s(enemySize[enemyManager->GetMonsterList().size() - 1].Name, enenmyName.c_str());
     enemySize[enemyManager->GetMonsterList().size() - 1].x = Camera::GetSingleton()->GetWorldMousePos().x;
     enemySize[enemyManager->GetMonsterList().size() - 1].y = Camera::GetSingleton()->GetWorldMousePos().y;
     enemySize[enemyManager->GetMonsterList().size() - 1].index = monsterCount;
     monsterCount++;
+}
+
+void TilemapTool::SettingObject()
+{
+    vObject.push_back(installObj->Clone());
+    for (int i = 0; i < vObject.size(); i++) 
+    {
+        vObject[i]->Init(Camera::GetSingleton()->GetWorldMousePos().x, 
+            Camera::GetSingleton()->GetWorldMousePos().y, (InstallType)(changeIndex - 1));
+    }
+}
+
+
+void TilemapTool::SettingItem()
+{
+
 }
 
 
@@ -420,6 +464,22 @@ void TilemapTool::ChangeEnemy(int Index)
         break;
     }
 }
+void TilemapTool::ChangeItem(int Index)
+{
+
+}
+void TilemapTool::ChangeObject(int Index)
+{
+    switch (Index) 
+    {
+    case 1:
+        installObj->Init(TILEMAPTOOLSIZE_X - 200, TILEMAPTOOLSIZE_Y - 400, InstallType::Door);
+        break;
+    case2:
+        installObj->Init(TILEMAPTOOLSIZE_X - 200, TILEMAPTOOLSIZE_Y - 400, InstallType::Flame);
+        break;
+    }
+}
 void TilemapTool::SetColor(TILE_INFO* tile, COLORREF color, bool nullcolor)
 {
     tile->color = color;
@@ -431,20 +491,62 @@ void TilemapTool::SetColor(TILE_INFO* tile, COLORREF color, bool nullcolor)
 }
 void TilemapTool::NextPage(int Index)
 {
-    if (changeIndex == 3)
-        changeIndex = 3;
-    else
-        changeIndex++;
-    ChangeEnemy(changeIndex);
+    if (menuIndex == 0) // 아이템
+    {
+        if (changeIndex == 4)
+            changeIndex = 4;
+        else
+            changeIndex++;
+    }
+    if (menuIndex == 1) 
+    {
+        if (changeIndex == 2)
+            changeIndex = 2;
+        else
+            changeIndex++;
+        ChangeObject(changeIndex);
+    } // 오브젝트
+            
+    if (menuIndex == 2) // 몬스터
+    {
+        if (changeIndex == 3)
+            changeIndex = 3;
+        else
+            changeIndex++;
+
+        ChangeEnemy(changeIndex);
+    }
 }
 
 void TilemapTool::PrevPage(int Index)
 {
-    if (changeIndex == 0)
-        changeIndex = 0;
-    else
-        changeIndex--;
-    ChangeEnemy(changeIndex);
+    if (menuIndex == 0)
+    {
+        if (changeIndex == 0)
+            changeIndex = 0;
+        else
+            changeIndex--;
+
+        ChangeEnemy(changeIndex);
+    }
+    if (menuIndex == 1)
+    {
+        if (changeIndex == 0)
+            changeIndex = 0;
+        else
+            changeIndex--;
+
+        ChangeEnemy(changeIndex);
+    }
+    if (menuIndex == 2) 
+    {
+        if (changeIndex == 0)
+            changeIndex = 0;
+        else
+            changeIndex--;
+
+        ChangeEnemy(changeIndex);
+    }
 }
 
 /*
@@ -530,6 +632,22 @@ void TilemapTool::Load(int stageNum)
 
     CloseHandle(hFile2);
     CloseHandle(hFile);
+}
+
+void TilemapTool::itemMenu(int Index)
+{
+    menuIndex = 0;
+    
+}
+
+void TilemapTool::ObjectMenu(int Index)
+{
+    menuIndex = 1;
+}
+
+void TilemapTool::Monseter(int Index)
+{
+    menuIndex = 2;
 }
 
 

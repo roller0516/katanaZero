@@ -38,8 +38,8 @@ float TimerManager::GetElapsedTime()
     if(KeyManager::GetSingleton()->IsOnceKeyUp(VK_SHIFT))
         return timer->GetElapsedTime();
 
-    return 0.005;
-    //return timer->GetElapsedTime();
+    //return 0.005;
+    return timer->GetElapsedTime();
 }
 
 float TimerManager::GetCurrTime()
