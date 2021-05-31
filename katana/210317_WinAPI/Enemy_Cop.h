@@ -1,6 +1,7 @@
 #pragma once
 #include "Enemy.h"
 
+class EnemyEffect;
 class AstarManager;
 class MissileManager;
 class Image;
@@ -10,7 +11,7 @@ class Enemy_Cop :
 {
 private:
 	MissileManager* missileManager;
-
+	EnemyEffect* enemyEffect;
 	FPOINT currPos;
 	Image* armLImage;
 	Image* armRImage;
@@ -18,7 +19,7 @@ private:
 	EnemyData* data;
 	EnemyDir dir;	
 	EnemyState state;
-
+	int count;
 	int dieHeight;
 	int targeton;
 	float destAngle;

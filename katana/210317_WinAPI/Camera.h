@@ -11,6 +11,12 @@ private:
 	FPOINT pos; // 카메라 포즈
 	FPOINT worldrc;
 	TilemapTool* TilemapTooltarget;
+	float shakes;
+	float shakeAmount;
+	float decreaseFactor;
+	FPOINT originalPos;
+	bool CameraShaking;
+
 	Player* target;
 	Image* bg;
 	Image* bg_Collision;
@@ -24,6 +30,7 @@ public:
 	void Update();
 	void Render(HDC hdc);
 	void View();
+	void Shake(float shaking);
 	inline FPOINT GetCamerPivot() { return this->pivot; }
 	inline FPOINT GetWorld() { return this->worldrc; }
 	inline FPOINT GetCameraPos() { return this->pos; }

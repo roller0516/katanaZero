@@ -22,7 +22,6 @@ HRESULT InstallObject::Init(int x, int y, InstallType Type)
 
     size = 50;
 
-
     return S_OK;
 }
 
@@ -42,11 +41,11 @@ void InstallObject::Update()
             attackShape.top = worldPos.y - (100) / 2;
             attackShape.right = (worldPos.x + 50) + (100) / 2;
             attackShape.bottom = worldPos.y + (100) / 2;
-            attackShape = { -100,-100,-100,-100 };
             shape = { -100,-100,-100,-100 };
             currframe += 15 * TimerManager::GetSingleton()->GetElapsedTime();
             if (currframe > 20)
             {
+                attackShape = { -100,-100,-100,-100 };
                 currframe = 19;
                 oPen = false;
             }
@@ -57,8 +56,6 @@ void InstallObject::Update()
             shape.top = worldPos.y - 50 / 2;
             shape.right = worldPos.x + 50 / 2;
             shape.bottom = worldPos.y + 50 / 2;
-
-           
         }
     }
     
@@ -89,8 +86,8 @@ void InstallObject::Render(HDC hdc)
         if (Type == InstallType::Flame)
             img->Render(hdc, localPos.x, localPos.y, true);
     }
-    Rectangle(hdc, shape.left - Camera::GetSingleton()->GetCameraPos().x, shape.top - Camera::GetSingleton()->GetCameraPos().y,
-        shape.right - Camera::GetSingleton()->GetCameraPos().x, shape.bottom - Camera::GetSingleton()->GetCameraPos().y);
+    //Rectangle(hdc, shape.left - Camera::GetSingleton()->GetCameraPos().x, shape.top - Camera::GetSingleton()->GetCameraPos().y,
+    //    shape.right - Camera::GetSingleton()->GetCameraPos().x, shape.bottom - Camera::GetSingleton()->GetCameraPos().y);
     Rectangle(hdc, attackShape.left - Camera::GetSingleton()->GetCameraPos().x, attackShape.top - Camera::GetSingleton()->GetCameraPos().y,
         attackShape.right - Camera::GetSingleton()->GetCameraPos().x, attackShape.bottom - Camera::GetSingleton()->GetCameraPos().y);
 }

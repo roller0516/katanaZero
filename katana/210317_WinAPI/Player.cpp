@@ -47,8 +47,10 @@ HRESULT Player::Init()
 	{
 		playerEffect[i].Init(EffectType::dustEffect, this);
 	}
+	playerEffect[7].Init(EffectType::reflectEffect, this);
+	playerEffect[8].Init(EffectType::hitEffect, this);
 	srand((unsigned)time(NULL));
-	Worldpos.x = 1500;
+	Worldpos.x = 1570;
 	Worldpos.y = 2880;
 	currFrame = 0.0f;
 	maxFrame = 4.0f;
@@ -64,7 +66,6 @@ HRESULT Player::Init()
 	StartchangeWallIndex = -1;
 	attackShape = { 0,0,0,0 };
 
-	
 	return S_OK;
 }
 
@@ -77,7 +78,7 @@ void Player::Update()
 {
 	Camera::GetSingleton()->Update();
 	
-	for (int i = 0; i < 7; i++) 
+	for (int i = 0; i < 9; i++) 
 	{
 		playerEffect[i].Update();
 	}
@@ -163,7 +164,7 @@ void Player::Render(HDC hdc)
 	}
 	if (playerEffect) 
 	{
-		for (int i = 0; i < 7; i++)
+		for (int i = 0; i < 9; i++)
 		{
 			playerEffect[i].Render(hdc);
 		}
@@ -243,6 +244,7 @@ void Player::Attack()
 
 	if (isAttack)
 	{
+		
 		float distance = sqrtf(pow(Worldpos.x - currPos.x, 2) + pow(Worldpos.y - currPos.y, 2));
 		if (distance <= range && angle >=0)
 		{
@@ -256,6 +258,8 @@ void Player::Attack()
 		}
 		frameRun = true;
 		isGround = false;
+
+
 	}
 }
 
@@ -405,10 +409,10 @@ void Player::DoorBreak()
 	{
 		playerstate = PlayerState::door_break;
 		moveSpeed = 0;
-		//currFrame = 0;
 		frameRun = true;
 		Animation(PlayerState::door_break);
 	}
+	
 }
 
 void Player::PlayerFSM()
@@ -490,18 +494,23 @@ void Player::PlayerKeyMove()
 			playerEffect[1].SetWorldPos(Worldpos.x, Worldpos.y+10);
 		playerstate = PlayerState::jump;
 		currFrame = 0;
-		fallForce = 300;
+		fallForce = 400;
 		frameRun = true;
 		return;
 	}
 
 	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON))
 	{
-		fallForce = 250 - attCount*80;
-		attCount++;
+		
 		playerEffect[0].SetAlive(true);
 		playerEffect[0].SetCurrFrame();
 		angle = GetAngle(Worldpos, GetWorldMousePos(Worldpos));
+
+		if (angle > DegToRad(0))
+			fallForce = 300 - attCount * 80;
+		else
+			fallForce = 0;
+		attCount++;
 		currFrame = 0;
 		isAttack = true;
 		playerstate = PlayerState::attack;
@@ -684,10 +693,23 @@ void Player::PixelCollisionTop()
 			if (R == 0 && G == 0 && B == 0)
 				break;
 			velocity = 100;
-			Worldpos.y = i + playerHeight+6;
+			Worldpos.y = i + playerHeight+8;
 			break;
 		}
 	}
+}
+
+void Player::ReflectEffect()
+{
+	playerEffect[7].SetAlive(true);
+	playerEffect[7].SetWorldPos(Worldpos.x + 50, Worldpos.y);
+	playerEffect[7].SetCurrFrame();
+}
+
+void Player::HitEffect(int x, int y)
+{
+	playerEffect[8].SetAlive(true);
+	playerEffect[8].SetWorldPos(x, y);
 }
 
 void Player::PixelCollisionBottom()
@@ -713,15 +735,17 @@ void Player::PixelCollisionBottom()
 			else
 				black = false;
 			velocity = 80;
+
 			if ((R == 0 && G == 0 && B == 0) && isAttack) 
 			{
 				attCount = 0; 
 				break;
 			}
+
 			if (isAttack) 
 			{
 				attCount = 0;
-				//Worldpos.y = i - playerHeight-10;
+				Worldpos.y = i - playerHeight-10;
 				break;
 			}
 			if ((R == 0 && G == 0 && B == 0) && isFall) 

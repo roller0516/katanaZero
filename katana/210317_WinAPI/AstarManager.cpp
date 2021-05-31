@@ -62,10 +62,10 @@ void AstarTile::Render(HDC hdc)
 	{
 		
 	}
-	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
-	Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
-		rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
-	SelectObject(hdc, hOldBrush);
+	//hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
+	//Rectangle(hdc, rc.left - Camera::GetSingleton()->GetCameraPos().x, rc.top - Camera::GetSingleton()->GetCameraPos().y,
+	//	rc.right - Camera::GetSingleton()->GetCameraPos().x, rc.bottom - Camera::GetSingleton()->GetCameraPos().y);
+	//SelectObject(hdc, hOldBrush);
 	//if (type == AstarTileType::End)
 	//{
 	//	hOldBrush = (HBRUSH)SelectObject(hdc, hBrush);
@@ -104,10 +104,10 @@ void AstarTile::Clear()
 
 void AstarTile::SetColor(COLORREF color,bool nullcolor)
 {
-   	this->color = color;
-
-	this->hBrush = CreateSolidBrush(color);
-	DeleteObject(hBrush);
+   	//this->color = color;
+	//
+	//this->hBrush = CreateSolidBrush(color);
+	//DeleteObject(hBrush);
 }
 
 HRESULT AstarManager::Init()
@@ -148,8 +148,9 @@ void AstarManager::Update()
 		FindPath();
 	}
 
-
-	if (owner->GetData()->isFind) 
+	if (owner) 
+	{
+		if (owner->GetData()->isFind) 
 	{
 		if (startTile != destTile&& target->GetisGround())
 		{
@@ -163,6 +164,8 @@ void AstarManager::Update()
 			FindPath();
 		}
 	}
+	}
+	
 
 
 

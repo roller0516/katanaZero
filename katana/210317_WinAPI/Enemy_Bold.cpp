@@ -5,6 +5,7 @@
 #include "CommonFunction.h"
 #include "MissileManager.h"
 #include "AstarManager.h"
+#include "EnemyEffect.h"
 HRESULT Enemy_Bold::Init(int posX, int posY)
 {
     data = new Enemy::EnemyData;
@@ -16,16 +17,19 @@ HRESULT Enemy_Bold::Init(int posX, int posY)
     armRImage = ImageManager::GetSingleton()->AddImage("Bold_arm_r", "Image/Katana/enemy/enemy_bold_rightarm_R.bmp", 30, 18, 1, 1,true, RGB(255, 0, 255));
     GunImage = ImageManager::GetSingleton()->AddImage("Bold_gun", "Image/Katana/enemy/enemy_bold_gun.bmp", 54, 12, 1, 1,true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("Bold_attack", "Image/Katana/enemy/enemy_bold_aim_R.bmp", 42, 70, 1, 1, true, RGB(255, 0, 255));
-    //missileManager = new MissileManager();
-    //missileManager->Init(this);
-    //data->astar = new AstarManager();
-    //data->astar->Init();
-    //data->astar->SetOnwer(this);
+    enemyEffect = new EnemyEffect[8];
+   
     data->isTurn = false;
     data->findRange = 200;
-    data->attackRange = 300;
+    data->attackRange = 400;
     data->worldPos.x = posX;
     data->worldPos.y = posY;
+
+    for (int i = 0; i < 8; i++)
+    {
+        enemyEffect[i].Init(data->worldPos.x, data->worldPos.y, (EnemyEffectType)i);
+    }
+   
     data->maxFrame = 8;
     data->moveSpeed = 200;
     data->size = data->image->GetImageInfo()->frameWidth;
@@ -34,6 +38,7 @@ HRESULT Enemy_Bold::Init(int posX, int posY)
     data->attackAngle = 0;
     data->knockBackPower = 800;
     data->Index = 0;
+    count = 0;
 	return S_OK;
 }
 
@@ -45,7 +50,11 @@ void Enemy_Bold::Release()
 void Enemy_Bold::Update()
 {
    // missileManager->Update();
-
+    for (int i = 0; i < 8; i++) 
+    {
+        enemyEffect[i].Update();
+    }
+   
     if(data->astar)
         data->astar->Update();
 
@@ -154,6 +163,14 @@ void Enemy_Bold::Render(HDC hdc, bool world)
             }  
             
         }
+
+        for (int i = 0; i < 8; i++)
+        {
+            if (i == 2)
+                continue;
+            enemyEffect[i].Render(hdc);
+        }
+        enemyEffect[2].Render(hdc);
 }
 
 Enemy* Enemy_Bold::Clone()
@@ -192,6 +209,7 @@ void Enemy_Bold::Pattern()
     }
     data->isAttack = false;
     //찾았을때 무조건 내위치로 따라옴
+    data->findCooltime += TimerManager::GetSingleton()->GetElapsedTime();
     if (data->isFind)
     {
         data->delay = 0;
@@ -200,6 +218,14 @@ void Enemy_Bold::Pattern()
     }
     if (data->findRange > distance)
     {
+        if (data->findCount == 0) 
+        {
+            enemyEffect[7].SetAlive(true);
+            enemyEffect[7].SetPos(data->worldPos.x, data->worldPos.y - 50);
+
+            data->findCount++;
+        }
+       
         if (data->findCooltime > 1.0f)
         {
             data->findCooltime = 0;
@@ -233,11 +259,24 @@ void Enemy_Bold::Attack(EnemyDir dir)
    data->attackSpeed += TimerManager::GetSingleton()->GetElapsedTime();
    if (data->attackSpeed > 1) 
    {
+       enemyEffect[0].SetOwner(this);
        data->attackSpeed = 0;
-       if(dir == EnemyDir::Left)
-           data->missileManager->Fire(data->attackAngle,data->worldPos.x - 5, data->worldPos.y -10);
-       else
+       if (dir == EnemyDir::Left) 
+       {
+           data->missileManager->Fire(data->attackAngle, data->worldPos.x - 5, data->worldPos.y - 10);
+           enemyEffect[0].SetAlive(true);
+           enemyEffect[0].SetDir(EnemyEffectDir::Left);
+           enemyEffect[0].SetPos(data->worldPos.x - 50, data->worldPos.y-7);
+       }
+           
+       else 
+       {
            data->missileManager->Fire(data->attackAngle, data->worldPos.x + 5, data->worldPos.y - 10);
+           enemyEffect[0].SetAlive(true);
+           enemyEffect[0].SetDir(EnemyEffectDir::Right);
+           enemyEffect[0].SetPos(data->worldPos.x + 50, data->worldPos.y-14);
+       }
+           
    }
    state = EnemyState::attack;
    Animation(state);
@@ -365,6 +404,31 @@ void Enemy_Bold::Die()
 {
     if (data->isAlive == false) 
     {
+        enemyEffect[2].SetPos(data->worldPos.x - 50, data->worldPos.y - 50);
+
+        if (count == 0)
+        {
+            enemyEffect[2].SetAlive(true);
+            srand((unsigned)time(NULL));
+            int num = (rand() % 4) + 3;
+
+            enemyEffect[num].SetAlive(true);
+            enemyEffect[num].SetPos(data->worldPos.x - 50, data->worldPos.y - 50);
+
+            if (dir == EnemyDir::Left)
+            {
+                enemyEffect[num].SetDir(EnemyEffectDir::Right);
+                enemyEffect[2].SetDir(EnemyEffectDir::Right);
+            }
+
+            else
+            {
+                enemyEffect[num].SetDir(EnemyEffectDir::Left);
+                enemyEffect[2].SetDir(EnemyEffectDir::Left);
+            }
+            count++;
+        }
+
         data->shape = { -100,-100,-100,-100 };
         data->isFind = false;
         data->isAttack = false;

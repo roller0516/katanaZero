@@ -30,6 +30,7 @@ public:
 		MissileManager* missileManager = nullptr;
 		RECT shape = { 0,0,0,0 };
 		RECT attackShape = { 0,0,0,0 };
+		RECT rayShape = { 0,0,0,0 };
 		string Name;
 		FPOINT worldPos = { 0, 0 };
 		FPOINT localPos = { 0, 0 };
@@ -45,6 +46,7 @@ public:
 		float attackAngle = 0.0f;
 		float knockBackPower = 0.0f;
 		float findCooltime = 0.0f;
+		int findCount = 0;
 		int maxFrame = 0;
 		int updateCount = 0;
 		int size = 0;

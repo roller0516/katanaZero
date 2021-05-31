@@ -22,6 +22,9 @@ private:
 	EnemyManager* enemyManager;
 	ItemManager* itemManager;
 	InstallObject* installObj;
+
+	ENMY_INFO enemySize[100];
+
 	Enemy* enemy;
 	Player* player;
 	Image* BackGround;

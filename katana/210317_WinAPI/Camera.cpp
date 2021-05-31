@@ -9,6 +9,12 @@ HRESULT Camera::Init(Player* target)
 
 	this->target = target;
 
+	originalPos = worldPos;
+	CameraShaking = false;
+	shakes = 0;
+	shakeAmount = 0.7f;
+	decreaseFactor = 1.0f;
+
 	bg = ImageManager::GetSingleton()->AddImage("stage1_bg_render", "Image/Katana/stage1_bg_render.bmp", 2176, 3500);
 	bg_Collision = ImageManager::GetSingleton()->AddImage("stage1_bg_collision", "Image/Katana/stage1_bg_collision.bmp", 2176, 3500);
 	worldrc.x = 2176;
@@ -47,6 +53,24 @@ void Camera::Update()
 		debug = true;
 	if (KeyManager::GetSingleton()->IsOnceKeyDown('X'))
 		debug = false;
+	if (KeyManager::GetSingleton()->IsOnceKeyDown('F'))
+		Shake(0.3f);
+	if (CameraShaking)
+	{
+		if (shakes > 0)
+		{
+			pos.x = originalPos.x + (rand() % 50) * shakeAmount;
+			pos.y = originalPos.y + (rand() % 50) * shakeAmount;
+			worldPos.y += 50;
+			shakes -= TimerManager::GetSingleton()->GetElapsedTime() * decreaseFactor;
+		}
+		else
+		{
+			shakes = 0.f;
+			worldPos = originalPos;
+			CameraShaking = false;
+		}
+	}
 }
 
 
@@ -99,6 +123,17 @@ void Camera::View()
 		pos.y = worldrc.y - WINSIZE_Y;
 	else
 		pos.y = tPos.y - WINSIZE_Y * pivot.y;
+}
+void Camera::Shake(float shaking)
+{
+	srand((unsigned)time(NULL));
+	int x1, x2, y1, y2;
+
+
+	originalPos = worldPos;
+	CameraShaking = true;
+	shakes = shaking;	
+
 }
 FPOINT Camera::Distance(FPOINT pos, POINT pos2)
 {

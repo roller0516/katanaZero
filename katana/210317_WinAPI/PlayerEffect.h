@@ -1,6 +1,6 @@
 #pragma once
 #include "GameNode.h"
-enum class EffectType{attackEffect, jumpEffect,flipEffect,landEffect, dustEffect};
+enum class EffectType{attackEffect, jumpEffect,flipEffect,landEffect, dustEffect, reflectEffect,hitEffect};
 class Image;
 class Player;
 class PlayerEffect :

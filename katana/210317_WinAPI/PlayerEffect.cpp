@@ -9,6 +9,8 @@ HRESULT PlayerEffect::Init(EffectType type, Player* player)
     ImageManager::GetSingleton()->AddImage("flipEffect", "Image/Katana/player/player_jumpdust_wall_2x5.bmp",160,210,2, 5, true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("dustEffect", "Image/Katana/player/player_dust_7x1.bmp",238,28,7, 1, true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("landEffect", "Image/Katana/player/player_landdust_8x1.bmp",660 , 16, 8, 1, true, RGB(255, 0, 255));
+    ImageManager::GetSingleton()->AddImage("reflectEffect", "Image/Katana/effect/effect_reflect_6x2.bmp", 883, 280, 6, 2, true, RGB(255, 0, 255));
+    ImageManager::GetSingleton()->AddImage("hitEffect", "Image/Katana/effect/effect_hit_lazer.bmp", 900, 4,1,1,true, RGB(255, 0, 255));
 
     effectType = type;
 
@@ -30,6 +32,8 @@ HRESULT PlayerEffect::Init(EffectType type, Player* player)
     case EffectType::landEffect:
         maxFrame = 8;
         break;
+    case EffectType::reflectEffect:
+        maxFrame = 6;
     }
     isAlive = false;
     this->owner = player;
@@ -49,18 +53,27 @@ void PlayerEffect::Update()
 {
     if (isAlive) 
     {
-        moveSpeed += TimerManager::GetSingleton()->GetElapsedTime()*30;
-        currFrame += 15 * TimerManager::GetSingleton()->GetElapsedTime();
-        if (currFrame > maxFrame)
+        if (effectType == EffectType::hitEffect) 
         {
-            moveSpeed = 0;
-            currFrame = 0;
-            count = 0;
-            isAlive = false;
-            worldPos.x = -100;
-            worldPos.y = -100;
+            worldPos.x += cosf(owner->GetPlayerAngle()) * 1000000 * TimerManager::GetSingleton()->GetElapsedTime();
+            worldPos.y -= sinf(owner->GetPlayerAngle()) * 1000000 * TimerManager::GetSingleton()->GetElapsedTime();
+        }
+        else 
+        {
+            moveSpeed += TimerManager::GetSingleton()->GetElapsedTime() * 30;
+            currFrame += 15 * TimerManager::GetSingleton()->GetElapsedTime();
+            if (currFrame > maxFrame)
+            {
+                moveSpeed = 0;
+                currFrame = 0;
+                count = 0;
+                isAlive = false;
+                worldPos.x = -100;
+                worldPos.y = -100;
+            }
         }
     }
+
     localPos.x = worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
     localPos.y = worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
 }
@@ -100,6 +113,17 @@ void PlayerEffect::Render(HDC hdc)
         case EffectType::landEffect:
             img = ImageManager::GetSingleton()->FindImage("landEffect");
             img->FrameRender(hdc, localPos.x, localPos.y, currFrame, 0, true);
+            break;
+        case EffectType::reflectEffect:
+            img = ImageManager::GetSingleton()->FindImage("reflectEffect");
+            if (dir == 0)
+                img->FrameRender(hdc, localPos.x - 100, localPos.y, currFrame, 0, true, size);
+            else
+                img->FrameRenderFlip(hdc, localPos.x, localPos.y, currFrame, 0, true, size);
+            break;
+        case EffectType::hitEffect:
+            img = ImageManager::GetSingleton()->FindImage("hitEffect");
+            img->rotateRender(hdc, localPos.x, localPos.y, 0, 0, owner->GetPlayerAngle(),2);
             break;
         }
 

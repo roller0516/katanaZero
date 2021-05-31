@@ -5,6 +5,7 @@
 #include "CommonFunction.h"
 #include "MissileManager.h"
 #include "AstarManager.h"
+#include "EnemyEffect.h"
 HRESULT Enemy_Cop::Init(int posX, int posY)
 {
     data = new Enemy::EnemyData;
@@ -16,11 +17,14 @@ HRESULT Enemy_Cop::Init(int posX, int posY)
     armRImage = ImageManager::GetSingleton()->AddImage("Cop_arm_r", "Image/Katana/enemy/enemy_cop_rightarm_R.bmp", 30, 18, 1, 1, true, RGB(255, 0, 255));
     GunImage = ImageManager::GetSingleton()->AddImage("Cop_gun", "Image/Katana/enemy/enemy_bold_gun.bmp", 54, 12, 1, 1, true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("Cop_attack", "Image/Katana/enemy/enemy_Cop_aim_R.bmp", 46, 72, 1, 1, true, RGB(255, 0, 255));
-    //missileManager = new MissileManager();
-    //missileManager->Init(this);
-    //data->astar = new AstarManager();
-    //data->astar->Init();
-    //data->astar->SetOnwer(this);
+
+    enemyEffect = new EnemyEffect[8];
+
+    for (int i = 0; i < 8; i++)
+    {
+        enemyEffect[i].Init(data->worldPos.x, data->worldPos.y, (EnemyEffectType)i);
+    }
+
     data->isTurn = false;
     data->findRange = 200;
     data->attackRange = 300;
@@ -39,12 +43,15 @@ HRESULT Enemy_Cop::Init(int posX, int posY)
 
 void Enemy_Cop::Release()
 {
-    //SAFE_RELEASE(missileManager);
+   
 }
 
 void Enemy_Cop::Update()
 {
-    //missileManager->Update();
+    for (int i = 0; i < 8; i++)
+    {
+        enemyEffect[i].Update();
+    }
 
     if (data->astar)
         data->astar->Update();
@@ -154,6 +161,15 @@ void Enemy_Cop::Render(HDC hdc, bool world)
         }
 
     }
+
+    for (int i = 0; i < 8; i++)
+    {
+        if (i == 2)
+            continue;
+        enemyEffect[i].Render(hdc);
+    }
+    enemyEffect[2].Render(hdc);
+
 }
 
 Enemy* Enemy_Cop::Clone()
@@ -200,8 +216,17 @@ void Enemy_Cop::Pattern()
     }
     if (data->findRange > distance)
     {
+        if (data->findCount == 0)
+        {
+            enemyEffect[7].SetAlive(true);
+            enemyEffect[7].SetPos(data->worldPos.x, data->worldPos.y - 50);
+
+            data->findCount++;
+        }
+
         if (data->findCooltime > 1.0f)
         {
+
             data->findCooltime = 0;
             data->isFind = true;
             return;
@@ -233,11 +258,24 @@ void Enemy_Cop::Attack(EnemyDir dir)
     data->attackSpeed += TimerManager::GetSingleton()->GetElapsedTime();
     if (data->attackSpeed > 1)
     {
+        enemyEffect[0].SetOwner(this);
         data->attackSpeed = 0;
         if (dir == EnemyDir::Left)
+        {
             data->missileManager->Fire(data->attackAngle, data->worldPos.x - 5, data->worldPos.y - 10);
+            enemyEffect[0].SetAlive(true);
+            enemyEffect[0].SetDir(EnemyEffectDir::Left);
+            enemyEffect[0].SetPos(data->worldPos.x - 50, data->worldPos.y - 7);
+        }
+
         else
+        {
             data->missileManager->Fire(data->attackAngle, data->worldPos.x + 5, data->worldPos.y - 10);
+            enemyEffect[0].SetAlive(true);
+            enemyEffect[0].SetDir(EnemyEffectDir::Right);
+            enemyEffect[0].SetPos(data->worldPos.x + 50, data->worldPos.y - 14);
+        }
+
     }
     state = EnemyState::attack;
     Animation(state);
@@ -367,6 +405,31 @@ void Enemy_Cop::Die()
 {
     if (data->isAlive == false)
     {
+        enemyEffect[2].SetPos(data->worldPos.x - 50, data->worldPos.y - 50);
+
+        if (count == 0)
+        {
+            enemyEffect[2].SetAlive(true);
+            srand((unsigned)time(NULL));
+            int num = (rand() % 4) + 3;
+
+            enemyEffect[num].SetAlive(true);
+            enemyEffect[num].SetPos(data->worldPos.x - 50, data->worldPos.y - 50);
+
+            if (dir == EnemyDir::Left)
+            {
+                enemyEffect[num].SetDir(EnemyEffectDir::Right);
+                enemyEffect[2].SetDir(EnemyEffectDir::Right);
+            }
+
+            else
+            {
+                enemyEffect[num].SetDir(EnemyEffectDir::Left);
+                enemyEffect[2].SetDir(EnemyEffectDir::Left);
+            }
+            count++;
+        }
+
         data->shape = { -100,-100,-100,-100 };
         data->isFind = false;
         data->isAttack = false;

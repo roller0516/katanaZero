@@ -5,6 +5,7 @@
 #include "CommonFunction.h"
 #include "MissileManager.h"
 #include "AstarManager.h"
+#include "EnemyEffect.h"
 HRESULT Enemy_Grunt::Init(int posX, int posY)
 {
     data = new Enemy::EnemyData;
@@ -13,13 +14,12 @@ HRESULT Enemy_Grunt::Init(int posX, int posY)
     ImageManager::GetSingleton()->AddImage("Grunt_run", "Image/Katana/enemy/enemy_grunt_run_10x2.bmp", 720, 156, 10, 2, true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("Grunt_walk", "Image/Katana/enemy/enemy_grunt_walk_10x2.bmp", 640, 160, 10, 2, true, RGB(255, 0, 255));
     ImageManager::GetSingleton()->AddImage("Grunt_attack", "Image/Katana/enemy/enemy_grunt_attack_7x2.bmp", 616, 168, 7, 2, true, RGB(255, 0, 255));
+    enemyEffect = new EnemyEffect[8];
     
-    
-    //missileManager = new MissileManager();
-    //missileManager->Init(this);
-    //data->astar = new AstarManager();
-    //data->astar->Init();
-    //data->astar->SetOnwer(this);
+    for (int i = 0; i < 8; i++)
+    {
+        enemyEffect[i].Init(data->worldPos.x, data->worldPos.y, (EnemyEffectType)i);
+    }
 
     data->isTurn = false;
     data->findRange = 200;
@@ -44,6 +44,11 @@ void Enemy_Grunt::Release()
 
 void Enemy_Grunt::Update()
 {
+    for (int i = 0; i < 8; i++)
+    {
+        enemyEffect[i].Update();
+    }
+
     if (data->astar)
         data->astar->Update();
 
@@ -83,11 +88,11 @@ void Enemy_Grunt::Update()
         PixelCollisionLeft();
     }
 
-    //if (data->isPhysic && data->isSamPle == false)
-    //{
-    //    data->fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * data->velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
-    //    data->worldPos.y -= data->fallForce * TimerManager::GetSingleton()->GetElapsedTime();
-    //}
+    if (data->isPhysic && data->isSamPle == false)
+    {
+        data->fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * data->velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
+        data->worldPos.y -= data->fallForce * TimerManager::GetSingleton()->GetElapsedTime();
+    }
     if(data->isAttack == false)
         data->attackShape = { -100,-100,-100,-100 };
 }
@@ -135,9 +140,17 @@ void Enemy_Grunt::Render(HDC hdc, bool world)
             else
                 data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
         }
-        Rectangle(hdc, data->attackShape.left - Camera::GetSingleton()->GetCameraPos().x, data->attackShape.top - Camera::GetSingleton()->GetCameraPos().y,
-            data->attackShape.right - Camera::GetSingleton()->GetCameraPos().x, data->attackShape.bottom - Camera::GetSingleton()->GetCameraPos().y);
+       Rectangle(hdc, data->attackShape.left - Camera::GetSingleton()->GetCameraPos().x, data->attackShape.top - Camera::GetSingleton()->GetCameraPos().y,
+           data->attackShape.right - Camera::GetSingleton()->GetCameraPos().x, data->attackShape.bottom - Camera::GetSingleton()->GetCameraPos().y);
     }
+
+    for (int i = 0; i < 8; i++)
+    {
+        if (i == 2)
+            continue;
+        enemyEffect[i].Render(hdc);
+    }
+    enemyEffect[2].Render(hdc);
 }
 
 Enemy* Enemy_Grunt::Clone()
@@ -186,6 +199,13 @@ void Enemy_Grunt::Pattern()
     }
     if (data->findRange > distance )
     {
+        if (data->findCount == 0)
+        {
+            enemyEffect[7].SetAlive(true);
+            enemyEffect[7].SetPos(data->worldPos.x, data->worldPos.y - 50);
+
+            data->findCount++;
+        }
        if (data->findCooltime > 1.0f)
        {
            data->findCooltime = 0;
@@ -217,28 +237,38 @@ void Enemy_Grunt::Attack(EnemyDir dir)
     data->isTurn = false;
     data->astar->Clear();
     targeton = 0;
+
     data->attackSpeed += TimerManager::GetSingleton()->GetElapsedTime();
-    
-    if (data->attackSpeed > 0.2f)
+    if (data->attackSpeed > 0.4f)
     {
         data->attackSpeed = 0;
         // 어택 박스 생성
-
-        if (dir == EnemyDir::Right) 
+        enemyEffect[1].SetOwner(this);
+        data->attackSpeed = 0;
+        if (dir == EnemyDir::Left  && enemyEffect[1].GetAlive()== false)
         {
+            enemyEffect[1].SetAlive(true);
+            enemyEffect[1].SetDir(EnemyEffectDir::Left);
+            enemyEffect[1].SetPos(data->worldPos.x - 25, data->worldPos.y - 7);
+
+            data->attackShape.left = data->worldPos.x - 40 - (40 / 2);
+            data->attackShape.top = data->worldPos.y - 80 / 2;
+            data->attackShape.right = data->worldPos.x - 40 + (40 / 2);
+            data->attackShape.bottom = data->worldPos.y + 80 / 2;
+        }
+
+        else if(dir == EnemyDir::Right && enemyEffect[1].GetAlive() == false)
+        {
+            enemyEffect[1].SetAlive(true);
+            enemyEffect[1].SetDir(EnemyEffectDir::Right);
+            enemyEffect[1].SetPos(data->worldPos.x + 25, data->worldPos.y - 7);
+
             data->attackShape.left = data->worldPos.x + 40 - (40 / 2);
             data->attackShape.top = data->worldPos.y - 80 / 2;
             data->attackShape.right = data->worldPos.x + 40 + (40 / 2);
             data->attackShape.bottom = data->worldPos.y + 80 / 2;
         }
-        else 
-        {
-            data->attackShape.left = data->worldPos.x - 40 - (40 / 2);
-            data->attackShape.top = data->worldPos.y - 80 / 2;
-            data->attackShape.right = data->worldPos.x - 40 + (40 / 2);
-            data->attackShape.bottom = data->worldPos.y + 80 / 2;
 
-        }
         state = EnemyState::attack;
         Animation(state);
     }
@@ -362,7 +392,28 @@ void Enemy_Grunt::Idle()
 void Enemy_Grunt::Die()
 {
     if (data->isAlive == false)
-    {
+    {if (count == 0)
+        {
+            enemyEffect[2].SetAlive(true);
+            srand((unsigned)time(NULL));
+            int num = (rand() % 4) + 3;
+
+            enemyEffect[num].SetAlive(true);
+            enemyEffect[num].SetPos(data->worldPos.x - 50, data->worldPos.y - 50);
+
+            if (dir == EnemyDir::Left)
+            {
+                enemyEffect[num].SetDir(EnemyEffectDir::Right);
+                enemyEffect[2].SetDir(EnemyEffectDir::Right);
+            }
+
+            else
+            {
+                enemyEffect[num].SetDir(EnemyEffectDir::Left);
+                enemyEffect[2].SetDir(EnemyEffectDir::Left);
+            }
+            count++;
+        }
         data->shape = { -100,-100,-100,-100 };
         data->isFind = false;
         data->isAttack = false;
@@ -379,6 +430,7 @@ void Enemy_Grunt::KnockBack()
         data->knockBackPower = 0;
         data->isKnockBack = false;
         return;
+        
     }
 
     data->knockBackPower -= 100 * TimerManager::GetSingleton()->GetElapsedTime();
@@ -415,8 +467,6 @@ void Enemy_Grunt::Animation(EnemyState ani)
 }
 void Enemy_Grunt::PixelCollisionBottom()
 {
-    //if (data->isTurn)
-    //    return;
     COLORREF color;
     int R, G, B;
     float playerHeight = 30;

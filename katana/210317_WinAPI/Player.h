@@ -62,6 +62,7 @@ private:
 	int StartchangeWallIndex;
 	int EndchangeWallIndex;
 
+	bool isReflect;
 	bool black;
 	bool isFilp;
 	bool isGrab;
@@ -107,7 +108,10 @@ public:
 	void PixelCollisionLeft();
 	void PixelCollisionRight();
 	void PixelCollisionTop();
+	void ReflectEffect();
+	void HitEffect(int x ,int y);
 
+	inline void SetReflect(bool reflect) { this->isReflect = reflect; }
 	inline void SetDoor(bool door) { this->isDoor = door; }
 	inline bool GetisGround() { return isGround; }
 	inline Direction GetDir() { return this->dir; }

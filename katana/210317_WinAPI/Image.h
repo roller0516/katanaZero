@@ -97,10 +97,11 @@ public:
 	void FrameRenderFlip(HDC hdc, int destX, int destY,
 		int currFrameX, int currFrameY, bool isCenterRenderring = false, int size = 1);
 	void AlphaRender(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY, BYTE alpha, bool isCenterRenderring = false);
+	//void AlphaRenderFlip(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY, BYTE alpha, bool isCenterRenderring = false);
 	void CameraRender(HDC hdc, float destX, float destY,  int width, int height, bool isCenterRenderring);
 
-	void rotateRender(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle);
-	void rotateRenderFlip(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle);
+	void rotateRender(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle, float size = 1);
+	void rotateRenderFlip(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle,float size = 1);
 	void Release();
 
 	// get, set

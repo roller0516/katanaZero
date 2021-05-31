@@ -56,6 +56,10 @@ void Item::Update()
 			fireAngle += 15 * TimerManager::GetSingleton()->GetElapsedTime();
 			Fire();
 		}
+		hitShape.left = worldPos.x - size / 2;
+		hitShape.top = worldPos.y - size / 2;
+		hitShape.right = worldPos.x + size / 2;
+		hitShape.bottom = worldPos.y + size / 2;
 	}
 
 	if (isAlive == false)
@@ -93,10 +97,7 @@ void Item::Update()
 	localPos.x = worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
 	localPos.y = worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
 	
-	hitShape.left = localPos.x - size / 2;
-	hitShape.top = localPos.y - size / 2;
-	hitShape.right = localPos.x + size / 2;
-	hitShape.bottom = localPos.y + size / 2;
+	
 }
 
 void Item::Render(HDC hdc)

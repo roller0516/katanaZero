@@ -212,7 +212,7 @@ void Image::CameraRender(HDC hdc, float destX, float destY, int width, int heigh
 
 }
 
-void Image::rotateRender(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle)
+void Image::rotateRender(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle, float size)
 {
     POINT rPoint[3];
     int dist = sqrt((imageInfo->frameWidth / 2) * (imageInfo->frameWidth / 2) + (imageInfo->frameHeight / 2) * (imageInfo->frameHeight / 2));
@@ -239,17 +239,15 @@ void Image::rotateRender(HDC hdc, float destX, float destY, int currentFrameX, i
         DeleteObject(hBrush);
 
         PlgBlt(imageInfo->hRotateDC, rPoint, imageInfo->hMemDC,
-            //_imageInfo->currentFrameX * _imageInfo->frameWidth,
-            //_imageInfo->currentFrameY * _imageInfo->frameHeight,
             currentFrameX * imageInfo->frameWidth,
             currentFrameY * imageInfo->frameHeight,
             imageInfo->frameWidth, imageInfo->frameHeight, NULL, 0, 0);
 
         GdiTransparentBlt(hdc,
-            destX - imageInfo->rotateWidth / 2,
-            destY - imageInfo->rotateHeight / 2,
-            imageInfo->rotateWidth,
-            imageInfo->rotateHeight,
+            destX - imageInfo->rotateWidth / 2 * size,
+            destY - imageInfo->rotateHeight / 2 * size,
+            imageInfo->rotateWidth*size,
+            imageInfo->rotateHeight*size,
             imageInfo->hRotateDC,
             0,
             0,
@@ -267,7 +265,7 @@ void Image::rotateRender(HDC hdc, float destX, float destY, int currentFrameX, i
 
 }
 
-void Image::rotateRenderFlip(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle)
+void Image::rotateRenderFlip(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle, float size )
 {
     POINT rPoint[3];
     int dist = sqrt((imageInfo->frameWidth / 2) * (imageInfo->frameWidth / 2) + (imageInfo->frameHeight / 2) * (imageInfo->frameHeight / 2));
@@ -312,10 +310,10 @@ void Image::rotateRenderFlip(HDC hdc, float destX, float destY, int currentFrame
             imageInfo->frameHeight, NULL, 0, 0);
 
         GdiTransparentBlt(hdc,
-            destX - imageInfo->rotateWidth / 2,
-            destY - imageInfo->rotateHeight / 2,
-            imageInfo->rotateWidth,
-            imageInfo->rotateHeight,
+            destX - imageInfo->rotateWidth / 2 * size,
+            destY - imageInfo->rotateHeight / 2 * size,
+            imageInfo->rotateWidth * size,
+            imageInfo->rotateHeight * size,
             imageInfo->hRotateDC,
             0,
             0,
@@ -510,6 +508,61 @@ void Image::AlphaRender(HDC hdc, int destX, int destY, int currentFrameX, int cu
             imageInfo->hMemDC, 0, 0, imageInfo->frameWidth, imageInfo->frameHeight, blendFunc);
     }
 }
+
+//void Image::AlphaRenderFlip(HDC hdc, int destX, int destY, int currentFrameX, int currentFrameY, BYTE alpha, bool isCenterRenderring)
+//{
+//
+//    imageInfo->currFrameX = currentFrameX;
+//    imageInfo->currFrameY = currentFrameY;
+//
+//    int x = destX;
+//    int y = destY;
+//    if (isCenterRenderring)
+//    {
+//        x = destX - (imageInfo->frameWidth / 2);
+//        y = destY - (imageInfo->frameHeight / 2);
+//    }
+//
+//    blendFunc.SourceConstantAlpha = alpha;
+//
+//    if (isTransparent)
+//    {
+//        BitBlt(imageInfo->hBlendDC, 0, 0, imageInfo->frameWidth, imageInfo->frameHeight, hdc, x, y, SRCCOPY);
+//        StretchBlt(
+//            imageInfo->hBlendDC,
+//            imageInfo->frameWidth - 1,
+//            imageInfo->frameHeight * imageInfo->currFrameY,
+//            -1 * imageInfo->frameWidth,
+//            imageInfo->frameHeight,
+//            hdc,
+//            x,
+//            y,
+//            imageInfo->frameWidth,
+//            imageInfo->frameHeight,
+//            SRCCOPY);
+//        // 특정 색상을 빼고 복사하는 함수
+//        GdiTransparentBlt(
+//            imageInfo->hBlendDC,                // 목적지 DC
+//            x, y,               // 복사 위치
+//            imageInfo->frameWidth,
+//            imageInfo->frameHeight,  // 복사 크기
+//            imageInfo->hMemDC,  // 원본 DC
+//            0,  // 복사 X 위치
+//            imageInfo->frameHeight * imageInfo->currFrameY, // 복사 Y 위치
+//            imageInfo->frameWidth,
+//            imageInfo->frameHeight,  // 복사 크기
+//            transColor  // 제외할 색상
+//        );
+//        //3
+//        GdiAlphaBlend(hdc, x, y, imageInfo->frameWidth, imageInfo->frameHeight,
+//            imageInfo->hBlendDC, 0, 0, imageInfo->frameWidth, imageInfo->frameHeight, blendFunc);
+//    }
+//    else//원본 이미지 그대로 출력
+//    {
+//        GdiAlphaBlend(hdc, x, y, imageInfo->frameWidth, imageInfo->frameHeight,
+//            imageInfo->hMemDC, 0, 0, imageInfo->frameWidth, imageInfo->frameHeight, blendFunc);
+//    }
+//}
 
 void Image::Release()
 {

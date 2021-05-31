@@ -37,8 +37,12 @@ void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* playe
 
 		if (missile->GetMissile()[i]->GetIsFired() == true
 			&& missile->GetMissile()[i]->GetType() == MissileType::player
-			&& IntersectRect(&rcTemp, &rcEnemy, &rcmissile))
+			&& IntersectRect(&rcTemp, &rcEnemy, &rcmissile)) //¹İ»ç
 		{
+			TimerManager::GetSingleton()->SetTimeStop(true);
+			player->ReflectEffect();
+			player->HitEffect(enemy->GetMonsterList()[index]->GetData()->worldPos.x,
+				enemy->GetMonsterList()[index]->GetData()->worldPos.y);
 			missile->GetMissile()[i]->SetPos(-100, -100);
 			missile->GetMissile()[i]->SetLocalPos(-100, -100);
 			missile->GetMissile()[i]->SetIsFired(false);
@@ -50,11 +54,6 @@ void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* playe
 }
 
 
-//void CollisionManager::PlayerDoor(Player* player, EnemyManager* enemy)
-//{
-//
-//}
-
 void CollisionManager::EnemyPlayer(EnemyManager* enemy, Player* player,int index)
 {
 	RECT rcTemp, rcplayer, rcEnemy;
@@ -62,6 +61,9 @@ void CollisionManager::EnemyPlayer(EnemyManager* enemy, Player* player,int index
 	rcEnemy = enemy->GetMonsterList()[index]->GetData()->shape;
 	if (IntersectRect(&rcTemp, &rcplayer, &rcEnemy))
 	{
+		player->HitEffect(enemy->GetMonsterList()[index]->GetData()->worldPos.x , 
+			enemy->GetMonsterList()[index]->GetData()->worldPos.y);
+		TimerManager::GetSingleton()->SetTimeStop(true);
 		enemy->GetMonsterList()[index]->GetData()->isAlive = false;
 		enemy->GetMonsterList()[index]->GetData()->shape = { -100,-100,-100,-100 };
 	}
@@ -74,28 +76,37 @@ void CollisionManager::EnemyItem(Player* player,EnemyManager* enemy, ItemManager
 	rcEnemy = enemy->GetMonsterList()[index]->GetData()->shape;
 	if (IntersectRect(&rcTemp, &rcitem, &rcEnemy)&& item->GetItemList()[player->GetItemIndex()]->Getfired()==true)
 	{
+		player->HitEffect(enemy->GetMonsterList()[index]->GetData()->worldPos.x,
+			enemy->GetMonsterList()[index]->GetData()->worldPos.y);
+		TimerManager::GetSingleton()->SetTimeStop(true);
 		enemy->GetMonsterList()[index]->GetData()->isAlive = false;
-		
 		item->GetItemList()[player->GetItemIndex()]->SetAlive(false);
 		//item->GetItemList()[player->GetItemIndex()]->SetRect();
 	}
 }
 
-void CollisionManager::PlayerDoor(Player* player, InstallObject* installobj)
+void CollisionManager::PlayerDoorEnemy(Player* player, InstallObject* installobj, EnemyManager* enemy, int index)
 {
-	RECT rcTemp, rcPlayer, rcDoor;
+	RECT rcTemp, rcTemp2 ,rcPlayer, rcDoor, rcEnemy, rcDoorAttack;
 	rcPlayer = player->GetRect();
 	rcDoor = installobj->GetShape();
-
+	rcDoorAttack = installobj->GetAttackShape();
+	rcEnemy = enemy->GetMonsterList()[index]->GetData()->shape;
 	if (IntersectRect(&rcTemp, &rcPlayer, &rcDoor) && installobj->GetClose())
 	{
-		player->SetDoor(true);
-		player->DoorBreak();
 		player->SetPos(player->GetWorldpos().x, player->GetWorldpos().y);
 		if (KeyManager::GetSingleton()->IsOnceKeyDown('D')) 
 		{
 			installobj->SetOpen(true);
+			player->SetDoor(true);
+			player->DoorBreak();
 		}
 	}
+	if (IntersectRect(&rcTemp2, &rcEnemy, &rcDoorAttack))
+	{
+		enemy->GetMonsterList()[index]->GetData()->isAlive = false;
+		enemy->GetMonsterList()[index]->GetData()->shape = { -100,-100,-100,-100 };
+	}
 }
+
 

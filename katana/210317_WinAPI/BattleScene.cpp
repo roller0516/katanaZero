@@ -39,9 +39,9 @@ HRESULT BattleScene::Init()
 
 	player->SetitemManager(itemManager);
 
-	//astarManager = new AstarManager;
-	//astarManager->Init();
-	//astarManager->SetTarget(player);
+	astarManager = new AstarManager;
+	astarManager->Init();
+	astarManager->SetTarget(player);
 
 	enemyManager = new EnemyManager;
 	enemyManager->RegisterClone("PompEnemy", new Enemy_pomp);
@@ -50,7 +50,7 @@ HRESULT BattleScene::Init()
 	enemyManager->RegisterClone("CopEnemy", new Enemy_Cop);
 
 	collisionManager = new CollisionManager;
-	//enemyManager->AddEnemy("GruntEnemy",1);
+	//enemyManager->AddEnemy("BoldEnemy",1);
 	//enemyManager->Init(player,500, 500, 0);
 
 	//enemyManager->AddEnemy("CopEnemy", 5);
@@ -65,25 +65,26 @@ HRESULT BattleScene::Init()
 	missileManager = new MissileManager;
 	missileManager->Init();
 
+	MapLoad(1);
+
 	for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
 	{
+		enemyManager->GetMonsterList()[i]->GetData()->target = player;
 		enemyManager->GetMonsterList()[i]->GetData()->Index = i;
 		enemyManager->GetMonsterList()[i]->GetData()->astar = astarManager;
 		enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
 		enemyManager->GetMonsterList()[i]->GetData()->missileManager = missileManager;
 	}
 
-	MapLoad(1);
 
-
-	//for (int j = 0; j < TILE_Y; j++)
-	//{
-	//	for (int k = 0; k < TILE_X; k++)
-	//	{
-	//		if (tileInfo[j * TILE_X + k].type == TileType::Wall)
-	//			astarManager->SetWall(j, k);
-	//	}
-	//}
+	for (int j = 0; j < TILE_Y; j++)
+	{
+		for (int k = 0; k < TILE_X; k++)
+		{
+			if (tileInfo[j * TILE_X + k].type == TileType::Wall)
+				astarManager->SetWall(j, k);
+		}
+	}
 	
 	bgPos.x = 0;
 	bgPos.y = 0;
@@ -103,10 +104,8 @@ void BattleScene::Release()
 
 void BattleScene::Update()
 {
-
 	if (installObj)
 		installObj->Update();
-	
 	if(missileManager)
 		missileManager->Update();
 	if (astarManager)
@@ -123,8 +122,9 @@ void BattleScene::Update()
 		collisionManager->MissilePlayerEnemy(missileManager,player, enemyManager,i);
 		collisionManager->EnemyPlayer(enemyManager, player, i);
 		collisionManager->EnemyItem(player, enemyManager, itemManager, i);
+		collisionManager->PlayerDoorEnemy(player, installObj, enemyManager, i);
 	}
-	collisionManager->PlayerDoor(player, installObj);
+	
 }
 
 
@@ -183,46 +183,45 @@ void BattleScene::Render(HDC hdc)
 
 void BattleScene::MapLoad(int stageNum)
 {
-	//string fileName = "Save/saveMapData";  // 1.map";
-	//fileName += to_string(stageNum) + ".map";
+	string fileName = "Save/saveMapData";  // 1.map";
+	fileName += to_string(stageNum) + ".map";
 	string fileName1 = "Save/saveMapDataTile";  // 1.map";
 	fileName1 += to_string(stageNum) + ".map";
 	DWORD readBytes[2];
-	//HANDLE hFile = CreateFile(fileName.c_str(), GENERIC_READ, 0,
-	//	0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE hFile = CreateFile(fileName.c_str(), GENERIC_READ, 0,
+		0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	HANDLE hFile2 = CreateFile(fileName1.c_str(), GENERIC_READ, 0,
 		0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	//if (ReadFile(hFile, enemySize, sizeof(ENMY_INFO) * 100,
-	//	&readBytes[0], NULL))
-	//{
-	//	for (int i = 0; i < 100; i++)
-	//	{
-	//		string str(enemySize[i].Name);
-	//		if (enemySize[i].Name == "")
-	//			break;
-	//		enemyManager->AddEnemy(str, 1);
-	//		enemyManager->Init(nullptr, enemySize[i].x, enemySize[i].y, enemySize[i].index);
-	//	}
-	//}
-	//else
-	//{
-	//	MessageBox(g_hWnd, "저장파일 로드 실패", "실패", MB_OK);
-	//}
+	if (ReadFile(hFile, enemySize, sizeof(ENMY_INFO) * 100,
+		&readBytes[0], NULL))
+	{
+		for (int i = 0; i < 100; i++)
+		{
+			string str(enemySize[i].Name);
+			if (str == "")
+				break;
+			enemyManager->AddEnemy(str, 1);
+			enemyManager->Init(nullptr, enemySize[i].x, enemySize[i].y, enemySize[i].index);
+		}
+	}
+	else
+	{
+		MessageBox(g_hWnd, "저장파일 로드 실패", "실패", MB_OK);
+	}
 
 	if (ReadFile(hFile2, tileInfo, sizeof(TILE_INFO) * TILE_X * TILE_Y,
 		&readBytes[1], NULL))
 	{
-		
-		//for (int i = 0; i < TILE_Y; i++)
-		//{
-		//	for (int j = 0; j < TILE_X; j++)
-		//	{
-		//		if (tileInfo[i * TILE_X + j].color)
-		//			tileInfo[i * TILE_X + j].hBrush = CreateSolidBrush(tileInfo[i * TILE_X + j].color);
-		//	}
-		//}
+		for (int i = 0; i < TILE_Y; i++)
+		{
+			for (int j = 0; j < TILE_X; j++)
+			{
+				if (tileInfo[i * TILE_X + j].color)
+					tileInfo[i * TILE_X + j].hBrush = CreateSolidBrush(tileInfo[i * TILE_X + j].color);
+			}
+		}
 	}
 	else
 	{
@@ -230,6 +229,6 @@ void BattleScene::MapLoad(int stageNum)
 	}
 
 	CloseHandle(hFile2);
-	//CloseHandle(hFile);
+	CloseHandle(hFile);
 }
 

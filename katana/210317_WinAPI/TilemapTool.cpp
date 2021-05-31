@@ -148,10 +148,10 @@ void TilemapTool::Update()
 {
     installObj->Update();
 
-    if (menuIndex != 2) 
-    {
-        astarManager = nullptr;
-    }
+    //if (menuIndex != 2) 
+    //{
+    //    astarManager = nullptr;
+    //}
 
     exhibition->GetData()->astar = astarManager;
 
@@ -367,10 +367,13 @@ void TilemapTool::EraseEnemy()
     if (enemyManager->GetMonsterList().size() == 0)
         return;
     RECT rc;
+    POINT worldMouse;
+    worldMouse.x = Camera::GetSingleton()->GetWorldMousePos().x;
+    worldMouse.y = Camera::GetSingleton()->GetWorldMousePos().y;
     for (int i = 0; i < enemyManager->GetMonsterList().size(); i++) 
     {
         rc = enemyManager->GetMonsterList()[i]->GetData()->shape;
-        if (PtInRect(&rc, g_ptMouse))
+        if (PtInRect(&rc, worldMouse))
         {
             if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_RBUTTON)) 
             {
