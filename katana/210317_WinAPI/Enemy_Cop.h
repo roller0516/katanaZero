@@ -23,6 +23,7 @@ private:
 	int dieHeight;
 	int targeton;
 	float destAngle;
+	bool isBlack;
 public:
 	virtual HRESULT Init(int posX = 0, int posY = 0);
 	virtual void Release();

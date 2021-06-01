@@ -13,16 +13,11 @@ private:
 	MissileManager* missileManager;
 	EnemyEffect* enemyEffect;
 	FPOINT currPos;
-	Image* armLImage;
-	Image* armRImage;
-	Image* GunImage;
 	EnemyData* data;
 	EnemyDir dir;
 	EnemyState state;
 	int count;
-	int dieHeight;
-	int targeton;
-	float destAngle;
+	bool isBlack;
 public:
 	virtual HRESULT Init(int posX = 0, int posY = 0);
 	virtual void Release();

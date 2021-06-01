@@ -117,8 +117,10 @@ HRESULT TilemapTool::Init()
         TILEMAPTOOLSIZE_Y - 300);
     Prev->SetFunc(PrevPage, 1);
 
-    astarManager = new AstarManager;
-    astarManager->Init();
+    //astarManager = new AstarManager;
+    //astarManager->Init();
+
+    
 
     rcMain = { 0,0,WINSIZE_X,WINSIZE_Y };
     ShowCursor(true);
@@ -153,7 +155,11 @@ void TilemapTool::Update()
     //    astarManager = nullptr;
     //}
 
-    exhibition->GetData()->astar = astarManager;
+
+    
+
+
+    exhibition->GetData()->astar = nullptr;
 
     CameraMove();
     Camera::GetSingleton()->Update();
@@ -251,7 +257,10 @@ void TilemapTool::Update()
                 {
                     if (GetTileType(&tileInfo[y * TILE_X + x]) == TileType::None && destTile)
                     {
-                        astarManager->SetDestTile(x, y);
+                        for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
+                        {
+                            enemyManager->GetMonsterList()[i]->GetData()->astar->SetDestTile(x, y);
+                        }
                         SetColor(&tileInfo[y * TILE_X + x], RGB(0, 0, 255), false);
                         SetTileType(&tileInfo[y * TILE_X + x], TileType::End);
                     }
@@ -287,26 +296,9 @@ void TilemapTool::Update()
         }  
     }
     
-    if (astarManager) 
-    {
-        for (int i = 0; i < TILE_Y; i++)
-        {
-            for (int j = 0; j < TILE_X; j++)
-            {
-                if (tileInfo[i * TILE_X + j].type == TileType::Wall)
-                    astarManager->SetWall(i, j);
-            }
-        }
-
-        for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
-        {
-            if (enemyManager->GetMonsterList().size() > 0)
-            {
-                enemyManager->GetMonsterList()[i]->GetData()->astar = astarManager;
-                enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
-            }
-        }
-    }
+   
+    
+    
 }
 
 void TilemapTool::Render(HDC hdc)
@@ -320,7 +312,7 @@ void TilemapTool::Render(HDC hdc)
     //SelectObject(hdc, hOldSelectedBrush);
     // 메인영역 전체
 
-    Camera::GetSingleton()->Render(hdc);
+    Camera::GetSingleton()->Render(hdc,"stage1_bg_render");
     
 
     // UI Button
@@ -348,8 +340,8 @@ void TilemapTool::Render(HDC hdc)
     if(menuIndex == 0)
         installObj->Render(hdc);
 
-    if (astarManager)
-        astarManager->Render(hdc);
+    //if (astarManager)
+    //    astarManager->Render(hdc);
 
     sprintf_s(szText, "playerX : %d , playerY : %d", g_ptMouse.x, g_ptMouse.y);
     TextOut(hdc, WINSIZE_X - 800, 20, szText, strlen(szText));
@@ -379,7 +371,8 @@ void TilemapTool::EraseEnemy()
             {
                 string str = "";
                 enemyManager->GetMonsterList()[i]->GetData()->astar = nullptr;
-                astarManager->SetTarget(nullptr);
+                //enemyManager->GetMonsterList()[i]->GetData()->astar->SetTarget(nullptr);
+                //enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(nullptr);
                 enemyManager->DeletEnemy(i);
                 strcpy_s(enemySize[i].Name, str.c_str());
                 enemySize[i].x = 0;
@@ -608,6 +601,8 @@ void TilemapTool::Load(int stageNum)
             enemyManager->AddEnemy(str, 1);
             enemyManager->Init(nullptr, enemySize[i].x, enemySize[i].y, enemySize[i].index);
         }
+        
+
     }
     else
     {
@@ -625,13 +620,32 @@ void TilemapTool::Load(int stageNum)
                     tileInfo[i * TILE_X + j].hBrush = CreateSolidBrush(tileInfo[i * TILE_X + j].color);
             }
         }
-
-        
     }
     else
     {
         MessageBox(g_hWnd, "저장파일 로드 실패", "실패", MB_OK);
     }
+
+    if (enemyManager)
+    {
+        for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
+        {
+            for (int j = 0; j < TILE_Y; j++)
+            {
+                for (int k = 0; k < TILE_X; k++)
+                {
+                    if (tileInfo[j * TILE_X + k].type == TileType::Wall)
+                        enemyManager->GetMonsterList()[i]->GetData()->astar->SetWall(j, k);
+                }
+            }
+
+            if (enemyManager->GetMonsterList().size() > 0)
+            {
+                enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
+            }
+        }
+    }
+    
 
     CloseHandle(hFile2);
     CloseHandle(hFile);

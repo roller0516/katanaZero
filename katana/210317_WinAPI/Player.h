@@ -77,6 +77,7 @@ private:
 	bool isPhysics;
 	bool isRoll;
 	bool isDoor;
+	bool isAlive;
 	int itemIndex;
 	int keycount;
 public:
@@ -111,22 +112,25 @@ public:
 	void ReflectEffect();
 	void HitEffect(int x ,int y);
 
-	inline void SetReflect(bool reflect) { this->isReflect = reflect; }
-	inline void SetDoor(bool door) { this->isDoor = door; }
+	inline bool GetIsAlive() { return this->isAlive; }
 	inline bool GetisGround() { return isGround; }
-	inline Direction GetDir() { return this->dir; }
 	inline int GetItemIndex() { return this->itemIndex; }
-	inline void SetitemManager(ItemManager* itemManager) { this->itemManager = itemManager; }
 	inline RECT GetAttackShape() { return this->attackShape; }
+	inline Direction GetDir() { return this->dir; }
 	inline bool GetFalling(){ return isFall; }
-	inline void SetGround(bool isGround) { this->isGround = isGround; }
-	inline void SetPos(int x, int y) { this->Worldpos.x = x; this->Worldpos.y = y; }
 	inline FPOINT GetWorldpos() { return this->Worldpos; }
 	inline FPOINT Getpos() { return this->Clientpos; }
 	inline FPOINT GetCurrPos() { return this->currPos; }
-	inline RECT GetRect() { return this->hitShape; }
 	inline float GetPlayerAngle() { return this->angle; }
+	inline RECT GetRect() { return this->hitShape; }
 	inline Image* GetImageInfo() { return this->image; }
+	inline bool GetDoor() { return this->isDoor; }
+
+	inline void SetReflect(bool reflect) { this->isReflect = reflect; }
+	inline void SetDoor(bool door) { this->isDoor = door; }
+	inline void SetitemManager(ItemManager* itemManager) { this->itemManager = itemManager; }
+	inline void SetGround(bool isGround) { this->isGround = isGround; }
+	inline void SetPos(int x, int y) { this->Worldpos.x = x; this->Worldpos.y = y; }
 	inline void SetPosY(int y) { this->Worldpos.y = y; }
 };
 

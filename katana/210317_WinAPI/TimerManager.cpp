@@ -33,17 +33,16 @@ void TimerManager::Render(HDC hdc)
 
 float TimerManager::GetElapsedTime()
 {
-    if(KeyManager::GetSingleton()->IsStayKeyDown(VK_SHIFT))
-        return 0.001;
-    if(KeyManager::GetSingleton()->IsOnceKeyUp(VK_SHIFT))
-        return timer->GetElapsedTime();
-    if (Stop) 
+    if (slow) 
+        return 0.0001;
+
+    if (stop) 
     {
-        cooltime+= 0.001;
+        cooltime+= 0.0005;
         if (cooltime > 0.5f) 
         {
             cooltime = 0;
-            Stop = false;
+            stop = false;
         }
             
         return 0.0001;

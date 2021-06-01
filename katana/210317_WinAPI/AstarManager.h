@@ -82,7 +82,8 @@ class AstarManager : public GameNode
 	vector<AstarTile*> openList;
 	vector<AstarTile*> closeList;
 	vector<AstarTile*> heap;
-	map<int, vector<AstarTile*>> parentList;
+	vector<AstarTile*> parentList;
+	//map<int, vector<AstarTile*>> parentList;
 
 	Player* target;
 	Enemy* owner;
@@ -122,7 +123,7 @@ public:
 	void AddAtsar(int index);
 	void DeleteTileInOpenlist(AstarTile* tile);
 	void MarkTileToType(int index);
-	vector<AstarTile*>* GetParentList(int index);
+	vector<AstarTile*> GetParentList() { return parentList; }
 
 	int CalcEdgeCost(int x, int y);
 	int CalcHeuristics(int x, int y);

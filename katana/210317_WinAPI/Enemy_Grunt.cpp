@@ -20,10 +20,11 @@ HRESULT Enemy_Grunt::Init(int posX, int posY)
     {
         enemyEffect[i].Init(data->worldPos.x, data->worldPos.y, (EnemyEffectType)i);
     }
-
+    data->astar = new AstarManager;
+    data->astar->Init();
     data->isTurn = false;
     data->findRange = 200;
-    data->attackRange = 70;
+    data->attackRange = 100;
     data->worldPos.x = posX;
     data->worldPos.y = posY;
     data->maxFrame = 8;
@@ -48,6 +49,7 @@ void Enemy_Grunt::Update()
     {
         enemyEffect[i].Update();
     }
+    //enemyEffect[2].SetPos(data->worldPos.x - 50, data->worldPos.y - 25);
 
     if (data->astar)
         data->astar->Update();
@@ -103,8 +105,9 @@ void Enemy_Grunt::Render(HDC hdc, bool world)
 
     if (world)
     {
-        if ((data->dir == EnemyDir::Left))
+        if ((dir == EnemyDir::Left))
         {
+           
             if (data->isAttack)
             {
                 data->image->FrameRenderFlip(hdc, data->worldPos.x, data->worldPos.y, data->currFrameX, 0, true);
@@ -114,6 +117,7 @@ void Enemy_Grunt::Render(HDC hdc, bool world)
         }
         else
         {
+            
             if (data->isAttack)
             {
                 data->image->FrameRender(hdc, data->worldPos.x, data->worldPos.y, data->currFrameX, 0, true);
@@ -126,19 +130,32 @@ void Enemy_Grunt::Render(HDC hdc, bool world)
     {
         if (data->localPos.x > WINSIZE_X || data->localPos.y > WINSIZE_Y)
             return;
-        if (data->dir == EnemyDir::Left)
+        int y;
+        if (isBlack)
+            y = 10;
+        else
+            y = 0;
+        if (dir == EnemyDir::Left)
         {
+            enemyEffect[2].SetDir(EnemyEffectDir::Right);
+            enemyEffect[2].SetPos(data->worldPos.x + 30, data->worldPos.y - 25);
+            data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, true);
+
             if (state == EnemyState::hurt)
-                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
+                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y- y, data->currFrameX, 0, true);
             else
-                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
+                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y- y, data->currFrameX, 0, true);
         }
         else
         {
-           if (state == EnemyState::hurt)
-                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
+            enemyEffect[2].SetDir(EnemyEffectDir::Left);
+            enemyEffect[2].SetPos(data->worldPos.x - 30, data->worldPos.y - 25);
+            data->image->FrameRender(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, true);
+
+            if (state == EnemyState::hurt)
+                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y- y, data->currFrameX, 0, true);
             else
-                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
+                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y- y, data->currFrameX, 0, true);
         }
        Rectangle(hdc, data->attackShape.left - Camera::GetSingleton()->GetCameraPos().x, data->attackShape.top - Camera::GetSingleton()->GetCameraPos().y,
            data->attackShape.right - Camera::GetSingleton()->GetCameraPos().x, data->attackShape.bottom - Camera::GetSingleton()->GetCameraPos().y);
@@ -166,38 +183,48 @@ void Enemy_Grunt::Pattern()
         Die();
         return;
     }
+
+    if (data->target && data->target->GetIsAlive() == false)
+    {
+        Idle();
+        return;
+    }
+
     if (data->target == nullptr) return;
     float distance = Distance(this->data->worldPos, data->target->GetWorldpos());
 
-    if (data->attackRange > distance && data->isFind) // 찾았고 공격 거리에있을때
+    if (data->attackRange > distance) // 찾았고 공격 거리에있을때
     {
-        if (data->attackAngle < DegToRad(90) && data->attackAngle > DegToRad(-90))
+        if (data->attackAngle < DegToRad(30) && data->attackAngle > DegToRad(-30))
         {
             data->isAttack = true;
-            data->dir = EnemyDir::Right;
-            Attack(data->dir);
+            data->isFind = false;
+            dir = EnemyDir::Right;
+            Attack(dir);
             return;
         }
-        else if (data->attackAngle >= DegToRad(90) && data->attackAngle <= DegToRad(180) ||
-            data->attackAngle <= DegToRad(-90) && data->attackAngle >= DegToRad(-180))
+        else if (data->attackAngle >= DegToRad(150) && data->attackAngle <= DegToRad(180) ||
+            data->attackAngle <= DegToRad(-150) && data->attackAngle >= DegToRad(-180))
         {
             data->isAttack = true;
-            data->dir = EnemyDir::Left;
-            Attack(data->dir);
+            data->isFind = false;
+            dir = EnemyDir::Left;
+            Attack(dir);
             return;
         }
     }
+    
     data->isAttack = false;
+
     //찾았을때 무조건 내위치로 따라옴
     data->findCooltime += TimerManager::GetSingleton()->GetElapsedTime();
-   
     if (data->isFind)
     {
         data->delay = 0;
         Run();
         return;
     }
-    if (data->findRange > distance )
+    if (data->findRange > distance)
     {
         if (data->findCount == 0)
         {
@@ -206,13 +233,14 @@ void Enemy_Grunt::Pattern()
 
             data->findCount++;
         }
-       if (data->findCooltime > 1.0f)
-       {
-           data->findCooltime = 0;
-           data->isFind = true;
-           return;
-       }
-       data->isFind = false;
+        if (data->findCooltime > 0.5f)
+        {
+            data->findCooltime = 0;
+            data->isFind = true;
+            return;
+        }
+        data->isFind = false;
+        //data->isFind = true;
     }
     
     //거리로 찾을때
@@ -236,7 +264,6 @@ void Enemy_Grunt::Attack(EnemyDir dir)
 {
     data->isTurn = false;
     data->astar->Clear();
-    targeton = 0;
 
     data->attackSpeed += TimerManager::GetSingleton()->GetElapsedTime();
     if (data->attackSpeed > 0.4f)
@@ -279,78 +306,53 @@ void Enemy_Grunt::Run()
     if (data->isSamPle)
         data->moveSpeed = 0;
     else
-        data->moveSpeed = 150;
+        data->moveSpeed = 500;
 
-    if (data->astar->GetParentList(data->Index))
+
+    if (data->astar->GetBackTile())
     {
-        if (data->astar->GetBackTile())
+        int bx = data->astar->GetBackTile()->GetIdX();
+        int by = data->astar->GetBackTile()->GetIdY();
+
+        int cx = data->astar->GetTileIndex().x;
+        int cy = data->astar->GetTileIndex().y;
+
+
+        currPos.x = data->astar->GetMap(cx, cy)->GetCenter().x;
+        currPos.y = data->astar->GetMap(cx, cy)->GetCenter().y;
+
+        data->astar->GetBackTile()->SetColor(RGB(100, 100, 100), false);
+
+        if (bx == cx && by == cy)
         {
-            int bx = data->astar->GetBackTile()->GetIdX();
-            int by = data->astar->GetBackTile()->GetIdY();
-
-            int cx = data->astar->GetTileIndex().x;
-            int cy = data->astar->GetTileIndex().y;
-
-            if (bx == cx && by == cy)
+            if (data->astar->GetParentList().size() == 0)
             {
-                int x = data->astar->GetTileIndex().x;
-                int y = data->astar->GetTileIndex().y;
-
-                currPos.x = data->astar->GetMap(x, y)->GetCenter().x;
-                currPos.y = data->astar->GetMap(x, y)->GetCenter().y + TILESIZE / 2;
-
-                if (data->astar->GetParentList(data->Index)->size() == 0)
-                {
-                    data->isTurn = false;
-                    data->astar->SetBackTile(data->astar->GetDestTile());
-                    data->astar->Clear();
-                    targeton = 0;
-                }
-                else
-                {
-                    data->astar->ParentPopBack(data->Index);
-                    if (data->astar->GetParentList(data->Index)->size() > 0)
-                        data->astar->SetBackTile(data->astar->GetParentList(data->Index)->back());
-                    if (data->astar->GetParentList(data->Index)->size() > 1)
-                    {
-                     
-                        //data->astar->SetBackTile(data->astar->GetParentList(data->Index)->back());
-                    }
-                }
+                data->isTurn = false;
+                data->astar->SetBackTile(data->astar->GetDestTile());
+                data->astar->Clear();
+                data->moveSpeed = 0;
             }
-            float centerX = data->astar->GetBackTile()->GetCenter().x;
-            float centerY = data->astar->GetBackTile()->GetCenter().y + TILESIZE / 2;
-            float x = abs(centerX - currPos.x);
-            float y = abs(centerY - currPos.y);
-
-            if (centerX >= currPos.x && centerY >= currPos.y)//오른쪽 아래
+            else if (data->astar->GetParentList().size() > 0)
             {
-                data->worldPos.x += x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y += y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
+                data->astar->SetBackTile(data->astar->GetParentList().back());
+                data->astar->ParentPopBack(data->Index);
             }
-
-            else if (centerX > currPos.x && centerY < currPos.y)//왼쪽 아래
-            {
-                data->worldPos.x += x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y -= y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-            }
-            else if (centerX <= currPos.x && centerY >= currPos.y)//왼 위
-            {
-                data->worldPos.x -= x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y += y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-            }
-            else if (centerX < currPos.x && centerY < currPos.y) // rigt up
-            {
-                data->worldPos.x -= x * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-                data->worldPos.y -= y * 10 * TimerManager::GetSingleton()->GetElapsedTime();
-            }
-
-            if (centerX > currPos.x)
-                data->dir = EnemyDir::Right;
-            else
-                data->dir = EnemyDir::Left;
         }
+
+        float centerX = data->astar->GetBackTile()->GetCenter().x;
+        float centerY = data->astar->GetBackTile()->GetCenter().y;
+
+        float angle = GetAngle(currPos, data->astar->GetBackTile()->GetCenter());
+
+        data->worldPos.x += cosf(angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+        data->worldPos.y -= sinf(angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+       
+        if (centerX >= currPos.x)
+            dir = EnemyDir::Right;
+        else
+            dir = EnemyDir::Left;
     }
+
     state = EnemyState::run;
     Animation(state);
 }
@@ -358,16 +360,16 @@ void Enemy_Grunt::Run()
 void Enemy_Grunt::Walk()
 {
     if (data->leftWall)
-        data->dir = EnemyDir::Right;
+        dir = EnemyDir::Right;
     else if (data->rightWall)
-        data->dir = EnemyDir::Left;
+        dir = EnemyDir::Left;
 
     if (data->isSamPle)
         data->moveSpeed = 0;
     else
         data->moveSpeed = 100;
 
-    if (data->dir == EnemyDir::Right)
+    if (dir == EnemyDir::Right)
         data->worldPos.x += data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
     else
         data->worldPos.x -= data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
@@ -392,7 +394,8 @@ void Enemy_Grunt::Idle()
 void Enemy_Grunt::Die()
 {
     if (data->isAlive == false)
-    {if (count == 0)
+    {
+        if (count == 0)
         {
             enemyEffect[2].SetAlive(true);
             srand((unsigned)time(NULL));
@@ -402,16 +405,9 @@ void Enemy_Grunt::Die()
             enemyEffect[num].SetPos(data->worldPos.x - 50, data->worldPos.y - 50);
 
             if (dir == EnemyDir::Left)
-            {
                 enemyEffect[num].SetDir(EnemyEffectDir::Right);
-                enemyEffect[2].SetDir(EnemyEffectDir::Right);
-            }
-
             else
-            {
                 enemyEffect[num].SetDir(EnemyEffectDir::Left);
-                enemyEffect[2].SetDir(EnemyEffectDir::Left);
-            }
             count++;
         }
         data->shape = { -100,-100,-100,-100 };
@@ -432,7 +428,6 @@ void Enemy_Grunt::KnockBack()
         return;
         
     }
-
     data->knockBackPower -= 100 * TimerManager::GetSingleton()->GetElapsedTime();
     data->worldPos.x += cosf(angle) * data->knockBackPower * TimerManager::GetSingleton()->GetElapsedTime();
     data->worldPos.y -= sinf(angle) * data->knockBackPower * TimerManager::GetSingleton()->GetElapsedTime();
@@ -469,9 +464,9 @@ void Enemy_Grunt::PixelCollisionBottom()
 {
     COLORREF color;
     int R, G, B;
-    float playerHeight = 30;
+    float playerHeight = 34;
     float currPosBottom = data->worldPos.y + playerHeight;
-    for (int i = currPosBottom; i < currPosBottom + 1; i++)
+    for (int i = currPosBottom - 5; i < currPosBottom + 5; i++)
     {
         color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
             data->worldPos.x, i);
@@ -482,29 +477,32 @@ void Enemy_Grunt::PixelCollisionBottom()
 
         if (!(R == 255 && G == 0 && B == 255))
         {
-            data->velocity = 60;
-            data->fallForce = 0;
+
             if (data->isAlive && (R == 0 && G == 0 && B == 0))
             {
-                data->isTurn = true;
+                isBlack = true;
                 data->isPhysic = false;
                 break;
             }
-            data->isTurn = false;
+            isBlack = false;
+            data->velocity = 100;
+            data->fallForce = 0;
             data->isPhysic = true;
+
             if (!data->isAlive)
             {
                 data->worldPos.y = i - playerHeight;
                 break;
             }
 
-            data->worldPos.y = i - playerHeight - 1;
+            data->worldPos.y = i - playerHeight - 2;
             break;
         }
         else if ((R == 255 && G == 0 && B == 255))
         {
-           data->isTurn = false;
-           data->isPhysic = true;
+            data->velocity = 100;
+            data->isTurn = false;
+            data->isPhysic = true;
         }
     }
 }
@@ -512,7 +510,7 @@ void Enemy_Grunt::PixelCollisionLeft()
 {
     COLORREF color;
     int R, G, B;
-    float playerwidth = 30;
+    float playerwidth = 35;
     float currPosLeft = data->worldPos.x - playerwidth;
     for (int i = currPosLeft; i < currPosLeft + 2; i++)
     {
@@ -544,9 +542,9 @@ void Enemy_Grunt::PixelCollisionRight()
 {
     COLORREF color;
     int R, G, B;
-    float playerwidth = 30;
+    float playerwidth = 35;
     float currPosRight = data->worldPos.x + playerwidth;
-    for (int i = currPosRight - 5; i < currPosRight; i++)
+    for (int i = currPosRight - 2; i < currPosRight; i++)
     {
         color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
             i, data->worldPos.y);
@@ -563,7 +561,7 @@ void Enemy_Grunt::PixelCollisionRight()
                 break;
             }
             if (R == 0 && G == 0 && B == 0)break;
-            data->worldPos.x = i - playerwidth;
+            data->worldPos.x = i - playerwidth - 2;
             data->rightWall = true;
             break;
         }

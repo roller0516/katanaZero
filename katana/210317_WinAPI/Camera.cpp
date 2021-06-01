@@ -15,8 +15,20 @@ HRESULT Camera::Init(Player* target)
 	shakeAmount = 0.7f;
 	decreaseFactor = 1.0f;
 
+	
+	ImageManager::GetSingleton()->AddImage("stage4_bg_render", "Image/Katana/stage4_bg_render.bmp", 1344, 1424);
+	ImageManager::GetSingleton()->AddImage("stage4_bg_render_slow", "Image/Katana/stage4_bg_render_slow.bmp", 1344, 1424);
+	ImageManager::GetSingleton()->AddImage("stage4_bg_render_collision", "Image/Katana/stage4_bg_collision.bmp", 1344, 1424);
+	ImageManager::GetSingleton()->AddImage("stage4_bg_render_collision_explosion", "Image/Katana/stage4_bg_collision_explosion.bmp", 1344, 1424);
+
+	ImageManager::GetSingleton()->AddImage("stage5_bg_render", "Image/Katana/stage5_bg_render.bmp", 1344, 784);
+	ImageManager::GetSingleton()->AddImage("stage5_bg_render_slow", "Image/Katana/stage5_bg_render_slow.bmp", 1344, 784);
+	ImageManager::GetSingleton()->AddImage("stage5_bg_render_collision", "Image/Katana/stage5_bg_collision.bmp", 1344, 784);
+
+	ImageManager::GetSingleton()->AddImage("stage1_bg_render_slow", "Image/Katana/stage1_bg_render_slow.bmp", 2176, 3500);
+	ImageManager::GetSingleton()->AddImage("stage1_bg_render_slow", "Image/Katana/stage1_bg_render_slow.bmp", 2176, 3500);
 	bg = ImageManager::GetSingleton()->AddImage("stage1_bg_render", "Image/Katana/stage1_bg_render.bmp", 2176, 3500);
-	bg_Collision = ImageManager::GetSingleton()->AddImage("stage1_bg_collision", "Image/Katana/stage1_bg_collision.bmp", 2176, 3500);
+	bg_Collision = ImageManager::GetSingleton()->AddImage("stage1_bg_render_collision", "Image/Katana/stage1_bg_collision.bmp", 2176, 3500);
 	worldrc.x = 2176;
 	worldrc.y = 3500;
 	pivot.x = 0.5f;
@@ -31,6 +43,11 @@ HRESULT Camera::Init(TilemapTool* target)
 
 	bg = ImageManager::GetSingleton()->AddImage("stage1_bg_render", "Image/Katana/stage1_bg_render.bmp", 2176, 3500);
 	bg_Collision = ImageManager::GetSingleton()->AddImage("stage1_bg_collision", "Image/Katana/stage1_bg_collision.bmp", 2176, 3500);
+
+	ImageManager::GetSingleton()->AddImage("stage4_bg_render", "Image/Katana/stage4_bg_render.bmp", 1344, 1424);
+	ImageManager::GetSingleton()->AddImage("stage4_bg_render_slow", "Image/Katana/stage4_bg_render_slow.bmp", 1344, 1424);
+	ImageManager::GetSingleton()->AddImage("stage4_bg_render_collision", "Image/Katana/stage4_bg_collision.bmp", 1344, 1424);
+	ImageManager::GetSingleton()->AddImage("stage4_bg_render_collision_explosion", "Image/Katana/stage4_bg_collision_explosion.bmp", 1344, 1424);
 
 	worldrc.x = 2176;
 	worldrc.y = 3500;
@@ -73,12 +90,19 @@ void Camera::Update()
 	}
 }
 
-
-void Camera::Render(HDC hdc)
+void Camera::Render(HDC hdc, string stageName)
 {
-	bg_Collision->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y,false);
-	if(debug)
-		bg->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y, false);
+	if (slowStageCount == 1)
+	{
+		bg = ImageManager::GetSingleton()->FindImage(stageName + "_slow");
+	}
+	else
+		bg = ImageManager::GetSingleton()->FindImage(stageName);
+	bg_Collision = ImageManager::GetSingleton()->FindImage(stageName+"_collision");
+	bg->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y, false);
+	if (debug)
+		bg_Collision->CameraRender(hdc, pos.x, pos.y, WINSIZE_X, WINSIZE_Y, false);
+
 }
 
 void Camera::View()

@@ -50,8 +50,9 @@ HRESULT Player::Init()
 	playerEffect[7].Init(EffectType::reflectEffect, this);
 	playerEffect[8].Init(EffectType::hitEffect, this);
 	srand((unsigned)time(NULL));
-	Worldpos.x = 1570;
-	Worldpos.y = 2880;
+	isAlive = true;
+	Worldpos.x = 500;
+	Worldpos.y = 400;
 	currFrame = 0.0f;
 	maxFrame = 4.0f;
 	moveSpeed = 200.0f;
@@ -458,6 +459,18 @@ void Player::PlayerFSM()
 void Player::PlayerKeyMove()
 {
 	if (isDoor) return;
+	if (KeyManager::GetSingleton()->IsOnceKeyUp(VK_SHIFT)) 
+	{
+		Camera::GetSingleton()->Setslow(0);
+		TimerManager::GetSingleton()->SetTimeSlow(false);
+	}
+		
+	if (KeyManager::GetSingleton()->IsStayKeyDown(VK_SHIFT)) 
+	{
+		Camera::GetSingleton()->Setslow(1);
+		TimerManager::GetSingleton()->SetTimeSlow(true);
+	}
+	
 	if (KeyManager::GetSingleton()->IsOnceKeyDown('W'))
 	{
 		isJumping = true;
@@ -487,7 +500,7 @@ void Player::PlayerKeyMove()
 			}
 		}
 		if (isGround==false) return;
-		playerEffect[1].SetAlive(true);
+			playerEffect[1].SetAlive(true);
 		if(dir == Direction::RIHGT)
 			playerEffect[1].SetWorldPos(Worldpos.x+10, Worldpos.y+10);
 		else
@@ -501,7 +514,6 @@ void Player::PlayerKeyMove()
 
 	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON))
 	{
-		
 		playerEffect[0].SetAlive(true);
 		playerEffect[0].SetCurrFrame();
 		angle = GetAngle(Worldpos, GetWorldMousePos(Worldpos));
@@ -610,9 +622,9 @@ void Player::PixelCollisionLeft()
 	int R, G, B;
 	
 	float playerwidth = size/2;
-	float currPosLeft = shape.left -15;
+	float currPosLeft = shape.left - 15;
 
-	for (int i = currPosLeft+10; i < currPosLeft+15; i++)
+	for (int i = currPosLeft-10; i < currPosLeft+10; i++)
 	{
 		color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
 			i, Worldpos.y);
@@ -627,10 +639,10 @@ void Player::PixelCollisionLeft()
 			else if (R == 255 && G == 0 && B == 0) 
 			{
 				leftWall = true;
-				break;
+				//break;
 			}
-			leftWall = false;;
-			Worldpos.x = i + playerwidth-18;
+			//leftWall = false;;
+			Worldpos.x = i + playerwidth +1;
 			break;
 		}
 		else if((R == 255 && G == 0 && B == 255))
@@ -644,7 +656,7 @@ void Player::PixelCollisionRight()
 	int R, G, B;
 	float playerWidth = size/2;
 	float currPosRight = shape.right+15;
-	for (int i = currPosRight-10; i < currPosRight-5; i++)
+	for (int i = currPosRight-10; i < currPosRight+10; i++)
 	{
 		color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
 			i, Worldpos.y);
@@ -652,6 +664,7 @@ void Player::PixelCollisionRight()
 		R = GetRValue(color);
 		G = GetGValue(color);
 		B = GetBValue(color);
+
 		if (R == 0 && G == 0 && B == 255)
 			break;
 		if (!(R == 255 && G == 0 && B == 255))
@@ -661,10 +674,10 @@ void Player::PixelCollisionRight()
 			else if (R == 255 && G == 0 && B == 0) 
 			{
 				RightWall = true;
-				break;
+				//break;
 			}	
-			RightWall = false;
-			Worldpos.x = i - playerWidth+17;
+			//RightWall = false;
+			Worldpos.x = i - playerWidth+5;
 			break;
 		}
 		else if ((R == 255 && G == 0 && B == 255)) 

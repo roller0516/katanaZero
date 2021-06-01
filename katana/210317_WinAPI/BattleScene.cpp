@@ -39,10 +39,6 @@ HRESULT BattleScene::Init()
 
 	player->SetitemManager(itemManager);
 
-	astarManager = new AstarManager;
-	astarManager->Init();
-	astarManager->SetTarget(player);
-
 	enemyManager = new EnemyManager;
 	enemyManager->RegisterClone("PompEnemy", new Enemy_pomp);
 	enemyManager->RegisterClone("BoldEnemy", new Enemy_Bold);
@@ -50,15 +46,6 @@ HRESULT BattleScene::Init()
 	enemyManager->RegisterClone("CopEnemy", new Enemy_Cop);
 
 	collisionManager = new CollisionManager;
-	//enemyManager->AddEnemy("BoldEnemy",1);
-	//enemyManager->Init(player,500, 500, 0);
-
-	//enemyManager->AddEnemy("CopEnemy", 5);
-	//enemyManager->Init(player, 300, 500, 1);
-	//enemyManager->Init(player, 100, 500, 2);
-	//enemyManager->Init(player, 700, 500, 3);
-	//enemyManager->Init(player, 450, 500, 4);
-	//enemyManager->Init(player, 600, 500, 5);
 
 	//¹® 1572 2886
 
@@ -70,22 +57,19 @@ HRESULT BattleScene::Init()
 	for (int i = 0; i < enemyManager->GetMonsterList().size(); i++)
 	{
 		enemyManager->GetMonsterList()[i]->GetData()->target = player;
-		enemyManager->GetMonsterList()[i]->GetData()->Index = i;
-		enemyManager->GetMonsterList()[i]->GetData()->astar = astarManager;
 		enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
+		enemyManager->GetMonsterList()[i]->GetData()->astar->SetTarget(player);
 		enemyManager->GetMonsterList()[i]->GetData()->missileManager = missileManager;
-	}
-
-
-	for (int j = 0; j < TILE_Y; j++)
-	{
-		for (int k = 0; k < TILE_X; k++)
+		for (int j = 0; j < TILE_Y; j++)
 		{
-			if (tileInfo[j * TILE_X + k].type == TileType::Wall)
-				astarManager->SetWall(j, k);
+			for (int k = 0; k < TILE_X; k++)
+			{
+				if (tileInfo[j * TILE_X + k].type == TileType::Wall)
+					enemyManager->GetMonsterList()[i]->GetData()->astar->SetWall(j, k);
+			}
 		}
 	}
-	
+
 	bgPos.x = 0;
 	bgPos.y = 0;
 
@@ -99,7 +83,6 @@ void BattleScene::Release()
 	SAFE_RELEASE(player);
 	SAFE_RELEASE(enemyManager);
 	SAFE_RELEASE(itemManager);
-	SAFE_RELEASE(astarManager);
 }
 
 void BattleScene::Update()
@@ -108,8 +91,6 @@ void BattleScene::Update()
 		installObj->Update();
 	if(missileManager)
 		missileManager->Update();
-	if (astarManager)
-		astarManager->Update();
 	if (enemyManager)
 		enemyManager->Update();
 	if (itemManager)
@@ -124,20 +105,16 @@ void BattleScene::Update()
 		collisionManager->EnemyItem(player, enemyManager, itemManager, i);
 		collisionManager->PlayerDoorEnemy(player, installObj, enemyManager, i);
 	}
-	
 }
 
 
 void BattleScene::Render(HDC hdc)
 {
-	Camera::GetSingleton()->Render(hdc);
+	Camera::GetSingleton()->Render(hdc,"stage1_bg_render");
 	Camera::GetSingleton()->View();
 
 	if (itemManager)
 		itemManager->Render(hdc);
-
-	//if (astarManager)
-	//	astarManager->Render(hdc);
 
 	if (missileManager)
 		missileManager->Render(hdc);
@@ -148,25 +125,9 @@ void BattleScene::Render(HDC hdc)
 	if (installObj)
 		installObj->Render(hdc);
 
-
 	if (player)
 		player->Render(hdc);
 	
-	//for (int i = 0; i < TILE_X * TILE_Y; i++)
-	//{
-	//	if (tileInfo[i].rcTile.left - Camera::GetSingleton()->GetCameraPos().x > WINSIZE_X)
-	//		continue;
-	//	if (tileInfo[i].rcTile.top - Camera::GetSingleton()->GetCameraPos().y > WINSIZE_Y)
-	//		continue;
-	//	tileInfo[i].hOldBrush = (HBRUSH)SelectObject(hdc, tileInfo[i].hBrush);
-	//	Rectangle(hdc,
-	//		tileInfo[i].rcTile.left - Camera::GetSingleton()->GetCameraPos().x,
-	//		tileInfo[i].rcTile.top - Camera::GetSingleton()->GetCameraPos().y,
-	//		tileInfo[i].rcTile.right - Camera::GetSingleton()->GetCameraPos().x,
-	//		tileInfo[i].rcTile.bottom - Camera::GetSingleton()->GetCameraPos().y);
-	//	SelectObject(hdc, tileInfo[i].hOldBrush);
-	//}
-
 	FPOINT pos;
 	pos.x = WINSIZE_X - Camera::GetSingleton()->GetCameraPos().x;
 	pos.y = WINSIZE_Y - Camera::GetSingleton()->GetCameraPos().y;

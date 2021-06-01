@@ -150,6 +150,12 @@
     <ClCompile Include="EnemyEffect.cpp">
       <Filter>MainGame\Obj\MoveObj\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="BossScene.cpp">
+      <Filter>MainGame\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Boss.cpp">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFunction.h">
@@ -244,6 +250,12 @@
     </ClInclude>
     <ClInclude Include="EnemyEffect.h">
       <Filter>MainGame\Obj\MoveObj\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="BossScene.h">
+      <Filter>MainGame\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Boss.h">
+      <Filter>MainGame\Obj\MoveObj\Enemy\EnemyProtoType</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

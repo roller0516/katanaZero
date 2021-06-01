@@ -7,7 +7,7 @@
 #define SAMPLE_TILE_Y	9
 class ItemManager;
 class InstallObject;
-class AstarManager;
+//class AstarManager;
 class Enemy;
 class EnemyManager;
 class Button;
@@ -27,7 +27,7 @@ private:
 
 	vector<InstallObject*> vObject;
 
-	AstarManager* astarManager;
+	//AstarManager* astarManager;
 	FPOINT worldPos;
 	FPOINT localPos;
 

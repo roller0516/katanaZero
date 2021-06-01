@@ -30,7 +30,7 @@ using namespace std;
 // 메인 그리기 공간 정보
 #define	TILE_X			150
 #define	TILE_Y			150
-#define TILESIZE		20
+#define TILESIZE		24
 #define TILE_COUNT		TILE_X*TILE_Y
 
 #define Gravity			9.8f

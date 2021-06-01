@@ -52,10 +52,10 @@ void InstallObject::Update()
         }
         if (close)
         {
-            shape.left = worldPos.x - 50 / 2;
-            shape.top = worldPos.y - 50 / 2;
-            shape.right = worldPos.x + 50 / 2;
-            shape.bottom = worldPos.y + 50 / 2;
+            shape.left = worldPos.x - img->GetImageInfo()->frameWidth / 4;
+            shape.top = worldPos.y - img->GetImageInfo()->frameHeight / 2;
+            shape.right = worldPos.x + img->GetImageInfo()->frameWidth / 4;
+            shape.bottom = worldPos.y + img->GetImageInfo()->frameHeight / 2;
         }
     }
     
@@ -86,8 +86,8 @@ void InstallObject::Render(HDC hdc)
         if (Type == InstallType::Flame)
             img->Render(hdc, localPos.x, localPos.y, true);
     }
-    //Rectangle(hdc, shape.left - Camera::GetSingleton()->GetCameraPos().x, shape.top - Camera::GetSingleton()->GetCameraPos().y,
-    //    shape.right - Camera::GetSingleton()->GetCameraPos().x, shape.bottom - Camera::GetSingleton()->GetCameraPos().y);
+    Rectangle(hdc, shape.left - Camera::GetSingleton()->GetCameraPos().x, shape.top - Camera::GetSingleton()->GetCameraPos().y,
+        shape.right - Camera::GetSingleton()->GetCameraPos().x, shape.bottom - Camera::GetSingleton()->GetCameraPos().y);
     Rectangle(hdc, attackShape.left - Camera::GetSingleton()->GetCameraPos().x, attackShape.top - Camera::GetSingleton()->GetCameraPos().y,
         attackShape.right - Camera::GetSingleton()->GetCameraPos().x, attackShape.bottom - Camera::GetSingleton()->GetCameraPos().y);
 }

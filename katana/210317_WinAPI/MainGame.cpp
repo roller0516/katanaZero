@@ -2,6 +2,7 @@
 #include "Image.h"
 #include "TilemapTool.h"
 #include "BattleScene.h"
+#include "BossScene.h"
 
 HRESULT MainGame::Init()
 {
@@ -20,8 +21,9 @@ HRESULT MainGame::Init()
 
 	SceneManager::GetSingleton()->AddScene("전투_1", new BattleScene());
 	SceneManager::GetSingleton()->AddScene("타일맵툴", new TilemapTool());
+	SceneManager::GetSingleton()->AddScene("보스전투", new BossScene());
 
-	SceneManager::GetSingleton()->ChangeScene("전투_1");
+	SceneManager::GetSingleton()->ChangeScene("보스전투");
 
 	isInited = true;
 

@@ -33,8 +33,10 @@ void EnemyEffect::Release()
 
 void EnemyEffect::Update()
 {
+   
     if (isAlive) 
     {
+
         if (Type == EnemyEffectType::blood_ani  || Type == EnemyEffectType::EnemySpark) 
         {
             currFrame += 10 * TimerManager::GetSingleton()->GetElapsedTime();
@@ -70,6 +72,8 @@ void EnemyEffect::Update()
 
 void EnemyEffect::Render(HDC hdc)
 {
+    if (localPos.x > WINSIZE_X || localPos.y > WINSIZE_Y)
+        return;
     if (isAlive) 
     {
         switch (Type)

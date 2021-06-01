@@ -81,20 +81,20 @@ void CollisionManager::EnemyItem(Player* player,EnemyManager* enemy, ItemManager
 		TimerManager::GetSingleton()->SetTimeStop(true);
 		enemy->GetMonsterList()[index]->GetData()->isAlive = false;
 		item->GetItemList()[player->GetItemIndex()]->SetAlive(false);
-		//item->GetItemList()[player->GetItemIndex()]->SetRect();
 	}
 }
 
 void CollisionManager::PlayerDoorEnemy(Player* player, InstallObject* installobj, EnemyManager* enemy, int index)
 {
-	RECT rcTemp, rcTemp2 ,rcPlayer, rcDoor, rcEnemy, rcDoorAttack;
+	RECT rcTemp, rcTemp2 , rcTemp3,rcPlayer, rcDoor, rcEnemy, rcDoorAttack;
+	FPOINT currPos = player->GetWorldpos();
 	rcPlayer = player->GetRect();
 	rcDoor = installobj->GetShape();
 	rcDoorAttack = installobj->GetAttackShape();
 	rcEnemy = enemy->GetMonsterList()[index]->GetData()->shape;
+
 	if (IntersectRect(&rcTemp, &rcPlayer, &rcDoor) && installobj->GetClose())
 	{
-		player->SetPos(player->GetWorldpos().x, player->GetWorldpos().y);
 		if (KeyManager::GetSingleton()->IsOnceKeyDown('D')) 
 		{
 			installobj->SetOpen(true);
@@ -102,10 +102,31 @@ void CollisionManager::PlayerDoorEnemy(Player* player, InstallObject* installobj
 			player->DoorBreak();
 		}
 	}
-	if (IntersectRect(&rcTemp2, &rcEnemy, &rcDoorAttack))
+	else if (rcPlayer.right-1 == rcDoor.left)
+	{
+		player->SetPos(currPos.x - 1, currPos.y - 1);
+	}
+	else if (rcPlayer.left-1 == rcDoor.right)
+	{
+		player->SetPos(currPos.x + 1, currPos.y + 1);
+	}
+
+	if (IntersectRect(&rcTemp3, &rcEnemy, &rcDoorAttack))
 	{
 		enemy->GetMonsterList()[index]->GetData()->isAlive = false;
 		enemy->GetMonsterList()[index]->GetData()->shape = { -100,-100,-100,-100 };
+	}
+	if (rcEnemy.right == rcDoor.left)
+	{
+		enemy->GetMonsterList()[index]->GetData()->rightWall = true;
+		enemy->GetMonsterList()[index]->GetData()->worldPos.x -= 1;
+		enemy->GetMonsterList()[index]->GetData()->worldPos.y -= 1;
+	}
+	else if (rcEnemy.left == rcDoor.right)
+	{
+		enemy->GetMonsterList()[index]->GetData()->leftWall = true;
+		enemy->GetMonsterList()[index]->GetData()->worldPos.x += 1;
+		enemy->GetMonsterList()[index]->GetData()->worldPos.y += 1;
 	}
 }
 

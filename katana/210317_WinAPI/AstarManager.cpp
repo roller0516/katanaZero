@@ -33,8 +33,8 @@ HRESULT AstarTile::Init(int idX, int idY)
 
 	parentTile = nullptr;
 
-	if( type == AstarTileType::End)
-		color = RGB(100, 100, 100);
+	//if( type == AstarTileType::End)
+	//	color = RGB(100, 100, 100);
 
 	hBrush = (HBRUSH)GetStockObject(NULL_BRUSH);
 
@@ -104,10 +104,9 @@ void AstarTile::Clear()
 
 void AstarTile::SetColor(COLORREF color,bool nullcolor)
 {
-   	//this->color = color;
-	//
-	//this->hBrush = CreateSolidBrush(color);
-	//DeleteObject(hBrush);
+	this->color = color;
+	this->hBrush = CreateSolidBrush(color);
+	DeleteObject(hBrush);
 }
 
 HRESULT AstarManager::Init()
@@ -135,39 +134,7 @@ void AstarManager::Release()
 
 void AstarManager::Update()
 {
-	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_SPACE)) 
-	{
-		Clear();
-
-		if (isFind && startTile)
-		{
-			isFind = false;
-			currTile = startTile;
-		}
-
-		FindPath();
-	}
-
-	if (owner) 
-	{
-		if (owner->GetData()->isFind) 
-	{
-		if (startTile != destTile&& target->GetisGround())
-		{
-			Clear();
-
-			if (startTile)
-			{
-				currTile = startTile;
-			}
 	
-			FindPath();
-		}
-	}
-	}
-	
-
-
 
 	if (owner)
 	{ 
@@ -178,33 +145,29 @@ void AstarManager::Update()
 
 			if (owner->GetData()->dir == EnemyDir::Right) 
 			{
-				posX = owner->GetData()->worldPos.x - 8;
-				posY = owner->GetData()->worldPos.y + 35;
+				posX = owner->GetData()->worldPos.x;
+				posY = owner->GetData()->worldPos.y + 45;
 			}
 			else 
 			{
-				posX = owner->GetData()->worldPos.x - 8;
-				posY = owner->GetData()->worldPos.y + 35;
+				posX = owner->GetData()->worldPos.x;
+				posY = owner->GetData()->worldPos.y + 45;
 			}
-
-			//else 
-			//{
-			//	posX = owner->GetData()->worldPos.x - 20;
-			//	posY = owner->GetData()->worldPos.y + 40;
-			//}
 			 
 			onwerTileIndex.x = posX / TILESIZE;
 			onwerTileIndex.y = posY / TILESIZE;
+
 			int xFrame = onwerTileIndex.x;
 			int yFrame = onwerTileIndex.y;
 
-			//if (Map[yFrame][xFrame].GetType() == AstarTileType::Wall)
-			//{
-			//	yFrame -= 1;
-			//}
-
+			if (Map[yFrame][xFrame].GetType() == AstarTileType::Wall)
+			{
+				onwerTileIndex.y -= 1;
+				yFrame -= 1;
+			}
+			
 			startTile = &Map[yFrame][xFrame];
-			startTile->SetColor(RGB(255, 255, 255), false);
+			startTile->SetColor(RGB(50, 0, 50), false);
 		}
 	}
 	if (target)
@@ -212,7 +175,7 @@ void AstarManager::Update()
 		if (RectInRect(target->GetRect(), rcMain) )
 		{
 			int posX = target->GetWorldpos().x;
-			int posY = target->GetWorldpos().y + 30;
+			int posY = target->GetWorldpos().y + 35;
 			targetTileIndex.x = posX / TILESIZE;
 			targetTileIndex.y = posY / TILESIZE;
 			int xFrame = targetTileIndex.x;
@@ -223,6 +186,49 @@ void AstarManager::Update()
 			}
 			SetDestTile(xFrame, yFrame);
 		}
+	}
+
+	if (owner && target)
+	{
+		if (parentList.size() == 0)
+			count = 0;
+		if (owner->GetData()->isAttack)
+			count = 0;
+		if (destTile->GetType() == AstarTileType::Wall)
+			Clear();
+		if (owner->GetData()->isFind && owner->GetData()->isAttack == false && target->GetisGround() &&
+			Map[(int)targetTileIndex.x][(int)targetTileIndex.y].GetType() != AstarTileType::Wall)
+		{
+			if (startTile != destTile)
+			{
+				if (count == 0)
+				{
+					Clear();
+
+					if (startTile)
+					{
+						currTile = startTile;
+					}
+
+					FindPath();
+					count++;
+				}
+
+			}
+		}
+	}
+
+	if (KeyManager::GetSingleton()->IsStayKeyDown(VK_SPACE))
+	{
+		Clear();
+
+		if (isFind && startTile)
+		{
+			isFind = false;
+			currTile = startTile;
+		}
+
+		FindPath();
 	}
 }	
 
@@ -483,7 +489,7 @@ int AstarManager::CalcHeuristics(int x, int y)
 
 void AstarManager::ParentPopBack(int index)
 {
-	parentList[index].pop_back();
+	parentList.pop_back();
 }
 
 void AstarManager::Clear()
@@ -510,11 +516,8 @@ void AstarManager::Clear()
 
 void AstarManager::SetDestTile(int x, int y)
 {
-	//if(!target->GetisGround()) return;
 	 destTile = &(Map[y][x]); 
 	 destTile->SetColor(RGB(0, 0, 0), false); 
-	 destTile->SetType(AstarTileType::End);
-	 //count == 0;
 }
 
 void AstarManager::MarkTileToType(int index)
@@ -524,25 +527,25 @@ void AstarManager::MarkTileToType(int index)
 	{
 		parentTile->SetColor(RGB(50, 50, 50), false);
 		parentTile = parentTile->GetParentTile();
-		parentList[index].push_back(parentTile);
+		parentList.push_back(parentTile);
 	}
 	
-	backTile = parentList[index].back();
+	backTile = parentList.back();
 	//ParentPopBack(index);
 	//parentList.insert(make_pair(index, *GetParentList(index)));
 }
 
-vector<AstarTile*>* AstarManager::GetParentList(int index)
-{
-	map<int, vector<AstarTile*>> ::iterator it;
-	it = parentList.find(index);
 
-	if (it == parentList.end())
-	{
-		return nullptr;
-	}
 
-	//MarkTileToType(index);
 
-	return &(it->second);
-}
+
+
+
+
+
+
+
+
+
+
+

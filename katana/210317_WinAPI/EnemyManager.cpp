@@ -10,7 +10,7 @@ HRESULT EnemyManager::Init(Player* player,int x, int y,int index)
 {
     vEnemyList[index]->Init(x,y);
     vEnemyList[index]->GetData()->target = player;
-    
+    vEnemyList[index]->GetData()->Index = index;
     return S_OK;
 }
 

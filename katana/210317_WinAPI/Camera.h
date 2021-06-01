@@ -16,7 +16,8 @@ private:
 	float decreaseFactor;
 	FPOINT originalPos;
 	bool CameraShaking;
-
+	int stageCount;
+	int slowStageCount;
 	Player* target;
 	Image* bg;
 	Image* bg_Collision;
@@ -28,11 +29,13 @@ public:
 	HRESULT Init(TilemapTool* target);
 	void Release();
 	void Update();
-	void Render(HDC hdc);
+	void Render(HDC hdc,string stageName);
 	void View();
 	void Shake(float shaking);
+	inline void Setslow(int count) { this->slowStageCount = count; }
 	inline FPOINT GetCamerPivot() { return this->pivot; }
 	inline FPOINT GetWorld() { return this->worldrc; }
+	inline void SetWorld(int x, int y) { this->worldrc.x = x; this->worldrc.y = y;}
 	inline FPOINT GetCameraPos() { return this->pos; }
 	inline Image* GetCollisionBG() { return this->bg_Collision; }
 	inline void SetPos(FPOINT pos) { this->pos = pos; }
