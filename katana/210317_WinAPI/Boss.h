@@ -44,18 +44,30 @@ private:
 	EnemyEffect* enemyEffect;
 	Image* head;
 	FPOINT currPos;
+	FPOINT headPos;
+	FPOINT localHeadpos;
 	EnemyData* data;
 	EnemyDir dir;
 	BossState state;
-	int count;
+
+	bool isGround;
 	bool isBlack;
 	bool patterChange;
-	//bool End;
 	bool start;
 	bool stop;
+	bool isDie;
+	bool noHead;
+	bool shot;
+	int count;
+	int maxHp;
 	int index;
 	int LastIndex;
 	int patternIndex;
+	int missileCount;
+
+	float headFallforce;
+	float headFrame;
+	float headMaxFrame;
 	float attackCooltime;
 public:
 	virtual HRESULT Init(int posX = 0, int posY = 0);
@@ -69,23 +81,29 @@ public:
 	virtual MissileManager* GetMissileManager() { return this->missileManager; }
 
 	virtual ~Boss() {};
-
+	void AttackBox(bool on);
 	void SkyShoot();
 	void Dash();
-	void Hurt(int index);
+	void Hurt();
 	void Idle();
 	void Die(bool isGround);
 	void Grab();
 	void DrawGun();
 	void TelePort();
+	void Shoot();
+	void RecoverHide();
+	void Recover();
+	void TelePort_Ground();
+	void Aim();
+	void NoHead();
+
+	void changePattern(int index);
 
 	void Animation(BossState ani);
 	void PixelCollisionBottom();
 	void PixelCollisionLeft();
 	void PixelCollisionRight();
 	void SetIndex(int index) { this->data->Index; }
-
-	void MaptoolAstar();
 	// get, set
 
 	inline int GetSize() { return this->data->size; }

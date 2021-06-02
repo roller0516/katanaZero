@@ -51,6 +51,8 @@ public:
 		int updateCount = 0;
 		int size = 0;
 		int Index;
+		int hp = 0;
+		bool isHit = false;
 		bool isTurn = false;
 		bool isKnockBack = false;
 		bool isSamPle = false;

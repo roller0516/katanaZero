@@ -1,8 +1,8 @@
 #pragma once
 #include "GameNode.h"
 
-enum class MissileType {enemy,player};
-
+enum class MissileOwnerType {enemy,player};
+enum class MissileType {Toplazer,lazer,Normal,Mine};
 class Image;
 class Enemy;
 class Missile : public GameNode
@@ -21,8 +21,13 @@ private:
 	int fireIndex;
 	int fireStep;
 	float destAngle;
+	float currFrame;
+	float maxFrame;
+	float coolTime;
+	float delay;
 	//Enemy* owner;
-	MissileType missile;
+	MissileOwnerType missile;
+	MissileType missileType;
 public:
 	HRESULT Init();//Enemy* owner);
 	void Release();		
@@ -30,11 +35,17 @@ public:
 	void Render(HDC hdc);
 
 	void MovingNormal();
+	void lazer();
+	void Toplazer();
+	void Mine();
 	void SetIsFired(bool isFired);
 
 	inline RECT GetRect() { return this->shape; }
-	inline MissileType GetType() {return this->missile; }
-	inline void SetType(MissileType type) { this->missile = type; }
+	inline MissileOwnerType GetOwnerType() {return this->missile; }
+	inline void SetOwnerType(MissileOwnerType type) { this->missile = type; }
+	inline MissileType GetType() { return this->missileType; }
+	inline void SetDelay(float delay) { this->coolTime = delay; }
+	inline void SetType(MissileType type) { this->missileType = type; }
 	inline void SetPos(int x, int y) { this->worldPos.x = x; this->worldPos.y = y; }
 	inline void SetLocalPos(int x, int y) { this->localPos.x = x; this->localPos.y = y; }
 	inline void SetPos(FPOINT pos) { this->worldPos = pos; }

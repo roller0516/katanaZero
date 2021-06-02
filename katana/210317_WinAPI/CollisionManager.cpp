@@ -9,6 +9,7 @@
 #include "EnemyManager.h"
 #include "Enemy.h"
 #include "installObject.h"
+#include "Boss.h"
 
 void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* player, EnemyManager* enemy, int index)
 {
@@ -20,13 +21,13 @@ void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* playe
 	{
 		rcmissile = missile->GetMissile()[i]->GetRect();
 		if (missile->GetMissile()[i]->GetIsFired() == true 
-			&& missile->GetMissile()[i]->GetType() == MissileType::enemy 
+			&& missile->GetMissile()[i]->GetOwnerType() == MissileOwnerType::enemy
 			&& IntersectRect(&rcTemp,&rcplayer,&rcmissile))
 		{
 			if (IntersectRect(&rcTemp, &rcReflect, &rcmissile))
 			{
 				missile->GetMissile()[i]->SetAngle(player->GetPlayerAngle());
-				missile->GetMissile()[i]->SetType(MissileType::player);
+				missile->GetMissile()[i]->SetOwnerType(MissileOwnerType::player);
 				break;
 			}
 			missile->GetMissile()[i]->SetPos(-100, -100);
@@ -36,7 +37,7 @@ void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* playe
 		}
 
 		if (missile->GetMissile()[i]->GetIsFired() == true
-			&& missile->GetMissile()[i]->GetType() == MissileType::player
+			&& missile->GetMissile()[i]->GetOwnerType() == MissileOwnerType::player
 			&& IntersectRect(&rcTemp, &rcEnemy, &rcmissile)) //นÝป็
 		{
 			TimerManager::GetSingleton()->SetTimeStop(true);
@@ -64,6 +65,7 @@ void CollisionManager::EnemyPlayer(EnemyManager* enemy, Player* player,int index
 		player->HitEffect(enemy->GetMonsterList()[index]->GetData()->worldPos.x , 
 			enemy->GetMonsterList()[index]->GetData()->worldPos.y);
 		TimerManager::GetSingleton()->SetTimeStop(true);
+		//Camera::GetSingleton()->Shake(0.1f);
 		enemy->GetMonsterList()[index]->GetData()->isAlive = false;
 		enemy->GetMonsterList()[index]->GetData()->shape = { -100,-100,-100,-100 };
 	}
@@ -129,5 +131,33 @@ void CollisionManager::PlayerDoorEnemy(Player* player, InstallObject* installobj
 		enemy->GetMonsterList()[index]->GetData()->worldPos.y += 1;
 	}
 }
+
+void CollisionManager::BossPlayer(Player* player, Enemy* boss)
+{
+	RECT rcTemp, rcTemp2, rcPlayer, rcBoss,rcPlayerAttack,rcBossAtttack;
+
+	rcPlayer = player->GetRect();
+	rcBoss = boss->GetData()->shape;
+	rcPlayerAttack = player->GetAttackShape();
+	rcBossAtttack = boss->GetData()->attackShape;
+	if (IntersectRect(&rcTemp, &rcPlayerAttack, &rcBoss) && count == 0)
+	{
+		count++;
+		Camera::GetSingleton()->Shake(0.2f);
+		player->SetAttackShape();
+		boss->GetData()->shape = { -200,-200,-200,-200 };
+		boss->GetData()->isHit = true;
+		boss->GetData()->hp -= 1;
+	}
+	else if(count == 1)
+		count = 0;
+
+	if (IntersectRect(&rcTemp2, &rcPlayer, &rcBossAtttack))
+	{
+		player->Die();
+	}
+}
+
+
 
 

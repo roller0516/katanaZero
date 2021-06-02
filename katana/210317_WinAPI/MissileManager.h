@@ -16,7 +16,10 @@ public:
 	void Release();
 	void Update();
 	void Render(HDC hdc);
-	void Fire(float angle,int x, int y);
+	void Fire(float angle,int x, int y, float delay);
+	void Lazer(float angle, int x, int y,float delay);
+	void TopLazer(float angle, int x, int y, float delay);
+	void Mine(float angle, int x, int y,float delay);
 
 	vector<Missile*> GetMissile() { return this->vMissiles; }
 };

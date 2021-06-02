@@ -126,7 +126,7 @@ void Player::Update()
 		{
 			playerstate = PlayerState::fall;
 			isAttack = false;
-			attackShape = { -100,-100,-100,-100 };
+			SetAttackShape();
 		}
 		if (isDoor) 
 		{
@@ -163,6 +163,7 @@ void Player::Render(HDC hdc)
 			
 		}	
 	}
+	Rectangle(hdc, attackShape.left, attackShape.top, attackShape.right, attackShape.bottom);
 	if (playerEffect) 
 	{
 		for (int i = 0; i < 9; i++)
@@ -228,12 +229,18 @@ void Player::Attack()
 {
 	float range = 100;
 	Animation(PlayerState::attack);
-
-	attackShape.left = Worldpos.x + (cosf(angle) * 50) - (size - 50) / 2;
-	attackShape.top = Worldpos.y - (sinf(angle) * 50) - (size - 50) / 2;
-	attackShape.right = Worldpos.x + (cosf(angle) * 50) + (size - 50) / 2;
-	attackShape.bottom = Worldpos.y - (sinf(angle) * 50) + (size - 50) / 2;
-
+	
+	if (attackCount == 0) 
+	{
+		attackShape.left = Worldpos.x + (cosf(angle) * 50) - (size - 50) / 2;
+		attackShape.top = Worldpos.y - (sinf(angle) * 50) - (size - 50) / 2;
+		attackShape.right = Worldpos.x + (cosf(angle) * 50) + (size - 50) / 2;
+		attackShape.bottom = Worldpos.y - (sinf(angle) * 50) + (size - 50) / 2;
+		attackCount++;
+	}
+	//else
+	//	SetAttackShape();
+	//SetAttackShape();
 	if (angle>0 && angle<PI / 2 || angle<0 && angle>(-1 * PI / 2))
 	{
 		dir = Direction::RIHGT;
@@ -514,6 +521,7 @@ void Player::PlayerKeyMove()
 
 	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON))
 	{
+		attackCount = 0;
 		playerEffect[0].SetAlive(true);
 		playerEffect[0].SetCurrFrame();
 		angle = GetAngle(Worldpos, GetWorldMousePos(Worldpos));
@@ -717,6 +725,10 @@ void Player::ReflectEffect()
 	playerEffect[7].SetAlive(true);
 	playerEffect[7].SetWorldPos(Worldpos.x + 50, Worldpos.y);
 	playerEffect[7].SetCurrFrame();
+}
+
+void Player::Die()
+{
 }
 
 void Player::HitEffect(int x, int y)

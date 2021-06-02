@@ -253,6 +253,8 @@ void AstarManager::Move()
 }
 void AstarManager::FindPath()
 {
+	//if (heapCount > 3980) 
+	//	return;
 	if (currTile)
 	{
 		// 주위에 있는 이동가능한 타일들을 F값 계산 후보에 넣는다.
@@ -270,7 +272,7 @@ void AstarManager::FindPath()
 			MarkTileToType(0);
 			return;
 		} 
-
+		heapCount++;
 		// 반복
 		FindPath();
 	}
@@ -375,7 +377,7 @@ AstarTile* AstarManager::GetMinTotalCostTileWithHeap()
 	heap.pop_back();
 
 	// 자식과 비교하면서 정렬한다
-	//if(heap.size()>0)
+	if(heap.size()>0)
  	UpdateLower(heap[0]);
 
 	return tile;
@@ -501,11 +503,6 @@ void AstarManager::Clear()
 			Map[i][j].Clear();
 		}
 	}
-	for (int i = 0; i < heap.size(); i++) 
-	{
- 		heap[i]->SetHeapIndex(0);
-	}
-
 	//backTile = nullptr;
 	openList.clear();
 	closeList.clear();

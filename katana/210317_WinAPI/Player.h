@@ -80,6 +80,7 @@ private:
 	bool isAlive;
 	int itemIndex;
 	int keycount;
+	int attackCount;
 public:
 	Direction dir;
 	PlayerState playerstate;
@@ -110,7 +111,9 @@ public:
 	void PixelCollisionRight();
 	void PixelCollisionTop();
 	void ReflectEffect();
+	void Die();
 	void HitEffect(int x ,int y);
+	void SetAttackShape() { attackShape = { -3000,-3000,-3000,-3000 }; }
 
 	inline bool GetIsAlive() { return this->isAlive; }
 	inline bool GetisGround() { return isGround; }

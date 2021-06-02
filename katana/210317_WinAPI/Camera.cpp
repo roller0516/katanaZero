@@ -12,7 +12,7 @@ HRESULT Camera::Init(Player* target)
 	originalPos = worldPos;
 	CameraShaking = false;
 	shakes = 0;
-	shakeAmount = 0.7f;
+	shakeAmount = 0.5f;
 	decreaseFactor = 1.0f;
 
 	
@@ -70,21 +70,21 @@ void Camera::Update()
 		debug = true;
 	if (KeyManager::GetSingleton()->IsOnceKeyDown('X'))
 		debug = false;
-	if (KeyManager::GetSingleton()->IsOnceKeyDown('F'))
-		Shake(0.3f);
+	//if (KeyManager::GetSingleton()->IsOnceKeyDown('F'))
+	//	Shake(0.2f);
 	if (CameraShaking)
 	{
 		if (shakes > 0)
 		{
-			pos.x = originalPos.x + (rand() % 50) * shakeAmount;
-			pos.y = originalPos.y + (rand() % 50) * shakeAmount;
-			worldPos.y += 50;
+			pos.x = originalPos.x + (rand() % 10) * shakeAmount;
+			pos.y = originalPos.y + (rand() % 10) * shakeAmount;
+			pos.y += 10;
 			shakes -= TimerManager::GetSingleton()->GetElapsedTime() * decreaseFactor;
 		}
 		else
 		{
 			shakes = 0.f;
-			worldPos = originalPos;
+			pos = originalPos;
 			CameraShaking = false;
 		}
 	}
@@ -150,14 +150,9 @@ void Camera::View()
 }
 void Camera::Shake(float shaking)
 {
-	srand((unsigned)time(NULL));
-	int x1, x2, y1, y2;
-
-
-	originalPos = worldPos;
+	originalPos = pos;
 	CameraShaking = true;
 	shakes = shaking;	
-
 }
 FPOINT Camera::Distance(FPOINT pos, POINT pos2)
 {

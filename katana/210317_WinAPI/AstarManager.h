@@ -101,6 +101,7 @@ class AstarManager : public GameNode
 	bool start;
 	float angle;
 	int index;
+	int heapCount = 0;
 public:
 	HRESULT Init();
 	void Release();

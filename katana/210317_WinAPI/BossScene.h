@@ -3,10 +3,14 @@
 class Image;
 class Enemy;
 class Player;
+class CollisionManager;
+class MissileManager;
 class BossScene :
     public GameNode
 {
 private:
+    CollisionManager* collisionManager;
+    MissileManager* missileManager;
     Player* player;
     Enemy* boss;
     Image* curSor;
@@ -16,7 +20,7 @@ public:
     virtual void Update();
     virtual void Render(HDC hdc);
 
-    void MapLoad(int stageNum);
+    //void MapLoad(int stageNum);
 
     virtual ~BossScene() {};
 };
