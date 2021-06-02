@@ -1,7 +1,6 @@
 #pragma once
 #include "GameNode.h"
 
-//enum class ItemType {None ,Oil, Knife, Smoke, bottle, Bust };
 class Player;
 class Image;
 class Item :
@@ -29,7 +28,6 @@ private:
     bool getItem;
     bool arrowOn;
     bool isAlpha;
-    //ItemType itemType;
 public:
     HRESULT Init(string name, int x, int y);
     void Release();
@@ -39,6 +37,7 @@ public:
     void ChangeImage(bool change);
     Item* Clone();
 
+    inline string GetName() {return this->name; }
     inline void SetRect() { this->hitShape = { -100,-100,-100,-100 }; }
     inline void SetAngle(float angle) { this->angle = angle; }
     inline void SetOwner(Player* owner) { this->owner = owner; }
@@ -59,7 +58,6 @@ class ItemManager :
 private:
     string name;
     vector<Item*> vItem;
-    //map<string, Item*> mItem;
 public:
     HRESULT Init(int x, int y,Player* owner);
     void Release();

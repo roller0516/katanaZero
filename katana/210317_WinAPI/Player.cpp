@@ -4,6 +4,7 @@
 #include "Camera.h"
 #include "ItemManager.h"
 #include "PlayerEffect.h"
+#include "UI.h"
 
 HRESULT Player::Init()
 {
@@ -62,10 +63,10 @@ HRESULT Player::Init()
 	isGround = false;
 	isFall = false;
 	isPhysics = true;
-	Camera::GetSingleton()->Init(this);
 	size = 100;
 	StartchangeWallIndex = -1;
 	attackShape = { 0,0,0,0 };
+	Camera::GetSingleton()->Init(this);
 
 	return S_OK;
 }
@@ -89,7 +90,17 @@ void Player::Update()
 		fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime()* velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
 		Worldpos.y -= fallForce * TimerManager::GetSingleton()->GetElapsedTime();
 	}
-
+	if (slowPress == false) 
+	{
+		slowUpTime += TimerManager::GetSingleton()->GetElapsedTime();
+		if (slowUpTime > 2)
+		{
+			slowUpTime = 0;
+			if(ui->GetSlowImage()->GetImageInfo()->width < 110)
+				ui->GetSlowImage()->GetImageInfo()->width += 10;
+		}
+	}
+	
 	Clientpos.x = Worldpos.x - Camera::GetSingleton()->GetCameraPos().x;
 	Clientpos.y = Worldpos.y - Camera::GetSingleton()->GetCameraPos().y;
 
@@ -163,7 +174,7 @@ void Player::Render(HDC hdc)
 			
 		}	
 	}
-	Rectangle(hdc, attackShape.left, attackShape.top, attackShape.right, attackShape.bottom);
+	//Rectangle(hdc, attackShape.left, attackShape.top, attackShape.right, attackShape.bottom);
 	if (playerEffect) 
 	{
 		for (int i = 0; i < 9; i++)
@@ -238,9 +249,6 @@ void Player::Attack()
 		attackShape.bottom = Worldpos.y - (sinf(angle) * 50) + (size - 50) / 2;
 		attackCount++;
 	}
-	//else
-	//	SetAttackShape();
-	//SetAttackShape();
 	if (angle>0 && angle<PI / 2 || angle<0 && angle>(-1 * PI / 2))
 	{
 		dir = Direction::RIHGT;
@@ -252,7 +260,6 @@ void Player::Attack()
 
 	if (isAttack)
 	{
-		
 		float distance = sqrtf(pow(Worldpos.x - currPos.x, 2) + pow(Worldpos.y - currPos.y, 2));
 		if (distance <= range && angle >=0)
 		{
@@ -266,8 +273,6 @@ void Player::Attack()
 		}
 		frameRun = true;
 		isGround = false;
-
-
 	}
 }
 
@@ -384,6 +389,7 @@ void Player::Getitem()
 				{
 					if (itemCount == 1)
 					{
+						ui->SetItemImage("effect_black");
 						angle = GetAngle(Worldpos, GetWorldMousePos(Worldpos));
 						itemManager->GetItemList()[itemIndex]->SetAngle(angle);
 						itemManager->GetItemList()[itemIndex]->SetAlive(true);
@@ -393,6 +399,7 @@ void Player::Getitem()
 					}
 					else
 					{
+						ui->SetItemImage(itemManager->GetItemList()[i]->GetName());
 						itemManager->GetItemList()[i]->SetAlive(false);
 						itemManager->GetItemList()[i]->SetGetItem(true);
 						itemManager->GetItemList()[i]->ChangeImage(true);
@@ -420,7 +427,6 @@ void Player::DoorBreak()
 		frameRun = true;
 		Animation(PlayerState::door_break);
 	}
-	
 }
 
 void Player::PlayerFSM()
@@ -468,14 +474,26 @@ void Player::PlayerKeyMove()
 	if (isDoor) return;
 	if (KeyManager::GetSingleton()->IsOnceKeyUp(VK_SHIFT)) 
 	{
+		slowPress = false;
 		Camera::GetSingleton()->Setslow(0);
 		TimerManager::GetSingleton()->SetTimeSlow(false);
 	}
 		
 	if (KeyManager::GetSingleton()->IsStayKeyDown(VK_SHIFT)) 
 	{
-		Camera::GetSingleton()->Setslow(1);
-		TimerManager::GetSingleton()->SetTimeSlow(true);
+		
+		if (ui->GetSlowImage()->GetImageInfo()->width > 0) 
+		{
+			slowPress = true;
+			slowPressTime += TimerManager::GetSingleton()->GetElapsedTime();
+			if (slowPressTime > 1)
+			{
+				slowPressTime = 0;
+				ui->GetSlowImage()->GetImageInfo()->width -= 10;
+			}
+			Camera::GetSingleton()->Setslow(1);
+			TimerManager::GetSingleton()->SetTimeSlow(true);
+		}
 	}
 	
 	if (KeyManager::GetSingleton()->IsOnceKeyDown('W'))
@@ -521,6 +539,7 @@ void Player::PlayerKeyMove()
 
 	if (KeyManager::GetSingleton()->IsOnceKeyDown(VK_LBUTTON))
 	{
+		
 		attackCount = 0;
 		playerEffect[0].SetAlive(true);
 		playerEffect[0].SetCurrFrame();
@@ -632,7 +651,7 @@ void Player::PixelCollisionLeft()
 	float playerwidth = size/2;
 	float currPosLeft = shape.left - 15;
 
-	for (int i = currPosLeft-10; i < currPosLeft+10; i++)
+	for (int i = currPosLeft-1; i < currPosLeft+1; i++)
 	{
 		color = GetPixel(Camera::GetSingleton()->GetCollisionBG()->GetMemDC(),
 			i, Worldpos.y);
@@ -649,8 +668,8 @@ void Player::PixelCollisionLeft()
 				leftWall = true;
 				//break;
 			}
-			//leftWall = false;;
-			Worldpos.x = i + playerwidth +1;
+				
+			//Worldpos.x = i + playerwidth+1;
 			break;
 		}
 		else if((R == 255 && G == 0 && B == 255))
@@ -673,8 +692,12 @@ void Player::PixelCollisionRight()
 		G = GetGValue(color);
 		B = GetBValue(color);
 
-		if (R == 0 && G == 0 && B == 255)
-			break;
+		if (R == 0 && G == 0 && B == 255) 
+		{
+			sceneChange = true;
+			
+		}
+			
 		if (!(R == 255 && G == 0 && B == 255))
 		{
 			if (R == 0 && G == 0 && B == 0)
@@ -685,7 +708,7 @@ void Player::PixelCollisionRight()
 				//break;
 			}	
 			//RightWall = false;
-			Worldpos.x = i - playerWidth+5;
+			//Worldpos.x = i - playerWidth;
 			break;
 		}
 		else if ((R == 255 && G == 0 && B == 255)) 
@@ -729,6 +752,7 @@ void Player::ReflectEffect()
 
 void Player::Die()
 {
+
 }
 
 void Player::HitEffect(int x, int y)
@@ -770,7 +794,7 @@ void Player::PixelCollisionBottom()
 			if (isAttack) 
 			{
 				attCount = 0;
-				Worldpos.y = i - playerHeight-10;
+				Worldpos.y = i - playerHeight-8;
 				break;
 			}
 			if ((R == 0 && G == 0 && B == 0) && isFall) 

@@ -16,6 +16,7 @@
 #include "ItemManager.h"
 #include "AstarManager.h"
 #include "InstallObject.h"
+#include "UI.h"
 
 HRESULT BattleScene::Init()
 {
@@ -23,6 +24,12 @@ HRESULT BattleScene::Init()
 	curSor = ImageManager::GetSingleton()->AddImage("cursor", "Image/Katana/effect/cursor.bmp", 50, 50, true,RGB(255,0,255));
 	player = new Player();
 	player->Init();
+
+	ui = new UI();
+	ui->Init();
+	player->SetUI(ui);
+
+	
 
 	itemManager = new ItemManager;
 	itemManager->AddItem("Knife",new Item);
@@ -69,7 +76,7 @@ HRESULT BattleScene::Init()
 			}
 		}
 	}
-
+	monsterCount = enemyManager->GetMonsterList().size();
 	bgPos.x = 0;
 	bgPos.y = 0;
 
@@ -80,16 +87,17 @@ HRESULT BattleScene::Init()
 
 void BattleScene::Release()
 {
-	SAFE_RELEASE(player);
-	SAFE_RELEASE(enemyManager);
 	SAFE_RELEASE(itemManager);
+	SAFE_RELEASE(enemyManager);
+	SAFE_RELEASE(player);
 }
 
 void BattleScene::Update()
 {
+	Camera::GetSingleton()->View();
 	if (installObj)
 		installObj->Update();
-	if(missileManager)
+	if (missileManager)
 		missileManager->Update();
 	if (enemyManager)
 		enemyManager->Update();
@@ -97,13 +105,25 @@ void BattleScene::Update()
 		itemManager->Update();
 	if (player)
 		player->Update();
+	if (ui)
+		ui->Update();
 
+	if (monsterCount == 0)
+		ui->SetClear(true);
 	for (int i = 0; i < enemyManager->GetMonsterList().size(); i++) 
 	{
-		collisionManager->MissilePlayerEnemy(missileManager,player, enemyManager,i);
-		collisionManager->EnemyPlayer(enemyManager, player, i);
-		collisionManager->EnemyItem(player, enemyManager, itemManager, i);
-		collisionManager->PlayerDoorEnemy(player, installObj, enemyManager, i);
+		if (collisionManager->MissilePlayerEnemy(missileManager, player, enemyManager, this, i)) 
+		{
+
+		}
+		collisionManager->EnemyPlayer(enemyManager, player,this, i);
+		collisionManager->EnemyItem(player, enemyManager,this, itemManager, i);
+		collisionManager->PlayerDoorEnemy(player, installObj,this, enemyManager, i);
+	}
+
+	if (player->GetSceneChange()) 
+	{
+		SceneManager::GetSingleton()->ChangeScene("보스전투");
 	}
 }
 
@@ -111,7 +131,6 @@ void BattleScene::Update()
 void BattleScene::Render(HDC hdc)
 {
 	Camera::GetSingleton()->Render(hdc,"stage1_bg_render");
-	Camera::GetSingleton()->View();
 
 	if (itemManager)
 		itemManager->Render(hdc);
@@ -127,7 +146,10 @@ void BattleScene::Render(HDC hdc)
 
 	if (player)
 		player->Render(hdc);
-	
+
+	if (ui)
+		ui->Render(hdc);
+
 	FPOINT pos;
 	pos.x = WINSIZE_X - Camera::GetSingleton()->GetCameraPos().x;
 	pos.y = WINSIZE_Y - Camera::GetSingleton()->GetCameraPos().y;

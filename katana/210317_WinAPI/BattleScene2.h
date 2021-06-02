@@ -1,10 +1,9 @@
 #pragma once
 #include "GameNode.h"
 
-// 기존 MainGame 클래스의 내용을 이동
-class InstallObject;
+//class InstallObject;
 class MissileManager;
-class AstarManager;
+//class AstarManager;
 class ItemManager;
 class EnemyManager;
 class EnemyManager;
@@ -14,15 +13,16 @@ class Tank;
 class Image;
 class Enemy;
 class UI;
+
 class BattleScene : public GameNode
 {
 private:
+	//AstarManager* astarManager;
+	//InstallObject* installObj;
 	CollisionManager* collisionManager;
 	MissileManager* missileManager;
-	AstarManager* astarManager;
 	EnemyManager* enemyManager;
 	ItemManager* itemManager;
-	InstallObject* installObj;
 	UI* ui;
 	ENMY_INFO enemySize[100];
 
@@ -33,7 +33,7 @@ private:
 	Image* curSor;
 	FPOINT bgPos;
 	char szText[128];
-	TILE_INFO tileInfo[TILE_X * TILE_Y];
+	//TILE_INFO tileInfo[TILE_X * TILE_Y];
 public:
 	virtual HRESULT Init();
 	virtual void Release();
@@ -46,4 +46,3 @@ public:
 
 	virtual ~BattleScene() {};
 };
-

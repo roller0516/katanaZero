@@ -23,7 +23,7 @@ HRESULT MainGame::Init()
 	SceneManager::GetSingleton()->AddScene("Å¸ÀÏ¸ÊÅø", new TilemapTool());
 	SceneManager::GetSingleton()->AddScene("º¸½ºÀüÅõ", new BossScene());
 
-	SceneManager::GetSingleton()->ChangeScene("º¸½ºÀüÅõ");
+	SceneManager::GetSingleton()->ChangeScene("ÀüÅõ_1");
 
 	isInited = true;
 
@@ -55,7 +55,7 @@ void MainGame::Render()
 	SceneManager::GetSingleton()->Render(hBackDC); 
 
 	// ÀÎ»ç
-	TextOut(hBackDC, 20, 20, "MainGame ·»´õ Áß", strlen("MainGame ·»´õ Áß"));
+	//TextOut(hBackDC, 20, 20, "MainGame ·»´õ Áß", strlen("MainGame ·»´õ Áß"));
 	// ¸¶¿ì½º ÁÂÇ¥
 
 	// FPS

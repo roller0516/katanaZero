@@ -5,6 +5,7 @@ class Enemy;
 class Player;
 class CollisionManager;
 class MissileManager;
+class UI;
 class BossScene :
     public GameNode
 {
@@ -14,6 +15,7 @@ private:
     Player* player;
     Enemy* boss;
     Image* curSor;
+    UI* ui;
 public:
     virtual HRESULT Init();
     virtual void Release();

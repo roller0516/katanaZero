@@ -144,6 +144,7 @@
     <ClCompile Include="Animator.cpp" />
     <ClCompile Include="AstarManager.cpp" />
     <ClCompile Include="BattleScene.cpp" />
+    <ClCompile Include="BattleScene2.cpp" />
     <ClCompile Include="Boss.cpp" />
     <ClCompile Include="BossScene.cpp" />
     <ClCompile Include="Button.cpp" />
@@ -161,6 +162,7 @@
     <ClCompile Include="installObject.cpp" />
     <ClCompile Include="ItemManager.cpp" />
     <ClCompile Include="KeyManager.cpp" />
+    <ClCompile Include="LoadingScene.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainGame.cpp" />
     <ClCompile Include="Missile.cpp" />
@@ -171,11 +173,14 @@
     <ClCompile Include="TilemapTool.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TimerManager.cpp" />
+    <ClCompile Include="TitleScene.cpp" />
+    <ClCompile Include="UI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animator.h" />
     <ClInclude Include="AstarManager.h" />
     <ClInclude Include="BattleScene.h" />
+    <ClInclude Include="BattleScene2.h" />
     <ClInclude Include="Boss.h" />
     <ClInclude Include="BossScene.h" />
     <ClInclude Include="Button.h" />
@@ -196,6 +201,7 @@
     <ClInclude Include="installObject.h" />
     <ClInclude Include="ItemManager.h" />
     <ClInclude Include="KeyManager.h" />
+    <ClInclude Include="LoadingScene.h" />
     <ClInclude Include="MainGame.h" />
     <ClInclude Include="Missile.h" />
     <ClInclude Include="MissileManager.h" />
@@ -206,6 +212,8 @@
     <ClInclude Include="TilemapTool.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="TimerManager.h" />
+    <ClInclude Include="TitleScene.h" />
+    <ClInclude Include="UI.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Image\Katana\effect\cursor.bmp" />

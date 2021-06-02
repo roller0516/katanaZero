@@ -7,20 +7,17 @@ HRESULT Item::Init(string name,int x,int y)
 {
 	ImageManager::GetSingleton()->AddImage("Knife", "Image/Katana/item/item_knife.bmp",34,34,1,1,true,RGB(255,0,255));
 	ImageManager::GetSingleton()->AddImage("Oil", "Image/Katana/item/item_molotov.bmp", 18, 40, 1, 1 ,true, RGB(255, 0, 255));
-	//ImageManager::GetSingleton()->AddImage("Smoke", "Image/Katana/item/item_beer_get.bmp", 12, 30, true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("bottle", "Image/Katana/item/item_bottle.bmp", 12, 30, 1, 1, true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("Bust", "Image/Katana/item/item_bust.bmp", 38, 56, 1, 1, true, RGB(255, 0, 255));
 
 	ImageManager::GetSingleton()->AddImage("Knife_get", "Image/Katana/item/item_knife_get.bmp", 42,42, 1, 1, true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("Oil_get", "Image/Katana/item/item_molotov_get.bmp", 26, 48, 1, 1, true, RGB(255, 0, 255));
-	//ImageManager::GetSingleton()->AddImage("Smoke", "Image/Katana/item/item_beer_get.bmp", 12, 30, true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("bottle_get", "Image/Katana/item/item_beer_get.bmp", 20, 38, 1, 1, true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("Bust_get", "Image/Katana/item/item_bust_get.bmp", 46, 64, 1, 1, true, RGB(255, 0, 255));
 	imgArrow = ImageManager::GetSingleton()->AddImage("item_Arrow", "Image/Katana/item/item_pickuparrow_8x1.bmp", 272, 42, 8, 1, true, RGB(255, 0, 255));
 
 	img = ImageManager::GetSingleton()->FindImage(name);
 	
-	/*itemType = ItemType::None;*/
 	this->name = name;
 	worldPos.x = x;
 	worldPos.y = y;
@@ -61,8 +58,7 @@ void Item::Update()
 		hitShape.right = worldPos.x + size / 2;
 		hitShape.bottom = worldPos.y + size / 2;
 	}
-
-	if (isAlive == false)
+	else
 		hitShape = { -100,-100,-100,-100 };
 
 	if (arrowOn) 
@@ -72,8 +68,6 @@ void Item::Update()
 			currFrame = 0;
 	}
 
-	
-	
 	if (getItem) 
 	{
 		alphaTime += 15 * TimerManager::GetSingleton()->GetElapsedTime();
@@ -96,8 +90,6 @@ void Item::Update()
 
 	localPos.x = worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
 	localPos.y = worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
-	
-	
 }
 
 void Item::Render(HDC hdc)

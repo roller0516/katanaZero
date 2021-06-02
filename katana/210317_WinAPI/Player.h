@@ -26,6 +26,7 @@ enum class PlayerState
 	door_break,
 	end
 };
+class UI;
 class PlayerEffect;
 class ItemManager;
 class Image;
@@ -34,6 +35,7 @@ class Player : public GameNode
 private:
 	ItemManager* itemManager;
 	PlayerEffect* playerEffect;
+	UI* ui;
 	Image* image;
 	RECT shape;
 	RECT hitShape;
@@ -50,6 +52,8 @@ private:
 	int size;
 	int tick;
 
+	float slowPressTime;
+	float slowUpTime;
 	float angle;
 	float moveSpeed;	// 초당 이동거리
 	float currFrame;
@@ -62,6 +66,9 @@ private:
 	int StartchangeWallIndex;
 	int EndchangeWallIndex;
 
+	bool sceneChange;
+
+	bool slowPress;
 	bool isReflect;
 	bool black;
 	bool isFilp;
@@ -114,7 +121,9 @@ public:
 	void Die();
 	void HitEffect(int x ,int y);
 	void SetAttackShape() { attackShape = { -3000,-3000,-3000,-3000 }; }
+	void SetUI(UI* ui) { this->ui = ui; }
 
+	inline bool GetSceneChange() { return this->sceneChange; }
 	inline bool GetIsAlive() { return this->isAlive; }
 	inline bool GetisGround() { return isGround; }
 	inline int GetItemIndex() { return this->itemIndex; }
@@ -128,7 +137,6 @@ public:
 	inline RECT GetRect() { return this->hitShape; }
 	inline Image* GetImageInfo() { return this->image; }
 	inline bool GetDoor() { return this->isDoor; }
-
 	inline void SetReflect(bool reflect) { this->isReflect = reflect; }
 	inline void SetDoor(bool door) { this->isDoor = door; }
 	inline void SetitemManager(ItemManager* itemManager) { this->itemManager = itemManager; }

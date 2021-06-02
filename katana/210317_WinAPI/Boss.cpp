@@ -76,7 +76,10 @@ void Boss::Update()
             {
                 missileCount++;
                 attackCooltime = 0;
-                data->attackAngle = DegToRad(missileCount*(-8));
+                if (dir == EnemyDir::Right)
+                    data->attackAngle = DegToRad(-180 + missileCount * 8);
+                else
+                    data->attackAngle = DegToRad(-8 * missileCount);
                 data->missileManager->Fire(data->attackAngle, data->worldPos.x +missileCount, data->worldPos.y, 0);
             }  
         }
@@ -91,6 +94,7 @@ void Boss::Update()
     localHeadpos.x = headPos.x - Camera::GetSingleton()->GetCameraPos().x;
     localHeadpos.y = headPos.y - Camera::GetSingleton()->GetCameraPos().y;
 	data->currFrameX += TimerManager::GetSingleton()->GetElapsedTime() * 10;
+
 	if (data->currFrameX >= data->maxFrame)
 	{
         if (LastIndex != 0) 
@@ -118,10 +122,10 @@ void Boss::Update()
 	{
         if (data->isHit == false || state != BossState::TelePort_Ground) 
         {
-            data->shape.left = data->worldPos.x - data->size / 2;
-            data->shape.top = data->worldPos.y - data->size / 2;
-            data->shape.right = data->worldPos.x + data->size / 2;
-            data->shape.bottom = data->worldPos.y + data->size / 2;
+            data->shape.left = data->worldPos.x - 44 / 2;
+            data->shape.top = data->worldPos.y - 88 / 2;
+            data->shape.right = data->worldPos.x + 44 / 2;
+            data->shape.bottom = data->worldPos.y + 88 / 2;
         }
 	}
 	PixelCollisionBottom();
@@ -152,7 +156,8 @@ void Boss::Render(HDC hdc,bool World)
             data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y+20, data->currFrameX, 0, true);
         else
             data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
-        head->FrameRenderFlip(hdc, localHeadpos.x, localHeadpos.y, headFrame, 0, true);
+        if(noHead)
+            head->FrameRender(hdc, localHeadpos.x, localHeadpos.y, headFrame, 0, true);
     }
     else 
     {
@@ -164,10 +169,11 @@ void Boss::Render(HDC hdc,bool World)
             data->image->FrameRender(hdc, data->localPos.x, data->localPos.y+20, data->currFrameX, 0, true);
         else
             data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
-        head->FrameRenderFlip(hdc, localHeadpos.x, localHeadpos.y, headFrame,headFrame ,0, true);
+        if(noHead)
+            head->FrameRender(hdc, localHeadpos.x, localHeadpos.y, headFrame,headFrame ,0, true);
     }
-   // Rectangle(hdc, data->shape.left- Camera::GetSingleton()->GetCameraPos().x, data->shape.top - Camera::GetSingleton()->GetCameraPos().y
-   //     , data->shape.right - Camera::GetSingleton()->GetCameraPos().x, data->shape.bottom - Camera::GetSingleton()->GetCameraPos().y);
+    //Rectangle(hdc, data->shape.left- Camera::GetSingleton()->GetCameraPos().x, data->shape.top - Camera::GetSingleton()->GetCameraPos().y
+    //    , data->shape.right - Camera::GetSingleton()->GetCameraPos().x, data->shape.bottom - Camera::GetSingleton()->GetCameraPos().y);
 }
 
 Enemy* Boss::Clone()
@@ -273,7 +279,7 @@ void Boss::SkyShoot()
         data->isPhysic = false;
         data->worldPos.y = 200;
         data->worldPos.x = randNum;
-        data->missileManager->TopLazer(DegToRad(0), data->worldPos.x, data->worldPos.y + 800,1.5f);
+        data->missileManager->TopLazer(DegToRad(0), data->worldPos.x, data->worldPos.y + 800,2);
         index++;
     }
     else if (index == 5) 
@@ -435,7 +441,7 @@ void Boss::Grab()
 
     float angle;
     float attackAngle;
-
+    
     if (state == BossState::Jump)
     {
         isGround = false;
@@ -490,7 +496,7 @@ void Boss::Grab()
     else if (index == 1 && start == false)
     {
         if (index == 1)
-            data->fallForce = 400;
+            data->fallForce = 500;
 
         start = true;
         data->currFrameX = 0;
@@ -513,7 +519,6 @@ void Boss::Grab()
     }
     else if (index == 3 && start == false)
     {
-        
         if (dir == EnemyDir::Right)
             dir = EnemyDir::Right;
         else if (dir == EnemyDir::Left)
@@ -521,6 +526,8 @@ void Boss::Grab()
 
         if (index == 3)
             data->fallForce = 500;
+
+        missileCount = 0;
         data->isPhysic = true;
         start = true;
         data->currFrameX = 0;
@@ -643,8 +650,13 @@ void Boss::Shoot()
                 dir = EnemyDir::Right;
             else
                 dir = EnemyDir::Left;
+
+            data->attackAngle = (rand()%30)+10;
         }
-        
+        if(dir == EnemyDir::Right)
+            data->missileManager->Mine(DegToRad(data->attackAngle+=15),data->worldPos.x,data->worldPos.y,0.5f);
+        else
+            data->missileManager->Mine(DegToRad(data->attackAngle -= 15), data->worldPos.x, data->worldPos.y, 0.5f);
         start = true;
         data->currFrameX = 0;
         state = BossState::Shoot;
@@ -693,9 +705,6 @@ void Boss::NoHead()
     }
     if (noHead) 
     {
-        /*headPos.x += cosf(angle) *100* TimerManager::GetSingleton()->GetElapsedTime();*/
-        //headPos.y -= headFallforce * TimerManager::GetSingleton()->GetElapsedTime();
-       
         headFrame += 15*TimerManager::GetSingleton()->GetElapsedTime();
         if (headFrame > headMaxFrame) 
         {
@@ -713,6 +722,7 @@ void Boss::changePattern(int index)
 
 void Boss::Animation(BossState ani)
 {
+    shot = false;
     switch (ani)
     {
     case BossState::Idle:

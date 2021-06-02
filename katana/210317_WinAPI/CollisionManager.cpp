@@ -10,8 +10,9 @@
 #include "Enemy.h"
 #include "installObject.h"
 #include "Boss.h"
+#include "BattleScene.h"
 
-void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* player, EnemyManager* enemy, int index)
+bool CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* player, EnemyManager* enemy, BattleScene* battleScene, int index)
 {
 	RECT rcTemp, rcplayer, rcmissile,rcReflect,rcEnemy;
 	rcplayer = player->GetRect();
@@ -20,6 +21,7 @@ void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* playe
 	for (int i = 0; i < missile->GetMissile().size(); i++) 
 	{
 		rcmissile = missile->GetMissile()[i]->GetRect();
+
 		if (missile->GetMissile()[i]->GetIsFired() == true 
 			&& missile->GetMissile()[i]->GetOwnerType() == MissileOwnerType::enemy
 			&& IntersectRect(&rcTemp,&rcplayer,&rcmissile))
@@ -28,12 +30,10 @@ void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* playe
 			{
 				missile->GetMissile()[i]->SetAngle(player->GetPlayerAngle());
 				missile->GetMissile()[i]->SetOwnerType(MissileOwnerType::player);
-				break;
+				return true;
 			}
 			missile->GetMissile()[i]->SetPos(-100, -100);
-			missile->GetMissile()[i]->SetLocalPos(-100,-100);
-			missile->GetMissile()[i]->SetIsFired(false);
-			break;
+			return true;
 		}
 
 		if (missile->GetMissile()[i]->GetIsFired() == true
@@ -45,17 +45,18 @@ void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* playe
 			player->HitEffect(enemy->GetMonsterList()[index]->GetData()->worldPos.x,
 				enemy->GetMonsterList()[index]->GetData()->worldPos.y);
 			missile->GetMissile()[i]->SetPos(-100, -100);
-			missile->GetMissile()[i]->SetLocalPos(-100, -100);
-			missile->GetMissile()[i]->SetIsFired(false);
 			enemy->GetMonsterList()[index]->GetData()->isAlive = false;
 			enemy->GetMonsterList()[index]->GetData()->shape = { -100,-100,-100,-100 };
-			break;
+			battleScene->SetMonsterCount(battleScene->GetMonsterCount() - 1);
+			return true;
 		}
+		return false;
 	}
+	
 }
 
 
-void CollisionManager::EnemyPlayer(EnemyManager* enemy, Player* player,int index)
+void CollisionManager::EnemyPlayer(EnemyManager* enemy, Player* player, BattleScene* battleScene, int index)
 {
 	RECT rcTemp, rcplayer, rcEnemy;
 	rcplayer = player->GetAttackShape();
@@ -65,13 +66,13 @@ void CollisionManager::EnemyPlayer(EnemyManager* enemy, Player* player,int index
 		player->HitEffect(enemy->GetMonsterList()[index]->GetData()->worldPos.x , 
 			enemy->GetMonsterList()[index]->GetData()->worldPos.y);
 		TimerManager::GetSingleton()->SetTimeStop(true);
-		//Camera::GetSingleton()->Shake(0.1f);
 		enemy->GetMonsterList()[index]->GetData()->isAlive = false;
 		enemy->GetMonsterList()[index]->GetData()->shape = { -100,-100,-100,-100 };
+		battleScene->SetMonsterCount(battleScene->GetMonsterCount() - 1);
 	}
 }
 
-void CollisionManager::EnemyItem(Player* player,EnemyManager* enemy, ItemManager* item,int index)
+void CollisionManager::EnemyItem(Player* player, EnemyManager* enemy, BattleScene* battleScene, ItemManager* item, int index)
 {
 	RECT rcTemp, rcitem, rcEnemy;
 	rcitem = item->GetItemList()[player->GetItemIndex()]->GetRect();
@@ -83,13 +84,15 @@ void CollisionManager::EnemyItem(Player* player,EnemyManager* enemy, ItemManager
 		TimerManager::GetSingleton()->SetTimeStop(true);
 		enemy->GetMonsterList()[index]->GetData()->isAlive = false;
 		item->GetItemList()[player->GetItemIndex()]->SetAlive(false);
+		battleScene->SetMonsterCount(battleScene->GetMonsterCount() - 1);
 	}
 }
 
-void CollisionManager::PlayerDoorEnemy(Player* player, InstallObject* installobj, EnemyManager* enemy, int index)
+void CollisionManager::PlayerDoorEnemy(Player* player, InstallObject* installobj, BattleScene* battleScene, EnemyManager* enemy, int index)
 {
 	RECT rcTemp, rcTemp2 , rcTemp3,rcPlayer, rcDoor, rcEnemy, rcDoorAttack;
 	FPOINT currPos = player->GetWorldpos();
+
 	rcPlayer = player->GetRect();
 	rcDoor = installobj->GetShape();
 	rcDoorAttack = installobj->GetAttackShape();
@@ -117,6 +120,7 @@ void CollisionManager::PlayerDoorEnemy(Player* player, InstallObject* installobj
 	{
 		enemy->GetMonsterList()[index]->GetData()->isAlive = false;
 		enemy->GetMonsterList()[index]->GetData()->shape = { -100,-100,-100,-100 };
+		battleScene->SetMonsterCount(battleScene->GetMonsterCount() - 1);
 	}
 	if (rcEnemy.right == rcDoor.left)
 	{

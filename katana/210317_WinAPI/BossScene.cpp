@@ -6,12 +6,15 @@
 #include "Image.h"
 #include "CollisionManager.h"
 #include "MissileManager.h"
+#include "UI.h"
 HRESULT BossScene::Init()
 {
 	curSor = ImageManager::GetSingleton()->AddImage("cursor", "Image/Katana/effect/cursor.bmp", 50, 50, true, RGB(255, 0, 255));
-
+	ui = new UI;
+	ui->Init();
 	player = new Player();
 	player->Init();
+	player->SetUI(ui);
 	collisionManager = new CollisionManager;
 	missileManager = new MissileManager;
 	missileManager->Init();
@@ -33,6 +36,10 @@ void BossScene::Release()
 
 void BossScene::Update()
 {
+	Camera::GetSingleton()->View();
+
+	if (ui)
+		ui->Update();
 	if(boss)
 		boss->Update();
 	if(player)
@@ -46,10 +53,11 @@ void BossScene::Update()
 void BossScene::Render(HDC hdc)
 {
 	Camera::GetSingleton()->Render(hdc, "stage5_bg_render");
-	Camera::GetSingleton()->View();
 	
 	if (missileManager)
 		missileManager->Render(hdc);
+	if (ui)
+		ui->Render(hdc);
 	//
 	//if (enemyManager)
 	//	enemyManager->Render(hdc);

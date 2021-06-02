@@ -34,7 +34,7 @@ void TimerManager::Render(HDC hdc)
 float TimerManager::GetElapsedTime()
 {
     if (slow) 
-        return 0.0008;
+        return 0.0005;
 
     if (stop) 
     {
@@ -49,7 +49,7 @@ float TimerManager::GetElapsedTime()
     }
     
        
-    //return 0.0005;
+    //return 0.005;
     return timer->GetElapsedTime();
 }
 

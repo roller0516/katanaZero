@@ -513,6 +513,8 @@ void AstarManager::Clear()
 
 void AstarManager::SetDestTile(int x, int y)
 {
+	if (Map[y][x].GetType() == AstarTileType::Wall && target->GetisGround() == false)
+		return;
 	 destTile = &(Map[y][x]); 
 	 destTile->SetColor(RGB(0, 0, 0), false); 
 }

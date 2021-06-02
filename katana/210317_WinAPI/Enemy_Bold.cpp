@@ -284,13 +284,13 @@ void Enemy_Bold::Attack(EnemyDir dir)
        data->attackSpeed = 0;
        if (dir == EnemyDir::Left) 
        {
-           data->missileManager->Fire(data->attackAngle, data->worldPos.x - 5, data->worldPos.y - 10,0);
+           data->missileManager->Fire(data->attackAngle, data->worldPos.x - 5, data->worldPos.y - 10,0.1f);
            enemyEffect[0].SetAlive(true);
        }
            
        else 
        {
-           data->missileManager->Fire(data->attackAngle, data->worldPos.x + 5, data->worldPos.y - 10,0);
+           data->missileManager->Fire(data->attackAngle, data->worldPos.x + 5, data->worldPos.y - 10,0.1f);
            enemyEffect[0].SetAlive(true);
        }
            

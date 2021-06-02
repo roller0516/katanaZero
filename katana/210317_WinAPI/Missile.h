@@ -10,16 +10,24 @@ class Missile : public GameNode
 private:
 	// ÀÌ¹ÌÁö
 	Image* img;
+	Image* minerange;
+	Image* flameEffect[6];
 	FPOINT worldPos;
 	FPOINT localPos;
+	FPOINT flamePos;
 	RECT shape;
 	int size;
+	int circleSize;
 	float moveSpeed;
 	float moveTime;
 	float angle;
 	bool isFired;
+	bool flameOn;
+
 	int fireIndex;
 	int fireStep;
+	float fallForce;
+	float velocity;
 	float destAngle;
 	float currFrame;
 	float maxFrame;
@@ -38,8 +46,8 @@ public:
 	void lazer();
 	void Toplazer();
 	void Mine();
-	void SetIsFired(bool isFired);
 
+	inline void SetIsFired(bool isFired) {this->isFired = isFired;};
 	inline RECT GetRect() { return this->shape; }
 	inline MissileOwnerType GetOwnerType() {return this->missile; }
 	inline void SetOwnerType(MissileOwnerType type) { this->missile = type; }

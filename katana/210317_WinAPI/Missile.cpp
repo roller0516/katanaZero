@@ -17,12 +17,20 @@ HRESULT Missile::Init()//Enemy* owner)
 	isFired = false;
 	fireStep = 0;
 	destAngle = 0.0f;
+	velocity = 80.0f;
 	// ÀÌ¹ÌÁö
 	img = ImageManager::GetSingleton()->AddImage("Bullet", "Image/Katana/enemy/enemy_bullet.bmp", 48, 2,1,1,true, RGB(255,0,255));
 	ImageManager::GetSingleton()->AddImage("Top_lazer", "Image/Katana/boss/boss_lazer_top_10x1.bmp", 360, 1500, 10, 1, true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("Ground_lazer", "Image/Katana/boss/boss_lazer_ground_1x10.bmp", 1500, 360, 1, 10, true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("Mine", "Image/Katana/boss/boss_mine_1x2.bmp", 40, 20, 2, 1, true, RGB(255, 0, 255));
-	ImageManager::GetSingleton()->AddImage("Circle", "Image/Katana/boss/boss_circle.bmp", 274, 274, 1, 1, true, RGB(255, 0, 255));
+	
+	minerange = ImageManager::GetSingleton()->AddImage("Circle", "Image/Katana/boss/boss_circle.bmp", 274, 274, 1, 1, true, RGB(255, 0, 255));
+	
+	for (int i = 0; i < 6; i++) 
+	{
+		flameEffect[i] = ImageManager::GetSingleton()->AddImage("FlameEffect", "Image/Katana/effect/effect_explosion_12x1.bmp", 2112, 224, 11, 1, true, RGB(255, 0, 255));
+	}
+	
     return S_OK;
 }
 
@@ -33,11 +41,58 @@ void Missile::Release()
 
 void Missile::Update()
 {
-	
+	localPos.x = worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
+	localPos.y = worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
+
 	if (isFired)
 	{
+
 		delay += TimerManager::GetSingleton()->GetElapsedTime();
-		if (delay > coolTime) 
+		if (missileType == MissileType::Mine)
+		{
+			currFrame += 15 * TimerManager::GetSingleton()->GetElapsedTime();
+			if (currFrame > maxFrame)
+			{
+				currFrame = 0;
+				if (flameOn)
+					flameOn = false;
+			}
+
+			if (fireIndex == 0)
+			{
+				fireIndex++;
+				fallForce = 300;
+				moveSpeed = 800;
+			}
+			Mine();
+			
+			if (delay >= coolTime + 1.5f)
+			{
+				flameOn = false;
+				isFired = false;
+				fireIndex = 0;
+				delay = 0;
+			}
+			else if (delay >= coolTime + 1 && delay < coolTime + 1.5f)
+			{
+				flamePos = localPos;
+				shape.left = worldPos.x - 274 / 2;
+				shape.top = worldPos.y - 274 / 2;
+				shape.right = worldPos.x + 274 / 2;
+				shape.bottom = worldPos.y + 274 / 2;
+				flameOn = true;
+				fallForce = 0;
+			}// boom
+			else if (delay > coolTime && delay < coolTime + 1)
+			{
+				moveSpeed = 0;
+				fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * velocity;
+				worldPos.y -= fallForce * TimerManager::GetSingleton()->GetElapsedTime();
+			}
+		}
+
+
+		if (delay > coolTime)
 		{
 			switch (missileType)
 			{
@@ -50,11 +105,9 @@ void Missile::Update()
 			case MissileType::Normal:
 				MovingNormal();
 				break;
-			case MissileType::Mine:
-				Mine();
-				break;
 			}
-			if (missileType != MissileType::Normal) 
+
+			if (missileType == MissileType::Toplazer || missileType == MissileType::lazer)
 			{
 				currFrame += 15 * TimerManager::GetSingleton()->GetElapsedTime();
 				if (currFrame > maxFrame)
@@ -64,19 +117,30 @@ void Missile::Update()
 					delay = 0;
 				}
 			}
+			else if (missileType == MissileType::Normal && worldPos.x < 0 || worldPos.y < 0 || worldPos.x > WINSIZE_X || worldPos.y > WINSIZE_Y)
+			{
+				isFired = false;
+				delay = 0;
+			}
 		}
 	}
+	else
+		shape = { -100,-100,-100,-100 };
 }
+
 
 void Missile::Render(HDC hdc)
 {
 	if (isFired)
 	{
-		localPos.x = worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
-		localPos.y = worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
-
 		switch (missileType)
 		{
+		case MissileType::Normal:
+			if (angle >= 0 && angle <DegToRad(10) || angle > DegToRad(170) && angle <= DegToRad(180))
+				img->FrameRender(hdc, localPos.x, localPos.y, 0, 0, true, 1.3f);
+			else
+				img->rotateRender(hdc, localPos.x, localPos.y, 0, 0, angle);
+			break;
 		case MissileType::Toplazer:
 				img->FrameRender(hdc, localPos.x, localPos.y, currFrame, 0, true);
 			break;
@@ -86,31 +150,36 @@ void Missile::Render(HDC hdc)
 			else
 				img->FrameRender(hdc, localPos.x, localPos.y, 0, currFrame, true);
 			break;
-		case MissileType::Normal:
-			if (angle >= 0 && angle <DegToRad(10) || angle > DegToRad(170) && angle <= DegToRad(180))
-				img->FrameRender(hdc, localPos.x, localPos.y, 0, 0, true, 1.3f);
-			else
-				img->rotateRender(hdc, localPos.x, localPos.y, 0, 0, angle);
-			break;
 		case MissileType::Mine:
+			img->FrameRender(hdc, localPos.x, localPos.y, currFrame, 0,true);
+			minerange->FrameRender(hdc, localPos.x, localPos.y, 0, 0, true,1);
+			circleSize = 2;
 			break;
 		}
-		//Rectangle(hdc, shape.left - Camera::GetSingleton()->GetCameraPos().x , shape.top - Camera::GetSingleton()->GetCameraPos().y ,
-		//	shape.right - Camera::GetSingleton()->GetCameraPos().x , shape.bottom- Camera::GetSingleton()->GetCameraPos().y);
+	}
+	if (flameOn)
+	{
+		maxFrame = 11;
+		flameEffect[0]->FrameRender(hdc, flamePos.x, flamePos.y - 50, currFrame, 0, true);
+		flameEffect[1]->FrameRender(hdc, flamePos.x, flamePos.y + 50, currFrame, 0, true);
+		flameEffect[2]->FrameRender(hdc, flamePos.x+50, flamePos.y, currFrame, 0, true);
+		flameEffect[3]->FrameRender(hdc, flamePos.x-50, flamePos.y, currFrame, 0, true);
+		flameEffect[4]->FrameRender(hdc, flamePos.x+50, flamePos.y + 50, currFrame, 0, true);
+		flameEffect[5]->FrameRender(hdc, flamePos.x-50, flamePos.y - 50, currFrame, 0, true);
 	}
 }
 
 void Missile::MovingNormal()
 {
-	float elapsedTime = TimerManager::GetSingleton()->GetElapsedTime();
 	img = ImageManager::GetSingleton()->FindImage("Bullet");
-	worldPos.x += cosf(angle) * moveSpeed * elapsedTime;
-	worldPos.y -= sinf(angle) * moveSpeed * elapsedTime;
 
-	shape.left = worldPos.x - size / 2;
-	shape.top = worldPos.y - 1;
-	shape.right = worldPos.x + size / 2;
-	shape.bottom = worldPos.y + 1;
+	worldPos.x += cosf(angle) * moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();;
+	worldPos.y -= sinf(angle) * moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();;
+
+	shape.left = worldPos.x - size /4;
+	shape.top = worldPos.y - size / 4;
+	shape.right = worldPos.x + size / 4;
+	shape.bottom = worldPos.y + size / 4;
 }
 
 void Missile::lazer()
@@ -127,6 +196,7 @@ void Missile::Toplazer()
 {
 	maxFrame = 10;
 	img = ImageManager::GetSingleton()->FindImage("Top_lazer");
+
 	shape.left = worldPos.x - img->GetImageInfo()->frameWidth / 2;
 	shape.top = worldPos.y - img->GetImageInfo()->frameHeight / 2;
 	shape.right = worldPos.x + img->GetImageInfo()->frameWidth / 2;
@@ -135,10 +205,14 @@ void Missile::Toplazer()
 
 void Missile::Mine()
 {
+	maxFrame = 2;
+	img = ImageManager::GetSingleton()->FindImage("Mine");
+	
+	worldPos.x += cosf(angle) * moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+	worldPos.y -= sinf(angle) * moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
 
-}
-
-void Missile::SetIsFired(bool isFired)
-{
-	this->isFired = isFired;
+	shape.left = worldPos.x - img->GetImageInfo()->frameWidth / 2;
+	shape.top = worldPos.y - img->GetImageInfo()->frameHeight / 2;
+	shape.right = worldPos.x + img->GetImageInfo()->frameWidth / 2;
+	shape.bottom = worldPos.y + img->GetImageInfo()->frameHeight / 2;
 }
