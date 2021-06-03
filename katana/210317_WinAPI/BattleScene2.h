@@ -2,8 +2,8 @@
 #include "GameNode.h"
 
 //class InstallObject;
+class CommonEffect;
 class MissileManager;
-//class AstarManager;
 class ItemManager;
 class EnemyManager;
 class EnemyManager;
@@ -14,35 +14,36 @@ class Image;
 class Enemy;
 class UI;
 
-class BattleScene : public GameNode
+class BattleScene2 : public GameNode
 {
 private:
-	//AstarManager* astarManager;
-	//InstallObject* installObj;
+	CommonEffect* flameEffect;
 	CollisionManager* collisionManager;
 	MissileManager* missileManager;
 	EnemyManager* enemyManager;
 	ItemManager* itemManager;
 	UI* ui;
-	ENMY_INFO enemySize[100];
-
-	int monsterCount;
 	Enemy* enemy;
+	Enemy* boss;
 	Player* player;
 	Image* BackGround;
 	Image* curSor;
 	FPOINT bgPos;
+
+	float flameCooltime;
+	int flameIndex;
+	int page;
+	int monsterCount;
+	bool bossSpwan;
+	bool chagnePage;
 	char szText[128];
-	//TILE_INFO tileInfo[TILE_X * TILE_Y];
 public:
 	virtual HRESULT Init();
 	virtual void Release();
 	virtual void Update();
 	virtual void Render(HDC hdc);
 
-	void SetMonsterCount(int count) { this->monsterCount = count; }
-	int GetMonsterCount() { return this->monsterCount; }
-	void MapLoad(int stageNum);
-
-	virtual ~BattleScene() {};
+	virtual void SetMonsterCount(int count) { this->monsterCount = count; }
+	virtual int GetMonsterCount() { return this->monsterCount; }
+	virtual ~BattleScene2() {};
 };

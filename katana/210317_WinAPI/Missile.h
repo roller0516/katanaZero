@@ -3,6 +3,10 @@
 
 enum class MissileOwnerType {enemy,player};
 enum class MissileType {Toplazer,lazer,Normal,Mine};
+
+
+
+class CommonEffect;
 class Image;
 class Enemy;
 class Missile : public GameNode
@@ -11,11 +15,14 @@ private:
 	// ¿ÃπÃ¡ˆ
 	Image* img;
 	Image* minerange;
-	Image* flameEffect[6];
+	Image* lazerAim;
+	CommonEffect* flame;
+
 	FPOINT worldPos;
 	FPOINT localPos;
 	FPOINT flamePos;
 	RECT shape;
+
 	int size;
 	int circleSize;
 	float moveSpeed;

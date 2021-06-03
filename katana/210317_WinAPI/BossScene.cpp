@@ -19,9 +19,10 @@ HRESULT BossScene::Init()
 	missileManager = new MissileManager;
 	missileManager->Init();
 	boss = new Boss;
-	boss->Init(1100,400);
+	boss->Init(1000,600);
 	boss->GetData()->target = player;
 	boss->GetData()->missileManager = missileManager;
+	boss->GetData()->stage = 5;
 	Camera::GetSingleton()->SetWorld(1344, 784);
 
 	ShowCursor(false);

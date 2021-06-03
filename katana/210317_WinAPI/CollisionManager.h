@@ -14,10 +14,10 @@ class CollisionManager :
 private:
     int count = 0;
 public :
-    bool MissilePlayerEnemy(MissileManager* missile , Player* player, EnemyManager* enemy, BattleScene* battleScene, int index);
-    void EnemyPlayer(EnemyManager* Enemy, Player* player, BattleScene* battleScene,int index);
-    void EnemyItem(Player* player,EnemyManager* Enemy, BattleScene* battleScene, ItemManager* item, int index);
-    void PlayerDoorEnemy(Player* player, InstallObject* installobj, BattleScene* battleScene, EnemyManager* enemy,int index);
+    void MissilePlayerEnemy(MissileManager* missile , Player* player, EnemyManager* enemy, GameNode* battleScene, int index);
+    void EnemyPlayer(EnemyManager* Enemy, Player* player, GameNode* battleScene,int index);
+    void EnemyItem(Player* player,EnemyManager* Enemy, GameNode* battleScene, ItemManager* item, int index);
+    void PlayerDoorEnemy(Player* player, InstallObject* installobj, GameNode* battleScene, EnemyManager* enemy,int index);
     void BossPlayer(Player* player, Enemy* boss);
     //void OilFlamebarrel(ItemManager* item);
     //void PlayerBoom(Player* player);

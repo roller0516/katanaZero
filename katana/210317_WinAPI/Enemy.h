@@ -34,6 +34,7 @@ public:
 		string Name;
 		FPOINT worldPos = { 0, 0 };
 		FPOINT localPos = { 0, 0 };
+
 		float currFrameX = 0;
 		float velocity = 60;
 		float angle = 0;
@@ -46,12 +47,17 @@ public:
 		float attackAngle = 0.0f;
 		float knockBackPower = 0.0f;
 		float findCooltime = 0.0f;
+
 		int findCount = 0;
 		int maxFrame = 0;
 		int updateCount = 0;
 		int size = 0;
 		int Index;
 		int hp = 0;
+		int stage = 0;
+		int alpahcount = 0;
+
+		bool isalhpa = false;
 		bool isHit = false;
 		bool isTurn = false;
 		bool isKnockBack = false;
@@ -62,6 +68,7 @@ public:
 		bool isPhysic = true;
 		bool leftWall = false;
 		bool rightWall = false;
+		bool isRender = true;
 	};
 public:
 	virtual HRESULT Init(int posX = 0, int posY = 0) = 0;

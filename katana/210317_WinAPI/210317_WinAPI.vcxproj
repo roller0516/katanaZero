@@ -150,6 +150,7 @@
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CollisionManager.cpp" />
+    <ClCompile Include="CommonEffect.cpp" />
     <ClCompile Include="EnemyEffect.cpp" />
     <ClCompile Include="Enemy_Cop.cpp" />
     <ClCompile Include="Enemy_Grunt.cpp" />
@@ -186,6 +187,7 @@
     <ClInclude Include="Button.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CollisionManager.h" />
+    <ClInclude Include="CommonEffect.h" />
     <ClInclude Include="CommonFunction.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="Enemy.h" />

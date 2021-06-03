@@ -71,7 +71,7 @@ void Camera::Update()
 	if (KeyManager::GetSingleton()->IsOnceKeyDown('X'))
 		debug = false;
 	//if (KeyManager::GetSingleton()->IsOnceKeyDown('F'))
-	//	Shake(0.2f);
+	//	Shake(0.1f);
 	if (CameraShaking)
 	{
 		if (shakes > 0)

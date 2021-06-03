@@ -39,6 +39,7 @@ void MissileManager::Render(HDC hdc)
 {
     for (int i = 0; i < vMissiles.size(); i++)
     {
+
         vMissiles[i]->Render(hdc);
     }
 }

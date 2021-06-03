@@ -174,7 +174,7 @@ void Player::Render(HDC hdc)
 			
 		}	
 	}
-	//Rectangle(hdc, attackShape.left, attackShape.top, attackShape.right, attackShape.bottom);
+	Rectangle(hdc, attackShape.left, attackShape.top, attackShape.right, attackShape.bottom);
 	if (playerEffect) 
 	{
 		for (int i = 0; i < 9; i++)
@@ -238,7 +238,7 @@ void Player::RuntoIdle()
 
 void Player::Attack()
 {
-	float range = 100;
+	float range = 200;
 	Animation(PlayerState::attack);
 	
 	if (attackCount == 0) 

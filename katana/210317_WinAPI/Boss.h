@@ -43,6 +43,8 @@ private:
 	MissileManager* missileManager;
 	EnemyEffect* enemyEffect;
 	Image* head;
+	Image* lazerAim;
+	Image* boss_warning;
 	FPOINT currPos;
 	FPOINT headPos;
 	FPOINT localHeadpos;
@@ -58,13 +60,15 @@ private:
 	bool isDie;
 	bool noHead;
 	bool shot;
+	bool hide;
+	bool aim;
 	int count;
 	int maxHp;
 	int index;
 	int LastIndex;
 	int patternIndex;
 	int missileCount;
-
+	float testAngle;
 	float headFallforce;
 	float headFrame;
 	float headMaxFrame;
@@ -89,6 +93,7 @@ public:
 	void Die(bool isGround);
 	void Grab();
 	void DrawGun();
+	void DrawGunEasy();
 	void TelePort();
 	void Shoot();
 	void RecoverHide();
@@ -98,6 +103,8 @@ public:
 	void NoHead();
 
 	void changePattern(int index);
+
+	void SetHide(bool hide) { this->hide = hide; }
 
 	void Animation(BossState ani);
 	void PixelCollisionBottom();

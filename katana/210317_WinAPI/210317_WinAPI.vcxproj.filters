@@ -168,6 +168,9 @@
     <ClCompile Include="BattleScene2.cpp">
       <Filter>MainGame\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="CommonEffect.cpp">
+      <Filter>MainGame\Obj\MoveObj\Effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFunction.h">
@@ -280,6 +283,9 @@
     </ClInclude>
     <ClInclude Include="BattleScene2.h">
       <Filter>MainGame\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonEffect.h">
+      <Filter>MainGame\Obj\MoveObj\Effect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

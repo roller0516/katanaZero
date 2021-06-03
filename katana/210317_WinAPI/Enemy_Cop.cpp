@@ -37,7 +37,7 @@ HRESULT Enemy_Cop::Init(int posX, int posY)
     data->Name = "Cop";
     data->isAlive = true;
     data->attackAngle = 0;
-    data->knockBackPower = 800;
+    data->knockBackPower = 500;
     data->Index = 0;
     return S_OK;
 }
@@ -49,50 +49,61 @@ void Enemy_Cop::Release()
 
 void Enemy_Cop::Update()
 {
-    for (int i = 0; i < 8; i++)
+    if (data->isRender)
     {
-        enemyEffect[i].Update();
-    }
-    //enemyEffect[2].SetPos(data->worldPos.x - 50, data->worldPos.y - 25);
-    if (data->astar)
-        data->astar->Update();
+        for (int i = 0; i < 8; i++)
+        {
+            enemyEffect[i].Update();
+        }
+        if (data->astar)
+            data->astar->Update();
 
-    data->localPos.x = data->worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
-    data->localPos.y = data->worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
+        if (data->isalhpa)
+        {
+            data->alpahcount += 1;
+            if (data->alpahcount > 255)
+            {
+                data->alpahcount = 255;
+            }
+        }
 
-    data->currFrameX += TimerManager::GetSingleton()->GetElapsedTime() * 10;
-    if (data->currFrameX >= data->maxFrame)
-    {
-        data->currFrameX = 0;
-        if (data->isAlive == false)
-            data->currFrameX = data->maxFrame - 1;
-    }
-    if (data->target)
-        data->attackAngle = GetAngle(this->data->worldPos, data->target->GetWorldpos());
-    if (data->isAlive)
-    {
-        data->shape.left = data->worldPos.x - data->size / 2;
-        data->shape.top = data->worldPos.y - data->size / 2;
-        data->shape.right = data->worldPos.x + data->size / 2;
-        data->shape.bottom = data->worldPos.y + data->size / 2;
-    }
-    if (data->isSamPle == false && data->target == nullptr)
-        MaptoolAstar();
+        data->localPos.x = data->worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
+        data->localPos.y = data->worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
 
-    if (data->isSamPle == false)
-    {
-        Pattern();
-        if (data->isKnockBack)
-            KnockBack();
-        PixelCollisionBottom();
-        PixelCollisionRight();
-        PixelCollisionLeft();
-    }
+        data->currFrameX += TimerManager::GetSingleton()->GetElapsedTime() * 10;
+        if (data->currFrameX >= data->maxFrame)
+        {
+            data->currFrameX = 0;
+            if (data->isAlive == false)
+                data->currFrameX = data->maxFrame - 1;
+        }
+        if (data->target)
+            data->attackAngle = GetAngle(this->data->worldPos, data->target->GetWorldpos());
+        if (data->isAlive)
+        {
+            data->shape.left = data->worldPos.x - data->size / 2;
+            data->shape.top = data->worldPos.y - data->size / 2;
+            data->shape.right = data->worldPos.x + data->size / 2;
+            data->shape.bottom = data->worldPos.y + data->size / 2;
+        }
+        if (data->isSamPle == false && data->target == nullptr)
+            MaptoolAstar();
 
-    if (data->isPhysic && data->isSamPle == false)
-    {
-        data->fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * data->velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
-        data->worldPos.y -= data->fallForce * TimerManager::GetSingleton()->GetElapsedTime();
+        if (data->isSamPle == false)
+        {
+            Pattern();
+            if (data->isKnockBack)
+                KnockBack();
+            PixelCollisionBottom();
+            PixelCollisionRight();
+            PixelCollisionLeft();
+        }
+
+        if (data->isPhysic && data->isSamPle == false)
+        {
+            data->fallForce -= Gravity * TimerManager::GetSingleton()->GetElapsedTime() * data->velocity/* * TimerManager::GetSingleton()->GetElapsedTime()*/;
+            data->worldPos.y -= data->fallForce * TimerManager::GetSingleton()->GetElapsedTime();
+        }
     }
 }
 
@@ -127,7 +138,7 @@ void Enemy_Cop::Render(HDC hdc, bool world)
                 data->image->FrameRender(hdc, data->worldPos.x, data->worldPos.y, data->currFrameX, 0, true);
         }
     }
-    else
+    else if (data->isRender)
     {
         
         if (data->localPos.x > WINSIZE_X || data->localPos.y > WINSIZE_Y)
@@ -137,46 +148,52 @@ void Enemy_Cop::Render(HDC hdc, bool world)
             y = 10;
         else
             y = 0;
-
-        if (dir == EnemyDir::Left)
+        if (!data->isalhpa || data->alpahcount == 255)
         {
-            enemyEffect[2].SetPos(data->worldPos.x + 30, data->worldPos.y - 25);
-            enemyEffect[2].SetDir(EnemyEffectDir::Right);
-            enemyEffect[0].SetDir(EnemyEffectDir::Left);
-            enemyEffect[0].SetPos(data->worldPos.x - 50, data->worldPos.y - 7);
-
-          
-            if (data->isAttack)
+            if (dir == EnemyDir::Left)
             {
-                armLImage->rotateRenderFlip(hdc, data->localPos.x - 20, data->localPos.y - 10 - y, 0, 0, data->attackAngle);
-                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, true);
-                GunImage->rotateRenderFlip(hdc, data->localPos.x - 10, data->localPos.y - 10 - y, 0, 0, data->attackAngle);
-                armRImage->rotateRenderFlip(hdc, data->localPos.x + 5, data->localPos.y - 10 - y, 0, 0, data->attackAngle);
+                enemyEffect[2].SetPos(data->worldPos.x + 30, data->worldPos.y - 25);
+                enemyEffect[2].SetDir(EnemyEffectDir::Right);
+                enemyEffect[0].SetDir(EnemyEffectDir::Left);
+                enemyEffect[0].SetPos(data->worldPos.x - 50, data->worldPos.y - 7);
+
+                if (data->isAttack)
+                {
+                    armLImage->rotateRenderFlip(hdc, data->localPos.x - 20, data->localPos.y - 10 - y, 0, 0, data->attackAngle);
+                    data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, true);
+                    GunImage->rotateRenderFlip(hdc, data->localPos.x - 10, data->localPos.y - 10 - y, 0, 0, data->attackAngle);
+                    armRImage->rotateRenderFlip(hdc, data->localPos.x + 5, data->localPos.y - 10 - y, 0, 0, data->attackAngle);
+                }
+                else if (state == EnemyState::hurt)
+                    data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
+                else
+                    data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, true);
             }
-            else if (state == EnemyState::hurt)
-                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
             else
-                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, true);
+            {
+                enemyEffect[2].SetPos(data->worldPos.x - 30, data->worldPos.y - 25);
+                enemyEffect[2].SetDir(EnemyEffectDir::Left);
+                enemyEffect[0].SetDir(EnemyEffectDir::Right);
+                enemyEffect[0].SetPos(data->worldPos.x + 50, data->worldPos.y - 14);
+
+                if (data->isAttack)
+                {
+                    armLImage->rotateRender(hdc, data->localPos.x + 20, data->localPos.y - y - 10, 0, 0, data->attackAngle);
+                    data->image->FrameRender(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, true);
+                    GunImage->rotateRender(hdc, data->localPos.x + 10, data->localPos.y - 10 - y, 0, 0, data->attackAngle);
+                    armRImage->rotateRender(hdc, data->localPos.x - 5, data->localPos.y - 10 - y, 0, 0, data->attackAngle);
+                }
+                else if (state == EnemyState::hurt)
+                    data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
+                else
+                    data->image->FrameRender(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, true);
+            }
         }
-        else
+        else if (data->isalhpa)
         {
-            enemyEffect[2].SetPos(data->worldPos.x - 30, data->worldPos.y - 25);
-            enemyEffect[2].SetDir(EnemyEffectDir::Left);
-            enemyEffect[0].SetDir(EnemyEffectDir::Right);
-            enemyEffect[0].SetPos(data->worldPos.x + 50, data->worldPos.y - 14);
-
-            if (data->isAttack)
-            {
-                armLImage->rotateRender(hdc, data->localPos.x + 20, data->localPos.y - y - 10, 0, 0, data->attackAngle);
-                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, true);
-                GunImage->rotateRender(hdc, data->localPos.x + 10, data->localPos.y - 10 - y, 0, 0, data->attackAngle);
-                armRImage->rotateRender(hdc, data->localPos.x - 5, data->localPos.y - 10 - y, 0, 0, data->attackAngle);
-            }
-            else if (state == EnemyState::hurt)
-                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
-            else
-                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, true);
+            data->image->AlphaRender(hdc, data->localPos.x, data->localPos.y - y, data->currFrameX, 0, data->alpahcount, true);
         }
+
 
     }
 
@@ -359,6 +376,17 @@ void Enemy_Cop::Run()
             dir = EnemyDir::Left;
 
     }
+    else if (data->isalhpa)
+    {
+        float angle = GetAngle(data->worldPos, data->target->Getpos());
+
+        data->worldPos.x += cosf(angle) * data->moveSpeed * TimerManager::GetSingleton()->GetElapsedTime();
+
+        if (data->target->Getpos().x >= data->worldPos.x)
+            dir = EnemyDir::Right;
+        else
+            dir = EnemyDir::Left;
+    }
 
     state = EnemyState::run;
     Animation(state);
@@ -436,10 +464,10 @@ void Enemy_Cop::KnockBack()
         data->isKnockBack = false;
         return;
     }
-
-    data->knockBackPower -= 100 * TimerManager::GetSingleton()->GetElapsedTime();
+    data->fallForce = 0;
+    data->knockBackPower -= 500 * TimerManager::GetSingleton()->GetElapsedTime();
     data->worldPos.x += cosf(angle) * data->knockBackPower * TimerManager::GetSingleton()->GetElapsedTime();
-    data->worldPos.y -= sinf(angle) * data->knockBackPower * TimerManager::GetSingleton()->GetElapsedTime();
+    data->worldPos.y -= sinf(angle) * 1000 * TimerManager::GetSingleton()->GetElapsedTime();
 }
 
 

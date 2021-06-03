@@ -29,8 +29,6 @@ HRESULT BattleScene::Init()
 	ui->Init();
 	player->SetUI(ui);
 
-	
-
 	itemManager = new ItemManager;
 	itemManager->AddItem("Knife",new Item);
 	itemManager->Init(WINSIZE_X/2-100, WINSIZE_Y / 2,player);
@@ -67,6 +65,7 @@ HRESULT BattleScene::Init()
 		enemyManager->GetMonsterList()[i]->GetData()->astar->SetOnwer(enemyManager->GetMonsterList()[i]);
 		enemyManager->GetMonsterList()[i]->GetData()->astar->SetTarget(player);
 		enemyManager->GetMonsterList()[i]->GetData()->missileManager = missileManager;
+
 		for (int j = 0; j < TILE_Y; j++)
 		{
 			for (int k = 0; k < TILE_X; k++)
@@ -90,6 +89,7 @@ void BattleScene::Release()
 	SAFE_RELEASE(itemManager);
 	SAFE_RELEASE(enemyManager);
 	SAFE_RELEASE(player);
+	SAFE_RELEASE(missileManager);
 }
 
 void BattleScene::Update()
@@ -112,10 +112,10 @@ void BattleScene::Update()
 		ui->SetClear(true);
 	for (int i = 0; i < enemyManager->GetMonsterList().size(); i++) 
 	{
-		if (collisionManager->MissilePlayerEnemy(missileManager, player, enemyManager, this, i)) 
-		{
+		collisionManager->MissilePlayerEnemy(missileManager, player, enemyManager, this, i);
+		
 
-		}
+		
 		collisionManager->EnemyPlayer(enemyManager, player,this, i);
 		collisionManager->EnemyItem(player, enemyManager,this, itemManager, i);
 		collisionManager->PlayerDoorEnemy(player, installObj,this, enemyManager, i);
@@ -123,7 +123,7 @@ void BattleScene::Update()
 
 	if (player->GetSceneChange()) 
 	{
-		SceneManager::GetSingleton()->ChangeScene("보스전투");
+		SceneManager::GetSingleton()->ChangeScene("전투_2");
 	}
 }
 

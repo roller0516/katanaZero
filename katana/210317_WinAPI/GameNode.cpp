@@ -23,6 +23,15 @@ void GameNode::Render(HDC hdc)
 {
 }
 
+void GameNode::SetMonsterCount(int count)
+{
+}
+
+int GameNode::GetMonsterCount()
+{
+	return 0;
+}
+
 GameNode::GameNode()
 {
 }

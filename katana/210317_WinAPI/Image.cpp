@@ -215,7 +215,7 @@ void Image::CameraRender(HDC hdc, float destX, float destY, int width, int heigh
 void Image::rotateRender(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle, float size)
 {
     POINT rPoint[3];
-    int dist = sqrt((imageInfo->frameWidth / 2) * (imageInfo->frameWidth / 2) + (imageInfo->frameHeight / 2) * (imageInfo->frameHeight / 2));
+    int dist = sqrtf((imageInfo->frameWidth / 2) * (imageInfo->frameWidth / 2) + (imageInfo->frameHeight / 2) * (imageInfo->frameHeight / 2));
     float baseAngle[3];
     baseAngle[0] = PI - atanf(((float)imageInfo->frameHeight / 2) / ((float)imageInfo->frameWidth / 2));
     baseAngle[1] = atanf(((float)imageInfo->frameHeight / 2) / ((float)imageInfo->frameWidth / 2));
@@ -268,7 +268,7 @@ void Image::rotateRender(HDC hdc, float destX, float destY, int currentFrameX, i
 void Image::rotateRenderFlip(HDC hdc, float destX, float destY, int currentFrameX, int currentFrameY, float angle, float size )
 {
     POINT rPoint[3];
-    int dist = sqrt((imageInfo->frameWidth / 2) * (imageInfo->frameWidth / 2) + (imageInfo->frameHeight / 2) * (imageInfo->frameHeight / 2));
+    int dist = sqrtf((imageInfo->frameWidth / 2) * (imageInfo->frameWidth / 2) + (imageInfo->frameHeight / 2) * (imageInfo->frameHeight / 2));
     float baseAngle[3];
     baseAngle[0] = PI - atanf(((float)imageInfo->frameHeight / 2) / ((float)imageInfo->frameWidth / 2));
     baseAngle[1] = atanf(((float)imageInfo->frameHeight / 2) / ((float)imageInfo->frameWidth / 2));

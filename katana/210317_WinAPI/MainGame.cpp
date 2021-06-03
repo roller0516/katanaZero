@@ -3,6 +3,7 @@
 #include "TilemapTool.h"
 #include "BattleScene.h"
 #include "BossScene.h"
+#include "BattleScene2.h"
 
 HRESULT MainGame::Init()
 {
@@ -20,6 +21,7 @@ HRESULT MainGame::Init()
 	backBuffer->Init(maxWidth, maxHeight);
 
 	SceneManager::GetSingleton()->AddScene("전투_1", new BattleScene());
+	SceneManager::GetSingleton()->AddScene("전투_2", new BattleScene2());
 	SceneManager::GetSingleton()->AddScene("타일맵툴", new TilemapTool());
 	SceneManager::GetSingleton()->AddScene("보스전투", new BossScene());
 

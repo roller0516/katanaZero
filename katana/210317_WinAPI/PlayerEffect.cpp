@@ -54,8 +54,6 @@ void PlayerEffect::Update()
     
     if (isAlive) 
     {
-       //if (localPos.x > WINSIZE_X || localPos.y > WINSIZE_Y)
-       //    return;
         if (effectType == EffectType::hitEffect) 
         {
             worldPos.x += cosf(owner->GetPlayerAngle()) * 1000000 * TimerManager::GetSingleton()->GetElapsedTime();

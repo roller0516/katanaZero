@@ -10,9 +10,9 @@
 #include "Enemy.h"
 #include "installObject.h"
 #include "Boss.h"
-#include "BattleScene.h"
+#include "GameNode.h"
 
-bool CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* player, EnemyManager* enemy, BattleScene* battleScene, int index)
+void CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* player, EnemyManager* enemy, GameNode* battleScene, int index)
 {
 	RECT rcTemp, rcplayer, rcmissile,rcReflect,rcEnemy;
 	rcplayer = player->GetRect();
@@ -30,10 +30,10 @@ bool CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* playe
 			{
 				missile->GetMissile()[i]->SetAngle(player->GetPlayerAngle());
 				missile->GetMissile()[i]->SetOwnerType(MissileOwnerType::player);
-				return true;
 			}
 			missile->GetMissile()[i]->SetPos(-100, -100);
-			return true;
+			missile->GetMissile()[i]->SetIsFired(false);
+			break;
 		}
 
 		if (missile->GetMissile()[i]->GetIsFired() == true
@@ -43,20 +43,19 @@ bool CollisionManager::MissilePlayerEnemy(MissileManager* missile, Player* playe
 			TimerManager::GetSingleton()->SetTimeStop(true);
 			player->ReflectEffect();
 			player->HitEffect(enemy->GetMonsterList()[index]->GetData()->worldPos.x,
-				enemy->GetMonsterList()[index]->GetData()->worldPos.y);
-			missile->GetMissile()[i]->SetPos(-100, -100);
+			enemy->GetMonsterList()[index]->GetData()->worldPos.y);
 			enemy->GetMonsterList()[index]->GetData()->isAlive = false;
 			enemy->GetMonsterList()[index]->GetData()->shape = { -100,-100,-100,-100 };
 			battleScene->SetMonsterCount(battleScene->GetMonsterCount() - 1);
-			return true;
+			missile->GetMissile()[i]->SetPos(-100, -100);
+			missile->GetMissile()[i]->SetIsFired(false);
+			break;
 		}
-		return false;
 	}
-	
 }
 
 
-void CollisionManager::EnemyPlayer(EnemyManager* enemy, Player* player, BattleScene* battleScene, int index)
+void CollisionManager::EnemyPlayer(EnemyManager* enemy, Player* player, GameNode* battleScene, int index)
 {
 	RECT rcTemp, rcplayer, rcEnemy;
 	rcplayer = player->GetAttackShape();
@@ -72,7 +71,7 @@ void CollisionManager::EnemyPlayer(EnemyManager* enemy, Player* player, BattleSc
 	}
 }
 
-void CollisionManager::EnemyItem(Player* player, EnemyManager* enemy, BattleScene* battleScene, ItemManager* item, int index)
+void CollisionManager::EnemyItem(Player* player, EnemyManager* enemy, GameNode* battleScene, ItemManager* item, int index)
 {
 	RECT rcTemp, rcitem, rcEnemy;
 	rcitem = item->GetItemList()[player->GetItemIndex()]->GetRect();
@@ -88,7 +87,7 @@ void CollisionManager::EnemyItem(Player* player, EnemyManager* enemy, BattleScen
 	}
 }
 
-void CollisionManager::PlayerDoorEnemy(Player* player, InstallObject* installobj, BattleScene* battleScene, EnemyManager* enemy, int index)
+void CollisionManager::PlayerDoorEnemy(Player* player, InstallObject* installobj, GameNode* battleScene, EnemyManager* enemy, int index)
 {
 	RECT rcTemp, rcTemp2 , rcTemp3,rcPlayer, rcDoor, rcEnemy, rcDoorAttack;
 	FPOINT currPos = player->GetWorldpos();

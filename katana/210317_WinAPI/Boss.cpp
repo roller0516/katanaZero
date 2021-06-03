@@ -35,6 +35,8 @@ HRESULT Boss::Init(int posX, int posY)
 	ImageManager::GetSingleton()->AddImage("boss_headhunter_walljump", "Image/Katana/boss/boss_walljump_7x2.bmp", 756, 248, 7, 2, true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("boss_headhunter_no_head", "Image/Katana/boss/boss_nohead_6x2.bmp", 720, 88, 6, 2, true, RGB(255, 0, 255));
 
+    boss_warning = ImageManager::GetSingleton()->AddImage("boss_warning", "Image/Katana/dsBuffer.bmp", 907,2,1,1, true, RGB(255, 0, 255));
+    lazerAim = ImageManager::GetSingleton()->AddImage("boss_aimlazer", "Image/Katana/boss/boss_aimlazer.bmp", 1000, 2,1,1, true, RGB(255, 0, 255));
 	head = ImageManager::GetSingleton()->AddImage("boss_headhunter_head_fly", "Image/Katana/boss/boss_headfly_8x2.bmp", 320, 84, 8, 2, true, RGB(255, 0, 255));
 	ImageManager::GetSingleton()->AddImage("boss_headhunter_head_ground", "Image/Katana/boss/boss_headground_8x2.bmp", 720, 56, 8, 2, true, RGB(255, 0, 255));
 
@@ -85,10 +87,7 @@ void Boss::Update()
         }
     }
 
-	//for (int i = 0; i < 8; i++)
-	//{
-	//	enemyEffect[i].Update();
-	//}
+
 	data->localPos.x = data->worldPos.x - Camera::GetSingleton()->GetCameraPos().x;
 	data->localPos.y = data->worldPos.y - Camera::GetSingleton()->GetCameraPos().y;
     localHeadpos.x = headPos.x - Camera::GetSingleton()->GetCameraPos().x;
@@ -108,8 +107,6 @@ void Boss::Update()
             data->currFrameX = data->maxFrame - 1;
         else
             data->currFrameX = 0;
-		if (data->isAlive == false)
-			data->currFrameX = data->maxFrame - 1;
 	}
 
 
@@ -127,13 +124,15 @@ void Boss::Update()
             data->shape.right = data->worldPos.x + 44 / 2;
             data->shape.bottom = data->worldPos.y + 88 / 2;
         }
+        Pattern();
 	}
+    else
+        data->shape = { -1000,-1000,-1000,-1000 };
+        
+
 	PixelCollisionBottom();
 	PixelCollisionRight();
 	PixelCollisionLeft();
-
-	Pattern();
-
 
 	if (data->isPhysic)
 	{
@@ -146,31 +145,46 @@ void Boss::Update()
 
 void Boss::Render(HDC hdc,bool World)
 {
-    if (dir == EnemyDir::Left) 
+    if (data->isAlive)
     {
-        if(state == BossState::RecoverHide)
-            data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y - 10, data->currFrameX, 0, true);
-        else if (state == BossState::Head_no)
-            data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y + 20, data->currFrameX, 0, true);
-        else if(state == BossState::Dead)
-            data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y+20, data->currFrameX, 0, true);
+        if (state == BossState::TelePort_Fly && aim)
+            lazerAim->rotateRender(hdc, data->localPos.x, data->localPos.y+500, 0, 0, DegToRad(-90));
+        if (dir == EnemyDir::Left)
+        {
+            if (state == BossState::PreDash || state == BossState::Dash && aim)
+                boss_warning->Render(hdc, data->localPos.x- 900, data->localPos.y);
+            if (state == BossState::Aim && aim)
+                lazerAim->FrameRender(hdc, data->localPos.x-1000, data->localPos.y, 0, 0);
+
+            if (state == BossState::RecoverHide)
+                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y - 10, data->currFrameX, 0, true);
+            else if (state == BossState::Head_no)
+                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y + 20, data->currFrameX, 0, true);
+            else if (state == BossState::Dead)
+                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y + 20, data->currFrameX, 0, true);
+            else
+                data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
+            if (noHead)
+                head->FrameRender(hdc, localHeadpos.x, localHeadpos.y, headFrame, 0, true);
+        }
         else
-            data->image->FrameRenderFlip(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
-        if(noHead)
-            head->FrameRender(hdc, localHeadpos.x, localHeadpos.y, headFrame, 0, true);
-    }
-    else 
-    {
-        if (state == BossState::RecoverHide)
-            data->image->FrameRender(hdc, data->localPos.x, data->localPos.y - 10, data->currFrameX, 0, true);
-        else if (state == BossState::Head_no)
-            data->image->FrameRender(hdc, data->localPos.x, data->localPos.y + 20, data->currFrameX, 0, true);
-        else if (state == BossState::Dead)
-            data->image->FrameRender(hdc, data->localPos.x, data->localPos.y+20, data->currFrameX, 0, true);
-        else
-            data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
-        if(noHead)
-            head->FrameRender(hdc, localHeadpos.x, localHeadpos.y, headFrame,headFrame ,0, true);
+        {
+            if (state == BossState::PreDash || state == BossState::Dash && aim)
+                boss_warning->Render(hdc, data->localPos.x, data->localPos.y);
+            if (state == BossState::Aim && aim)
+                lazerAim->FrameRender(hdc, data->localPos.x, data->localPos.y, 0, 0);
+
+            if (state == BossState::RecoverHide)
+                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y - 10, data->currFrameX, 0, true);
+            else if (state == BossState::Head_no)
+                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y + 20, data->currFrameX, 0, true);
+            else if (state == BossState::Dead)
+                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y + 20, data->currFrameX, 0, true);
+            else
+                data->image->FrameRender(hdc, data->localPos.x, data->localPos.y, data->currFrameX, 0, true);
+            if (noHead)
+                head->FrameRender(hdc, localHeadpos.x, localHeadpos.y, headFrame, headFrame, 0, true);
+        }
     }
     //Rectangle(hdc, data->shape.left- Camera::GetSingleton()->GetCameraPos().x, data->shape.top - Camera::GetSingleton()->GetCameraPos().y
     //    , data->shape.right - Camera::GetSingleton()->GetCameraPos().x, data->shape.bottom - Camera::GetSingleton()->GetCameraPos().y);
@@ -183,64 +197,78 @@ Enemy* Boss::Clone()
 
 void Boss::Pattern()
 {
-    float distance = Distance(data->worldPos, data->target->Getpos());
-    
-    NoHead();
-    if (data->hp == 0)
+    if (data->stage == 4) 
     {
-        if (isDie == false) 
+        //if(data->isHit)
+        DrawGunEasy();
+        
+        if(data->isHit)// 알파블랜딩
         {
-            start = false;
-            index = 0;
-        } 
-        else 
-        {
-            index = 1;
+            Hurt();
         }
-        Die(isGround);
-        return;
-    }
-    else if (data->hp > 0 && data->isHit && isGround)
-    {
-        data->isHit = false;
-        start = false;
-        index = 0;
-        patternIndex = 6;
-    }
-    else if (data->hp > 0 && data->isHit && isGround == false)
-    {
-        data->isPhysic = true;
-        data->isHit = false;
-        start = false;
-        index = 0;
-        patternIndex = 6;
     }
 
-    switch (patternIndex)
+    if (data->stage == 5) 
     {
-    case 0:
-        Dash();
-        break;
-    case 1:
-        Grab();
-        break;
-    case 2:
-        SkyShoot(); 
-        break;
-    case 3:
-        TelePort();
-        break;
-    case 4:
-        DrawGun();
-        break;
-    case 5:
-        Shoot();
-        break;
-    case 6:
-        Hurt();
-        break;
-    default:
-        break;
+        float distance = Distance(data->worldPos, data->target->Getpos());
+
+        NoHead();
+        if (data->hp == 0)
+        {
+            if (isDie == false)
+            {
+                start = false;
+                index = 0;
+            }
+            else
+            {
+                index = 1;
+            }
+            Die(isGround);
+            return;
+        }
+        else if (data->hp > 0 && data->isHit && isGround)
+        {
+            data->isHit = false;
+            start = false;
+            index = 0;
+            patternIndex = 6;
+        }
+        else if (data->hp > 0 && data->isHit && isGround == false)
+        {
+            data->isPhysic = true;
+            data->isHit = false;
+            start = false;
+            index = 0;
+            patternIndex = 6;
+        }
+
+        switch (patternIndex)
+        {
+        case 0:
+            Dash();
+            break;
+        case 1:
+            Grab();
+            break;
+        case 2:
+            SkyShoot();
+            break;
+        case 3:
+            TelePort();
+            break;
+        case 4:
+            DrawGun();
+            break;
+        case 5:
+            Shoot();
+            break;
+        case 6:
+            Hurt();
+            break;
+        default:
+            break;
+        }
     }
 }
 
@@ -272,10 +300,13 @@ void Boss::SkyShoot()
    
     if (index < 5 && start == false)
     {
+        aim = true;
         start = true;
         data->currFrameX = 0;
         state = BossState::TelePort_Fly;
         Animation(BossState::TelePort_Fly);
+        if (data->currFrameX > 4)
+            aim = false;
         data->isPhysic = false;
         data->worldPos.y = 200;
         data->worldPos.x = randNum;
@@ -302,6 +333,7 @@ void Boss::Dash()
     data->attackRange = 800;
     if (index == 0 && start == false) 
     {
+        
         if (WINSIZE_X / 2 > data->target->GetWorldpos().x)//left
         {
             data->worldPos.x = 1100;
@@ -309,13 +341,14 @@ void Boss::Dash()
         }
         else
         {
-            data->worldPos.x = 300;
+            data->worldPos.x = 250;
             data->worldPos.y = 600;
         }
         if (data->target->GetWorldpos().x >= data->worldPos.x)
             dir = EnemyDir::Right;
         else
             dir = EnemyDir::Left;
+
         start = true;
         data->currFrameX = 0;
         state = BossState::In_Pattern;
@@ -325,13 +358,13 @@ void Boss::Dash()
     else if (index == 1 && start == false)
     {
         Idle();
+        aim = true;
         start = true;
         data->currFrameX = 0;
         state = BossState::PreDash;
         Animation(BossState::PreDash);
         index++;
     }
-
     else if (index == 2 && start == false)
     {
         start = true;
@@ -344,6 +377,7 @@ void Boss::Dash()
     {
         currPos = data->worldPos;
         start = true;
+        aim = false;
         data->currFrameX = 0;
         state = BossState::DashEnd;
         Animation(BossState::DashEnd);
@@ -448,12 +482,12 @@ void Boss::Grab()
         if (dir == EnemyDir::Right)
         {
             angle = DegToRad(170);
-            data->worldPos.x += cosf(angle) * 200 * TimerManager::GetSingleton()->GetElapsedTime();
+            data->worldPos.x += cosf(angle) * 800 * TimerManager::GetSingleton()->GetElapsedTime();
         }
         else
         {
             angle = DegToRad(10);
-            data->worldPos.x += cosf(angle) * 200 * TimerManager::GetSingleton()->GetElapsedTime();
+            data->worldPos.x += cosf(angle) * 500 * TimerManager::GetSingleton()->GetElapsedTime();
         }
     }
 
@@ -525,7 +559,7 @@ void Boss::Grab()
             dir = EnemyDir::Left;
 
         if (index == 3)
-            data->fallForce = 500;
+            data->fallForce = 600;
 
         missileCount = 0;
         data->isPhysic = true;
@@ -545,18 +579,22 @@ void Boss::DrawGun()
     if (data->isHit)
         return;
 
-    if (patterChange)
+    if (data->stage == 5) 
     {
-        patterChange = false;
-        patternIndex = 3;
-        return;
+        if (patterChange)
+        {
+            patterChange = false;
+            patternIndex = 3;
+            aim = false;
+            return;
+        }
     }
 
     if (index == 0 && start == false)
     {
         if (WINSIZE_X / 2 > data->target->GetWorldpos().x)//left
         {
-            data->worldPos.x = 1100;
+            data->worldPos.x = 1000;
             data->worldPos.y = 600;
         }
         else
@@ -564,16 +602,16 @@ void Boss::DrawGun()
             data->worldPos.x = 300;
             data->worldPos.y = 600;
         }
-        if (data->target->GetWorldpos().x >= data->worldPos.x) 
-            dir = EnemyDir::Right;
-        else 
-            dir = EnemyDir::Left;
-           
         start = true;
         data->currFrameX = 0;
         state = BossState::In_Pattern;
         Animation(BossState::In_Pattern);
         index++;
+
+        if (data->target->GetWorldpos().x >= data->worldPos.x)
+            dir = EnemyDir::Right;
+        else
+            dir = EnemyDir::Left;
     }
     else if (index == 1 && start == false)
     {
@@ -586,8 +624,76 @@ void Boss::DrawGun()
         state = BossState::DrawGun;
         Animation(BossState::DrawGun);
         index++;
+    }
+    else if (index == 2 && start == false)
+    {
+        aim = true;
+        start = true;
+        data->currFrameX = 0;
+        state = BossState::Aim;
+        Animation(BossState::Aim);
+        index++;
         LastIndex = index;
     }
+}
+
+void Boss::DrawGunEasy()
+{
+    if (data->isHit)
+        return;
+
+    if (index == 0 && start == false)
+    {
+        if (index == 0) 
+        {
+            if (WINSIZE_X / 2 > data->target->GetWorldpos().x)//left
+            {
+                data->worldPos.x = 1000;
+                data->worldPos.y = 900;
+            }
+            else
+            {
+                data->worldPos.x = 250;
+                data->worldPos.y = 900;
+            }
+        }
+        start = true;
+        data->currFrameX = 0;
+        index++;
+
+        if (data->target->GetWorldpos().x >= data->worldPos.x)
+            dir = EnemyDir::Right;
+        else
+            dir = EnemyDir::Left;
+    }
+    else if (index == 1 && start == false)
+    {
+        start = true;
+        data->currFrameX = 0;
+        state = BossState::DrawGun;
+        Animation(BossState::DrawGun);
+        index++;
+    }
+    else if (index == 2 && start == false)
+    {
+        //if (dir == EnemyDir::Left)
+        //    data->missileManager->Lazer(DegToRad(180), data->worldPos.x - 790, data->worldPos.y, 1.5f);
+        //if (dir == EnemyDir::Right)
+        //    data->missileManager->Lazer(DegToRad(0), data->worldPos.x + 790, data->worldPos.y, 1.5f);
+
+        aim = true;
+        start = true;
+        data->currFrameX = 0;
+        state = BossState::Aim;
+        Animation(BossState::Aim);
+
+        if (data->isHit) 
+        {
+            index++;
+            LastIndex = index;
+        }
+    }
+
 }
 
 void Boss::TelePort()
@@ -646,17 +752,32 @@ void Boss::Shoot()
     {
         if (index == 0) 
         {
+            if (WINSIZE_X / 2 > data->target->GetWorldpos().x)//left
+            {
+                data->worldPos.x = 1000;
+                data->worldPos.y = 600;
+            }
+            else
+            {
+                data->worldPos.x = 300;
+                data->worldPos.y = 600;
+            }
             if (data->target->GetWorldpos().x >= data->worldPos.x)
                 dir = EnemyDir::Right;
             else
                 dir = EnemyDir::Left;
-
-            data->attackAngle = (rand()%30)+10;
         }
-        if(dir == EnemyDir::Right)
-            data->missileManager->Mine(DegToRad(data->attackAngle+=15),data->worldPos.x,data->worldPos.y,0.5f);
-        else
+        if (dir == EnemyDir::Right) 
+        {
+            data->attackAngle = (rand() % 30) + 10;
+            data->missileManager->Mine(DegToRad(data->attackAngle += 15), data->worldPos.x, data->worldPos.y, 0.5f);
+        }
+        else 
+        {
+            data->attackAngle = (rand() % 30) + 140;
             data->missileManager->Mine(DegToRad(data->attackAngle -= 15), data->worldPos.x, data->worldPos.y, 0.5f);
+        }
+            
         start = true;
         data->currFrameX = 0;
         state = BossState::Shoot;
@@ -790,6 +911,11 @@ void Boss::Animation(BossState ani)
         }
         else if (isGround && index == 1) 
         {
+            if (data->stage == 4) 
+            {
+                data->isHit = false;
+                data->isAlive = false;
+            }
             data->maxFrame = 13;
             LastIndex = index;
         }
@@ -863,8 +989,8 @@ void Boss::Animation(BossState ani)
 
 void Boss::PixelCollisionBottom()
 {
-    //if (state == BossState::Jump)
-    //    return;
+    if (state == BossState::Jump)
+        return;
     COLORREF color;
     int R, G, B;
     float playerHeight = 40;

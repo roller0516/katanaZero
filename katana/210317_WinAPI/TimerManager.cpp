@@ -49,8 +49,8 @@ float TimerManager::GetElapsedTime()
     }
     
        
-    //return 0.005;
-    return timer->GetElapsedTime();
+    return 0.005;
+    //return timer->GetElapsedTime();
 }
 
 float TimerManager::GetCurrTime()
